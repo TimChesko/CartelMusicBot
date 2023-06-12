@@ -4,7 +4,7 @@ import json
 from aiogram import Dispatcher, Bot
 from aiogram.fsm.storage.redis import RedisStorage
 from redis.asyncio.client import Redis
-from src import utils
+from src import utils, middlewares
 from src.data import config
 from src.database.process import DatabaseEngine, AsyncDatabaseManager
 from src import handlers
@@ -15,8 +15,8 @@ async def set_handlers(dp: Dispatcher) -> None:
     dp.include_router(handlers.router)
 
 
-async def set_middlewares() -> None:
-    pass
+async def set_middlewares(dp: Dispatcher) -> None:
+    dp.include_router(middlewares.router)
 
 
 async def set_logging(dp: Dispatcher) -> None:
@@ -33,7 +33,7 @@ async def setup_aiogram(dp: Dispatcher) -> None:
     logger = dp["aiogram_logger"]
     logger.info("Configuring aiogram")
     await set_handlers(dp)
-    await set_middlewares()
+    await set_middlewares(dp)
     logger.info("Configured aiogram")
 
 
