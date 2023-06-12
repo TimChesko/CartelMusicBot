@@ -4,8 +4,6 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.ext.asyncio.engine import AsyncEngine
 from sqlalchemy.orm import sessionmaker
 
-from src.models.tables import Base
-
 
 class AsyncDatabaseManager:
     def __init__(self,
@@ -20,10 +18,10 @@ class AsyncDatabaseManager:
         async with async_session() as session:
             yield session
 
-    async def create_tables(self):
-        async with self.engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-            self.logger.debug("Created tables")
+    # async def create_tables(self):
+    #     async with self.engine.begin() as conn:
+    #         await conn.run_sync(Base.metadata.create_all)
+    #         self.logger.debug("Created tables")
 
     async def add(self, query):
         async with self.create_session() as session:

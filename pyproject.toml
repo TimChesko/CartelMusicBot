@@ -13,8 +13,6 @@ apscheduler = "^3.10.1"
 redis = "^4.5.5"
 structlog = "^23.1.0"
 aiogram = "^3.0.0b7"
-asyncpgsa = "^0.27.1"
-openai = "^0.27.8"
 sqlalchemy = "^2.0.15"
 
 [build-system]
