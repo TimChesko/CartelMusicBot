@@ -1,0 +1,16 @@
+{
+  "default": {
+      "count_request": 10
+  },
+  "pay": {
+    "lvl_1": {
+      "count_request": 25
+    },
+    "lvl_2": {
+      "count_request": 50
+    },
+    "lvl_3": {
+      "count_request": 100
+    }
+  }
+}
