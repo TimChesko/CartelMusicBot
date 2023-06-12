@@ -6,7 +6,7 @@ env.read_env()
 
 BOT_TOKEN: str = env.str("BOT_TOKEN")
 # 23434:ASD43245sdf
-ADMINS: list = list(map(int, env.list("ADMINS")))
+DEVELOPERS: list = list(map(int, env.list("DEVELOPERS")))
 # =234234,234234,234234
 
 LOGGING_LEVEL: int = env.int("LOGGING_LEVEL")
