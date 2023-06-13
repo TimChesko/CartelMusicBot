@@ -1,27 +1,19 @@
 import asyncio
 
 from aiogram import Dispatcher, Bot
-from aiogram.fsm.storage.redis import RedisStorage
+from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
+from aiogram_dialog import setup_dialogs
 from redis.asyncio.client import Redis
+
+from src import handlers
 from src import utils
 from src.data import config
-from src.database.process import DatabaseEngine, AsyncDatabaseManager
-from src import handlers
-from src.service.diologs_collector import DialogsCollector
+from src.database.process import DatabaseEngine
 from src.utils.notify import notify_admins
 
 
 async def set_handlers(dp: Dispatcher) -> None:
     dp.include_router(handlers.router)
-
-
-async def set_middlewares() -> None:
-    pass
-
-
-async def set_dialogs(dp: Dispatcher):
-    dp['dialogs_collector'].include_dialog(handlers.collector)
-    dp['aiogram_logger'].debug(f"Test dialogs collector: {dp['dialogs_collector']}")
 
 
 async def set_logging(dp: Dispatcher) -> None:
@@ -38,8 +30,7 @@ async def setup_aiogram(dp: Dispatcher) -> None:
     logger = dp["aiogram_logger"]
     logger.info("Configuring aiogram")
     await set_handlers(dp)
-    await set_middlewares()
-    await set_dialogs(dp)
+    setup_dialogs(dp)
     logger.info("Configured aiogram")
 
 
@@ -72,13 +63,13 @@ async def main() -> None:
                 password=None,
                 port=config.FSM_PORT,
                 db=0,
-            )
+            ),
+            key_builder=DefaultKeyBuilder(with_destiny=True)
         )
     )
 
     dp['config'] = config
     dp['bot'] = bot
-    dp['dialogs_collector'] = DialogsCollector()
 
     dp.startup.register(on_startup_polling)
     dp.shutdown.register(on_shutdown_polling)

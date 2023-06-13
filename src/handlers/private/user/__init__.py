@@ -1,10 +1,7 @@
 from aiogram import Router
 
-from src.service.diologs_collector import DialogsCollector
-from . import start
+from . import start, test
 
 router = Router()
-router.include_router(start.router)
-
-collector = DialogsCollector()
-collector.include_dialog(start.dialogs)
+router.include_router(test.router)
+router.include_router(test.dialog)
