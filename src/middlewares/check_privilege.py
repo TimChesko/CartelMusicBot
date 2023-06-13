@@ -7,7 +7,6 @@ from src.models.user import UserHandler
 
 
 class CheckPrivilege:
-    available_privilege = ["user", "tester", "moderator", "admin"]
 
     def __init__(self, privilege):
         self.privilege = privilege
@@ -20,11 +19,23 @@ class CheckPrivilege:
 
         info = await UserHandler(data['engine'], data['database_logger']).get_privilege_by_tg_id(event.from_user.id)
 
-        if event.from_user.id in config.DEVELOPERS:
+        if event.from_user.id in data['config'].DEVELOPERS:
             return await handler(event, data)
-        elif self.privilege in self.available_privilege and info in self.available_privilege:
-            user_privilege_index = self.available_privilege.index(info)
-            privilege_index = self.available_privilege.index(self.privilege)
+        elif self.privilege in data['config'].PRIVILEGES and info in data['config'].PRIVILEGES:
+            user_privilege_index = data['config'].PRIVILEGES.index(info)
+            privilege_index = data['config'].PRIVILEGES.index(self.privilege)
             if user_privilege_index >= privilege_index:
                 return await handler(event, data)
         return
+
+    async def simple(self, engine, logger, msg, cfg) -> bool:
+        info = await UserHandler(engine, logger).get_privilege_by_tg_id(msg.from_user.id)
+
+        if msg.from_user.id in cfg.DEVELOPERS:
+            return True
+        elif self.privilege in cfg.PRIVILEGES and info in cfg.PRIVILEGES:
+            user_privilege_index = cfg.PRIVILEGES.index(info)
+            privilege_index = cfg.PRIVILEGES.index(self.privilege)
+            if user_privilege_index >= privilege_index:
+                return True
+        return False
