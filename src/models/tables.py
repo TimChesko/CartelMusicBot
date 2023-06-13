@@ -12,6 +12,7 @@ class User(Base):
     __tablename__ = "user"
 
     tg_id = Column(Integer, primary_key=True, nullable=False)
+    nickname = Column(String, nullable=False)
     tg_username = Column(String)
     tg_first_name = Column(String)
     tg_last_name = Column(String)
@@ -23,6 +24,7 @@ class User(Base):
     surname = Column(String)
     middle_name = Column(String)
 
+    # Личные данные
     passport_series = Column(Integer)  # серия паспорта
     passport_number = Column(Integer)  # номер паспорта
     who_issued_it = Column(String)  # кем выдан
@@ -31,6 +33,16 @@ class User(Base):
     date_of_birth = Column(DateTime)  # дата рождения
     place_of_birth = Column(String)  # место рождения
     registration_address = Column(String)  # адрес регистрации
+
+    # Банковские данные
+    recipient = Column(String)  # Получатель
+    account_code = Column(Integer)  # Номер счёта
+    bik_code = Column(Integer)  # БИК
+    bank_recipient = Column(String)  # Банк получатель
+    correct_code = Column(Integer)  # Корр. Счет
+    inn_code = Column(Integer)  # ИНН
+    kpp_code = Column(Integer)  # КПП
+    swift_code = Column(String)  # Свифт-код
 
     user_links = relationship("Links", back_populates="user", cascade="all, delete-orphan")
 
