@@ -23,5 +23,5 @@ class ThrottlingMiddleware(BaseMiddleware):
                 await self.storage.redis.set(name=user, value=0, ex=10)
                 return await event.answer('Мы обнаружили подозрительную активность. Ждите 10 секунд.')
             return
-        await self.storage.redis.set(name=user, value=1, ex=10)
+        await self.storage.redis.set(name=user, value=1, ex=1)
         return await handler(event, data)
