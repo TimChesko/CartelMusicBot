@@ -1,6 +1,8 @@
 import asyncio
 
 from aiogram import Dispatcher, Bot
+from aiogram.client.session.aiohttp import AiohttpSession
+from aiogram.client.telegram import TelegramAPIServer
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
 from aiogram_dialog import setup_dialogs
 from redis.asyncio.client import Redis
@@ -8,12 +10,17 @@ from redis.asyncio.client import Redis
 from src import handlers
 from src import utils
 from src.data import config
-from src.database.process import DatabaseEngine, DatabaseManager
+from src.database.process import DatabaseManager
+from src.middlewares.throttling import ThrottlingMiddleware
 from src.utils.notify import notify_admins
 
 
 async def set_handlers(dp: Dispatcher) -> None:
     dp.include_router(handlers.router)
+
+
+async def set_middlewares(dp: Dispatcher) -> None:
+    dp.message.middleware(ThrottlingMiddleware(storage=dp.storage))
 
 
 async def set_logging(dp: Dispatcher) -> None:
@@ -27,15 +34,16 @@ async def set_logging(dp: Dispatcher) -> None:
 
 async def setup_aiogram(dp: Dispatcher) -> None:
     await set_logging(dp)
-    logger = dp["aiogram_logger"]
-    logger.info("Configuring aiogram")
+
+    dp["aiogram_logger"].info("Configuring aiogram")
+    await set_middlewares(dp)
     await set_handlers(dp)
     setup_dialogs(dp)
-    logger.info("Configured aiogram")
+    dp["aiogram_logger"].info("Configured aiogram")
 
 
 async def set_database(dp: Dispatcher) -> None:
-    dp['engine'] = await DatabaseEngine.connect(dp['config'])
+    dp['engine'] = await DatabaseManager.connect(dp['config'])
     await DatabaseManager.create_tables(dp['engine'])
 
 
