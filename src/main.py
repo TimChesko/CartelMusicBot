@@ -11,6 +11,7 @@ from src import handlers
 from src import utils
 from src.data import config
 from src.database.process import DatabaseManager
+from src.middlewares.ban import CheckBan
 from src.middlewares.throttling import ThrottlingMiddleware
 from src.utils.notify import notify_admins
 
@@ -20,6 +21,7 @@ async def set_handlers(dp: Dispatcher) -> None:
 
 
 async def set_middlewares(dp: Dispatcher) -> None:
+    dp.message.middleware(CheckBan())
     dp.message.middleware(ThrottlingMiddleware(storage=dp.storage))
 
 
