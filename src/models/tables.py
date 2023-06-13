@@ -12,12 +12,11 @@ class User(Base):
     __tablename__ = "user"
 
     tg_id = Column(Integer, primary_key=True, nullable=False)
-    nickname = Column(String, nullable=False)
     tg_username = Column(String)
     tg_first_name = Column(String)
     tg_last_name = Column(String)
 
-    artist_nickname = Column(String)
+    nickname = Column(String, nullable=False)
 
     # ФИО
     first_name = Column(String)
