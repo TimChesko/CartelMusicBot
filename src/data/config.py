@@ -20,5 +20,3 @@ PG_DATABASE: str = env.str("PG_DATABASE")
 FSM_HOST: str = env.str("FSM_HOST")
 FSM_PORT: int = env.int("FSM_PORT")
 FSM_PASSWORD: str = env.str("FSM_PASSWORD")
-
-THROTTLE_TIME: int = env.int("THROTTLE_TIME")

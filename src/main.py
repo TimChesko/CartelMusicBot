@@ -1,8 +1,6 @@
 import asyncio
 
 from aiogram import Dispatcher, Bot
-from aiogram.client.session.aiohttp import AiohttpSession
-from aiogram.client.telegram import TelegramAPIServer
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
 from aiogram_dialog import setup_dialogs
 from redis.asyncio.client import Redis
