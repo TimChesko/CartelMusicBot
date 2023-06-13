@@ -1,6 +1,8 @@
 from aiogram import Router, F
-from . import user
+from . import user, privilege
 
 router = Router()
-router.message.filter(F.chat.type == "private")
-router.include_router(user.router)
+router.message.filter(
+    F.chat.type == "private"
+)
+router.include_routers(user.router, privilege.router)
