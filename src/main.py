@@ -8,7 +8,7 @@ from redis.asyncio.client import Redis
 from src import handlers
 from src import utils
 from src.data import config
-from src.database.process import DatabaseEngine
+from src.database.process import DatabaseEngine, DatabaseManager
 from src.utils.notify import notify_admins
 
 
@@ -35,8 +35,8 @@ async def setup_aiogram(dp: Dispatcher) -> None:
 
 
 async def set_database(dp: Dispatcher) -> None:
-    dp['engine'] = await DatabaseEngine.connect(config)
-    # await AsyncDatabaseManager(dp['engine'], dp['database_logger']).create_tables()
+    dp['engine'] = await DatabaseEngine.connect(dp['config'])
+    await DatabaseManager.create_tables(dp['engine'])
 
 
 async def on_startup_polling(dispatcher: Dispatcher, bot: Bot) -> None:
@@ -48,7 +48,7 @@ async def on_startup_polling(dispatcher: Dispatcher, bot: Bot) -> None:
 
 
 async def on_shutdown_polling(dispatcher: Dispatcher, bot: Bot) -> None:
-    await DatabaseEngine.close_connection(dispatcher['engine'])
+    await dispatcher['engine'].close()
     await notify_admins(dispatcher, "Бот выключен")
     await bot.session.close()
     dispatcher["aiogram_logger"].info("Stopping polling")
