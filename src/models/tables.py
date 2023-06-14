@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column
+from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger
 from sqlalchemy.orm import DeclarativeBase, relationship
 
 
@@ -11,7 +11,7 @@ class Base(DeclarativeBase):
 class User(Base):
     __tablename__ = "user"
 
-    tg_id = Column(Integer, primary_key=True, nullable=False)
+    tg_id = Column(BigInteger, primary_key=True, nullable=False)
     tg_username = Column(String)
     tg_first_name = Column(String)
     tg_last_name = Column(String)
@@ -65,3 +65,22 @@ class Links(Base):
 
     def __repr__(self):
         return f"Links(title='{self.title}', url_link='{self.url_link}', user_id='{self.user_id}')"
+
+
+class Chats(Base):
+    __tablename__ = "chats"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    chat_id = Column(BigInteger, nullable=False)
+    user_id = Column(BigInteger, nullable=False)
+
+    message_id = Column(BigInteger)
+    message_text = Column(String)
+
+    file_id = Column(BigInteger)
+    file_name = Column(String)
+
+    datetime = Column(DateTime, nullable=False)  # дату доставать из msg
+
+    approved = Column(Boolean, default=False)
+    id_who_approve = Column(BigInteger)
