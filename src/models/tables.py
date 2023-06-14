@@ -16,7 +16,7 @@ class User(Base):
     tg_first_name = Column(String)
     tg_last_name = Column(String)
 
-    nickname = Column(String, nullable=False)
+    nickname = Column(String)
 
     # ФИО
     first_name = Column(String)

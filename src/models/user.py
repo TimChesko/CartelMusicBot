@@ -58,15 +58,19 @@ class UserHandler:
                 session.rollback()
                 return False
 
-    async def add_user_nickname(self, msg: Message) -> bool:
+    async def set_user_nickname(self, user_id: int, user_nickname: str) -> bool:
         async with DatabaseManager.create_session(self.engine) as session:
             try:
-                nickname = User(nickname=msg.text)
-                session.add(nickname)
-                await session.commit()
-                return True
+                user = await session.get(User, user_id)
+                if user:
+                    user.nickname = user_nickname
+                    await session.commit()
+                    return True
+                else:
+                    self.logger.error(f"Пользователь с tg_id {user_id} не найден")
+                    return False
             except SQLAlchemyError as e:
-                self.logger.error("Ошибка при добавлении нового пользователя:", e)
+                self.logger.error("Ошибка при изменении никнейма:", e)
                 session.rollback()
                 return False
 
