@@ -20,7 +20,7 @@ class UserHandler:
                 user = result.scalar_one_or_none()
                 return user
             except SQLAlchemyError as e:
-                self.logger.error("Ошибка при выполнении запроса:", e)
+                self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
 
     async def get_ban_by_tg_id(self, tg_id: int):
@@ -31,7 +31,7 @@ class UserHandler:
                 user = result.scalar_one_or_none()
                 return user
             except SQLAlchemyError as e:
-                self.logger.error("Ошибка при выполнении запроса:", e)
+                self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
 
     async def get_privilege_by_tg_id(self, tg_id: int):
@@ -42,7 +42,7 @@ class UserHandler:
                 user = result.scalar_one_or_none()
                 return user
             except SQLAlchemyError as e:
-                self.logger.error("Ошибка при выполнении запроса:", e)
+                self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
 
     async def add_new_user(self, msg: Message) -> bool:
@@ -54,8 +54,8 @@ class UserHandler:
                 await session.commit()
                 return True
             except SQLAlchemyError as e:
-                self.logger.error("Ошибка при добавлении нового пользователя:", e)
-                session.rollback()
+                self.logger.error("Ошибка при добавлении нового пользователя: %s", e)
+                await session.rollback()
                 return False
 
     async def set_user_nickname(self, user_id: int, user_nickname: str) -> bool:
@@ -70,8 +70,8 @@ class UserHandler:
                     self.logger.error(f"Пользователь с tg_id {user_id} не найден")
                     return False
             except SQLAlchemyError as e:
-                self.logger.error("Ошибка при изменении никнейма:", e)
-                session.rollback()
+                self.logger.error("Ошибка при изменении никнейма: %s", e)
+                await session.rollback()
                 return False
 
     async def get_user_nickname(self, tg_id: int):
@@ -82,8 +82,8 @@ class UserHandler:
                 nickname = result.scalar_one_or_none()
                 return nickname
             except SQLAlchemyError as e:
-                self.logger.error("Ошибка при добавлении нового пользователя:", e)
-                session.rollback()
+                self.logger.error("Ошибка при добавлении нового пользователя: %s", e)
+                await session.rollback()
                 return False
 
     async def set_privilege(self, user_id: int, new_privilege: str) -> bool:
@@ -98,6 +98,27 @@ class UserHandler:
                     self.logger.error(f"Пользователь с tg_id {user_id} не найден")
                     return False
             except SQLAlchemyError as e:
-                self.logger.error("Ошибка при добавлении нового пользователя:", e)
-                session.rollback()
+                self.logger.error("Ошибка при добавлении нового пользователя: %s", e)
+                await session.rollback()
+                return False
+
+    async def check_all_data_complete(self, tg_id: int) -> bool:
+        """
+        Проверяет, что значения all_user_data и all_cash_data у пользователя с указанным tg_id равны True.
+
+        :param tg_id: ID пользователя в Telegram.
+        :return: True, если значения all_user_data и all_cash_data равны True. False в противном случае или если пользователь не найден.
+        """
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                query = select(User).where(and_(User.tg_id == tg_id))
+                result = await session.execute(query)
+                user = result.scalar_one_or_none()
+                if user:
+                    return user.all_user_data and user.all_cash_data
+                else:
+                    self.logger.error(f"Пользователь с tg_id {tg_id} не найден")
+                    return False
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False

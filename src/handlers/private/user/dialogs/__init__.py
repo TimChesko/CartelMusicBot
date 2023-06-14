@@ -1,5 +1,5 @@
 from aiogram import Router
-from . import registration
+from . import registrations
 
 router = Router()
-router.include_router(registration.reg_nickname)
+router.include_router(registrations.router)

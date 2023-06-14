@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger
-from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy.orm import DeclarativeBase, relationship, column_property
 
 
 class Base(DeclarativeBase):
@@ -32,6 +32,7 @@ class User(Base):
     date_of_birth = Column(DateTime)  # дата рождения
     place_of_birth = Column(String)  # место рождения
     registration_address = Column(String)  # адрес регистрации
+    all_user_data = Column(Boolean, default=False)
 
     # Банковские данные
     recipient = Column(String)  # Получатель
@@ -42,6 +43,7 @@ class User(Base):
     inn_code = Column(Integer)  # ИНН
     kpp_code = Column(Integer)  # КПП
     swift_code = Column(String)  # Свифт-код
+    all_cash_data = Column(Boolean, default=False)
 
     user_links = relationship("Links", back_populates="user", cascade="all, delete-orphan")
 
@@ -84,3 +86,14 @@ class Chats(Base):
 
     approved = Column(Boolean, default=False)
     id_who_approve = Column(BigInteger)
+
+    process = Column(Boolean, default=True)
+    reject = Column(Boolean, default=False)
+    approve = Column(Boolean, default=False)
+    public = Column(Boolean, default=False)
+
+    # Свойство column_property для гарантии уникальности значений True
+    process_only = column_property(process & ~reject & ~approve & ~public)
+    reject_only = column_property(~process & reject & ~approve & ~public)
+    approve_only = column_property(~process & ~reject & approve & ~public)
+    public_only = column_property(~process & ~reject & ~approve & public)

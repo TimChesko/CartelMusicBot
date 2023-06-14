@@ -1,6 +1,6 @@
 from aiogram.types import CallbackQuery, ContentType, Message
 from aiogram_dialog import (
-    Dialog, DialogManager, Window,
+    Dialog, DialogManager, Window, StartMode,
 )
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Back, Button, Row
@@ -8,7 +8,7 @@ from aiogram_dialog.widgets.text import Const, Format, Multi
 
 from src.keyboards.start import markup_start
 from src.models.user import UserHandler
-from src.utils.fsm import DialogRegNickname
+from src.utils.fsm import RegNickname, StartMenu
 
 
 async def get_data(dialog_manager: DialogManager, **kwargs):
@@ -34,7 +34,7 @@ async def on_finish(callback: CallbackQuery, _, manager: DialogManager):
     await UserHandler(data['engine'], data['database_logger']).set_user_nickname(
         callback.from_user.id, nickname)
     await callback.message.answer("Спасибо за регистрацию")
-    await callback.message.answer(f"{nickname} добро пожаловать в личный кабинет!", reply_markup=await markup_start())
+    await manager.start(StartMenu.start, mode=StartMode.RESET_STACK)
     await manager.done()
 
 
@@ -42,7 +42,7 @@ reg_nickname = Dialog(
     Window(
         Const("Перед использованием бота, введите свой псевдоним:"),
         MessageInput(nickname_check, content_types=[ContentType.TEXT]),
-        state=DialogRegNickname.nickname
+        state=RegNickname.nickname
     ),
     Window(
         Multi(
@@ -53,6 +53,6 @@ reg_nickname = Dialog(
             Button(Const("Продолжить"), on_click=on_finish, id="finish"),
         ),
         getter=get_data,
-        state=DialogRegNickname.finish
+        state=RegNickname.finish
     )
 )
