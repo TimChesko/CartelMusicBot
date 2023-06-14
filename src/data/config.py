@@ -6,8 +6,10 @@ env.read_env()
 
 BOT_TOKEN: str = env.str("BOT_TOKEN")
 DEVELOPERS: list = list(map(int, env.list("DEVELOPERS")))
-# =234234,234234,234234
+
 PRIVILEGES: list = list(map(str, env.list("PRIVILEGES")))
+CHATS_BACKUP: list = list(map(int, env.list("CHATS_BACKUP")))
+
 LOGGING_LEVEL: int = env.int("LOGGING_LEVEL")
 # INFO - 20, DEBUG - 10, ERROR - 40
 
