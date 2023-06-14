@@ -6,6 +6,7 @@ from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Back, Button, Row
 from aiogram_dialog.widgets.text import Const, Format, Multi
 
+from src.keyboards.start import markup_start
 from src.models.user import UserHandler
 from src.utils.fsm import DialogRegNickname
 
@@ -29,9 +30,11 @@ async def on_finish(callback: CallbackQuery, _, manager: DialogManager):
     if manager.is_preview():
         await manager.done()
         return
+    nickname = manager.dialog_data.get("nickname", "")
     await UserHandler(data['engine'], data['database_logger']).set_user_nickname(
-        callback.from_user.id, manager.dialog_data.get("nickname", ""))
+        callback.from_user.id, nickname)
     await callback.message.answer("Спасибо за регистрацию")
+    await callback.message.answer(f"{nickname} добро пожаловать в личный кабинет!", reply_markup=await markup_start())
     await manager.done()
 
 
