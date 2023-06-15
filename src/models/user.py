@@ -77,7 +77,7 @@ class UserHandler:
     async def get_user_nickname(self, tg_id: int):
         async with DatabaseManager.create_session(self.engine) as session:
             try:
-                query = select(User.nickname).where(and_(User.nickname == tg_id))
+                query = select(User.nickname).where(and_(User.tg_id == tg_id))
                 result = await session.execute(query)
                 nickname = result.scalar_one_or_none()
                 return nickname

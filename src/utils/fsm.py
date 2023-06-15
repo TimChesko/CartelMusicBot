@@ -12,7 +12,7 @@ class StartMenu(StatesGroup):
 
 class Listening(StatesGroup):
     start = State()
-    music_file = State()
+    apply = State()
     finish = State()
 
 

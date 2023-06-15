@@ -3,7 +3,7 @@ import logging
 from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
-from aiogram_dialog import DialogManager, StartMode, Dialog, Window
+from aiogram_dialog import DialogManager, StartMode, Dialog, Window, ShowMode
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Start
 from aiogram_dialog.widgets.text import Const
@@ -64,6 +64,6 @@ start_menu = Dialog(
             Const("Услуги"), id='services', state=Service.menu
         ),
         state=StartMenu.start,
-        getter=get_data
+        getter=get_data,
     )
 )
