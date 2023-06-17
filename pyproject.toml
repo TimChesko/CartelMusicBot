@@ -14,7 +14,7 @@ redis = "^4.5.5"
 structlog = "^23.1.0"
 aiogram = "^3.0.0b7"
 sqlalchemy = "^2.0.15"
-aiogram-diolog = "^2.0.0b18"
+aiogram-dialog = "^2.0.0b19"
 
 [build-system]
 requires = ["poetry-core"]
