@@ -76,6 +76,8 @@ class Chats(Base):
     chat_id = Column(BigInteger, nullable=False)
     user_id = Column(BigInteger, nullable=False)
 
+    track_title = Column(String)
+
     message_id_audio = Column(BigInteger)
     message_id_audio_text = Column(BigInteger)
 

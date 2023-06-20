@@ -43,7 +43,7 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
 
 async def check_track(callback: CallbackQuery, _, dialog_manager: DialogManager, ):
     data = dialog_manager.middleware_data
-    if await ChatsHandler(data['engine'], data['database_logger']).has_reject_by_tg_id(callback.from_user.id):
+    if await ChatsHandler(data['engine'], data['database_logger']).has_reject_by_tg_id(callback.from_user.id, 1):
         await dialog_manager.start(Listening.start, data=dialog_manager.dialog_data)
     else:
         await dialog_manager.start(ListeningNewTrack.track, data=dialog_manager.dialog_data)

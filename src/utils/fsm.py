@@ -20,8 +20,12 @@ class Listening(StatesGroup):
 class ListeningNewTrack(StatesGroup):
     track = State()
     text = State()
+    title = State()
     apply = State()
-    finish = State()
+
+
+class ListeningEditTrack(StatesGroup):
+    select_track = State()
 
 
 class Library(StatesGroup):
