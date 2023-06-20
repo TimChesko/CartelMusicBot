@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy import select, and_
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -22,6 +24,17 @@ class ChatsHandler:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
 
+    async def has_reject_by_tg_id(self, tg_id: int) -> bool:
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                query = select(Chats).where(and_(Chats.user_id == int(tg_id), Chats.reject == True)).limit(1)
+                result = await session.execute(query)
+                chat = result.scalar_one_or_none()
+                return chat is not None
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при выполнении запроса: %s", e)
+                return False
+
     async def check_chat_exists(self, tg_id: int) -> bool:
         """
         Проверяет наличие строки в таблице Chats, где user_id равно tg_id и approve равно True.
@@ -37,4 +50,24 @@ class ChatsHandler:
                 return chat is not None
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
+                return False
+
+    async def add_track_to_chat(self, chat_id: int, user_id: int,
+                                message_id_audio: int, message_id_audio_text: int,
+                                file_id_audio: str, file_id_text: str) -> bool:
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                new_chat = Chats(chat_id=chat_id,
+                                 user_id=user_id,
+                                 message_id_audio=message_id_audio,
+                                 message_id_audio_text=message_id_audio_text,
+                                 file_id_audio=file_id_audio,
+                                 file_id_text=file_id_text,
+                                 datetime=datetime.datetime.now())
+                session.add(new_chat)
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при добавлении нового чата: %s", e)
+                await session.rollback()
                 return False

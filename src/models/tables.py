@@ -76,11 +76,11 @@ class Chats(Base):
     chat_id = Column(BigInteger, nullable=False)
     user_id = Column(BigInteger, nullable=False)
 
-    message_id = Column(BigInteger)
-    message_text = Column(String)
+    message_id_audio = Column(BigInteger)
+    message_id_audio_text = Column(BigInteger)
 
-    file_id = Column(BigInteger)
-    file_name = Column(String)
+    file_id_audio = Column(String)
+    file_id_text = Column(String)
 
     datetime = Column(DateTime, nullable=False)  # дату доставать из msg
 

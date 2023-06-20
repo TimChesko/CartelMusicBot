@@ -12,6 +12,14 @@ class StartMenu(StatesGroup):
 
 class Listening(StatesGroup):
     start = State()
+    track = State()
+    apply = State()
+    finish = State()
+
+
+class ListeningNewTrack(StatesGroup):
+    track = State()
+    text = State()
     apply = State()
     finish = State()
 
