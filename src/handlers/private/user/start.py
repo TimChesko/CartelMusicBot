@@ -1,19 +1,15 @@
-import logging
-
 from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
-from aiogram_dialog import DialogManager, StartMode, Dialog, Window, ShowMode
-from aiogram_dialog.widgets.input import MessageInput
+from aiogram_dialog import DialogManager, StartMode, Dialog, Window
 from aiogram_dialog.widgets.kbd import Start
 from aiogram_dialog.widgets.text import Const
 from sqlalchemy.ext.asyncio import AsyncEngine
 from structlog._log_levels import BoundLoggerFilteringAtDebug
 
 from src.models.chats import ChatsHandler
-from src.models.tables import User
 from src.models.user import UserHandler
-from src.utils.fsm import RegNickname, StartMenu, Listening, Library, PublicTrack, Service, MyData
+from src.utils.fsm import RegNickname, StartMenu, Listening, Library, PublicTrack, Service, PersonalDataFilling
 
 router = Router()
 
@@ -45,7 +41,7 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
 
 start_menu = Dialog(
     Window(
-        Const("Выберете нужную категорию"),
+        Const("Выберите нужную категорию"),
         Start(
             Const("Трек на прослушивание"), id='listening', state=Listening.start
         ),
@@ -53,7 +49,7 @@ start_menu = Dialog(
             Const("Мои треки"), id='library', state=Library.start, when='library_check'
         ),
         Start(
-            Const("Заполнить личные данные"), id='my_data', state=MyData.start,
+            Const("Заполнить личные данные"), id='my_data', state=PersonalDataFilling.start,
             when='my_data_check'
         ),
         Start(
