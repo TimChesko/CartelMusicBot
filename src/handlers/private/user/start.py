@@ -10,7 +10,7 @@ from structlog._log_levels import BoundLoggerFilteringAtDebug
 from src.handlers.private.user.dialogs.utils.common import on_start_copy_start_data
 from src.models.chats import ChatsHandler
 from src.models.user import UserHandler
-from src.utils.fsm import RegNickname, StartMenu, Listening, Library, PublicTrack, Service, MyData, ListeningNewTrack
+from src.utils.fsm import RegNickname, StartMenu, Listening, Library, PublicTrack, Service, ListeningNewTrack, PersonalDataFilling
 
 router = Router()
 
@@ -66,7 +66,7 @@ start_menu = Dialog(
         Start(
             Const("Заполнить личные данные"),
             id='my_data',
-            state=MyData.start,
+            state=PersonalDataFilling.start,
             when='my_data_check'
         ),
         Start(
