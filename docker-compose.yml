@@ -1,0 +1,21 @@
+version: '3.2'
+services:
+  redis:
+    image: redis:7.0.8
+    ports:
+      - 6379:6379
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+    volumes:
+      - ./src:/app/src
+      - ./pyproject.toml:/app/pyproject.toml
+      - ./poetry.lock:/app/poetry.lock
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
