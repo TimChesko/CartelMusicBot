@@ -1,6 +1,6 @@
 from aiogram import Router
 
-from . import start, test, dialogs
+from . import start, dialogs
 
 router = Router()
 router.include_router(start.router)

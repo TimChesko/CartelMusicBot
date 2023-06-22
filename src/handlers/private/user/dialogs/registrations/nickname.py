@@ -35,7 +35,6 @@ async def on_finish(callback: CallbackQuery, _, manager: DialogManager):
         callback.from_user.id, nickname)
     await callback.message.answer("Спасибо за регистрацию")
     await manager.start(StartMenu.start, mode=StartMode.RESET_STACK)
-    await manager.done()
 
 
 reg_nickname = Dialog(
