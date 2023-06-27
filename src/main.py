@@ -5,13 +5,17 @@ from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
 from aiogram_dialog import setup_dialogs
 from redis.asyncio.client import Redis
 
-from src import handlers
+from src import handlers, dialogs
 from src import utils
 from src.data import config
 from src.database.process import DatabaseManager
 from src.middlewares.ban import CheckBan
 from src.middlewares.throttling import ThrottlingMiddleware
 from src.utils.notify import notify_admins
+
+
+async def set_dialogs(dp: Dispatcher) -> None:
+    dp.include_router(dialogs.router)
 
 
 async def set_handlers(dp: Dispatcher) -> None:
@@ -68,7 +72,7 @@ async def main() -> None:
         storage=RedisStorage(
             redis=Redis(
                 host=config.FSM_HOST,
-                password=None,
+                password=config.FSM_PASSWORD,
                 port=config.FSM_PORT,
                 db=0,
             ),
