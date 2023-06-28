@@ -1,14 +1,17 @@
 import asyncio
 
 from aiogram import Dispatcher, Bot
+from aiogram.filters import ExceptionTypeFilter
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
 from aiogram_dialog import setup_dialogs
+from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 from redis.asyncio.client import Redis
 
 from src import handlers, dialogs
 from src import utils
 from src.data import config
 from src.database.process import DatabaseManager
+from src.dialogs.utils.common import on_unknown_intent, on_unknown_state
 from src.middlewares.ban import CheckBan
 from src.middlewares.throttling import ThrottlingMiddleware
 from src.utils.notify import notify_admins
@@ -16,6 +19,7 @@ from src.utils.notify import notify_admins
 
 async def set_dialogs(dp: Dispatcher) -> None:
     dp.include_router(dialogs.router)
+    setup_dialogs(dp)
 
 
 async def set_handlers(dp: Dispatcher) -> None:
@@ -42,7 +46,7 @@ async def setup_aiogram(dp: Dispatcher) -> None:
     dp["aiogram_logger"].info("Configuring aiogram")
     await set_middlewares(dp)
     await set_handlers(dp)
-    setup_dialogs(dp)
+    await set_dialogs(dp)
     dp["aiogram_logger"].info("Configured aiogram")
 
 
@@ -68,21 +72,30 @@ async def on_shutdown_polling(dispatcher: Dispatcher, bot: Bot) -> None:
 
 async def main() -> None:
     bot = Bot(config.BOT_TOKEN, parse_mode="HTML")
+    storage = RedisStorage(
+        redis=Redis(
+            host=config.FSM_HOST,
+            password=config.FSM_PASSWORD,
+            port=config.FSM_PORT,
+            db=0,
+        ),
+        key_builder=DefaultKeyBuilder(with_destiny=True)
+    )
     dp = Dispatcher(
-        storage=RedisStorage(
-            redis=Redis(
-                host=config.FSM_HOST,
-                password=config.FSM_PASSWORD,
-                port=config.FSM_PORT,
-                db=0,
-            ),
-            key_builder=DefaultKeyBuilder(with_destiny=True)
-        )
+        storage=storage,
+        events_isolation=storage.create_isolation()
     )
 
     dp['config'] = config
     dp['bot'] = bot
-
+    dp.errors.register(
+        on_unknown_intent,
+        ExceptionTypeFilter(UnknownIntent),
+    )
+    dp.errors.register(
+        on_unknown_state,
+        ExceptionTypeFilter(UnknownState),
+    )
     dp.startup.register(on_startup_polling)
     dp.shutdown.register(on_shutdown_polling)
     await dp.start_polling(bot)

@@ -1,9 +1,8 @@
-import logging
 from operator import itemgetter
 
 from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery
-from aiogram_dialog import Dialog, Window, DialogManager, ShowMode, LaunchMode
+from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back, Start, ScrollingGroup, Multiselect
 from aiogram_dialog.widgets.text import Format, Const
@@ -50,7 +49,8 @@ dialog = Dialog(
 
 async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    tracks = await ChatsHandler(data['engine'], data['database_logger']).has_reject_by_tg_id(data['event_from_user'].id, 1)
+    tracks = await ChatsHandler(data['engine'], data['database_logger']).has_reject_by_tg_id(data['event_from_user'].id,
+                                                                                             1)
     return {
         "tracks": [(f"Track: {i.track_title}", i.id) for i in tracks[0]],
     }

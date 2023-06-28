@@ -4,4 +4,3 @@ from . import start
 
 router = Router()
 router.include_router(start.router)
-router.include_router(start.start_menu)
