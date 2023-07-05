@@ -5,7 +5,7 @@ from aiogram_dialog.widgets.kbd import Start, Button
 from aiogram_dialog.widgets.text import Const
 
 from src.dialogs.utils.common import on_start_copy_start_data
-from src.models.chats import ChatsHandler
+from src.models.chats import TrackHandler
 from src.models.user import UserHandler
 from src.utils.fsm import StartMenu, Listening, Library, PublicTrack, Service, ListeningNewTrack, PersonalDataFilling
 
@@ -13,9 +13,9 @@ from src.utils.fsm import StartMenu, Listening, Library, PublicTrack, Service, L
 async def get_data(dialog_manager: DialogManager, **kwargs):
     data = dialog_manager.middleware_data
     user_id = data['event_from_user'].id
-    library = await ChatsHandler(data['engine'], data['database_logger']).has_chats_by_tg_id(user_id)
+    library = await TrackHandler(data['engine'], data['database_logger']).has_chats_by_tg_id(user_id)
     user_data = not (await UserHandler(data['engine'], data['database_logger']).check_all_data_complete(user_id))
-    tracks = await ChatsHandler(data['engine'], data['database_logger']).check_chat_exists(user_id)
+    tracks = await TrackHandler(data['engine'], data['database_logger']).check_chat_exists(user_id)
     return {
         "library_check": library,
         'my_data_check': user_data,
@@ -26,7 +26,7 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
 
 async def check_track(callback: CallbackQuery, _, dialog_manager: DialogManager, ):
     data = dialog_manager.middleware_data
-    if await ChatsHandler(data['engine'], data['database_logger']).has_reject_by_tg_id(callback.from_user.id, 1):
+    if await TrackHandler(data['engine'], data['database_logger']).has_reject_by_tg_id(callback.from_user.id, 1):
         await dialog_manager.start(Listening.start, data=dialog_manager.dialog_data)
     else:
         await dialog_manager.start(ListeningNewTrack.track, data=dialog_manager.dialog_data)

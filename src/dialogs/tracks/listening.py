@@ -8,7 +8,7 @@ from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back, Start, Scrolli
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.data import config
-from src.models.chats import ChatsHandler
+from src.models.chats import TrackHandler
 from src.models.user import UserHandler
 from src.utils.fsm import Listening, ListeningNewTrack, ListeningEditTrack
 
@@ -49,7 +49,7 @@ dialog = Dialog(
 
 async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    tracks = await ChatsHandler(data['engine'], data['database_logger']).has_reject_by_tg_id(data['event_from_user'].id,
+    tracks = await TrackHandler(data['engine'], data['database_logger']).has_reject_by_tg_id(data['event_from_user'].id,
                                                                                              1)
     return {
         "tracks": [(f"Track: {i.track_title}", i.id) for i in tracks[0]],
@@ -88,7 +88,7 @@ async def on_finish_add(callback: CallbackQuery, _, dialog_manager: DialogManage
                                                   reply_to_message_id=msg_audio.message_id,
                                                   caption=f"Title: {dialog_manager.dialog_data['track_title']}\n" \
                                                           f"User: {user_name} / nickname: {user.nickname}")
-    await ChatsHandler(data['engine'], data['database_logger']).add_track_to_chat(
+    await TrackHandler(data['engine'], data['database_logger']).add_track_to_chat(
         chat_id, callback.from_user.id,
         dialog_manager.dialog_data["track_title"],
         msg_audio.message_id, msg_audio_text.message_id,

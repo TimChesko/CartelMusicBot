@@ -9,7 +9,7 @@ class Base(DeclarativeBase):
 
 
 class User(Base):
-    __tablename__ = "user"
+    __tablename__ = "users"
 
     tg_id = Column(BigInteger, primary_key=True, nullable=False)
     tg_username = Column(String)
@@ -18,6 +18,24 @@ class User(Base):
 
     nickname = Column(String)
 
+    ban = Column(Boolean, default=False)
+    privilege = Column(String, default="user")
+    last_active = Column(DateTime, default=datetime.now())
+
+    # uselist for one-to-one, one user have only one personal data
+    personal_data = relationship("PersonalData", uselist=False, back_populates="user")
+    # chats show how to realize one-to-many
+    chats = relationship("Chats", back_populates="user")  # Добавить связь с Chats
+    albums = relationship("Album", back_populates="user")
+
+    # def __repr__(self):
+    #     return f"User(tg_id='{self.tg_id}', first_name='{self.first_name}', surname='{self.surname}')"
+    # now I don't know how to use it \0_0/
+
+
+class PersonalData(Base):
+    __tablename__ = 'personal_data'
+    tg_id = Column(BigInteger, ForeignKey('users.tg_id'), primary_key=True, nullable=False)
     # ФИО
     first_name = Column(String)
     surname = Column(String)
@@ -45,57 +63,83 @@ class User(Base):
     swift_code = Column(String)  # Свифт-код
     all_cash_data = Column(Boolean, default=False)
 
-    user_links = relationship("Links", back_populates="user", cascade="all, delete-orphan")
-
-    ban = Column(Boolean, default=False)
-    privilege = Column(String, default="user")
-    last_active = Column(DateTime, default=datetime.now())
-
-    def __repr__(self):
-        return f"User(tg_id='{self.tg_id}', first_name='{self.first_name}', surname='{self.surname}')"
+    moderated = Column(Boolean, default=False)
 
 
-class Links(Base):
-    __tablename__ = "links"
-
-    id = Column(Integer, primary_key=True)
-    title = Column(String)
-    url_link = Column(String)
-    user_id = Column(Integer, ForeignKey("user.tg_id"))
-
-    user = relationship("User", back_populates="user_links")
-
-    def __repr__(self):
-        return f"Links(title='{self.title}', url_link='{self.url_link}', user_id='{self.user_id}')"
-
-
-class Chats(Base):
-    __tablename__ = "chats"
+class Track(Base):
+    __tablename__ = "tracks"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    chat_id = Column(BigInteger, nullable=False)
-    user_id = Column(BigInteger, nullable=False)
+    user_id = Column(BigInteger, ForeignKey('users.tg_id'), nullable=False)  # Ссылка на таблицу users
+    album_id = Column(Integer, ForeignKey('albums.id'))  # новая ссылка на альбом
 
     track_title = Column(String)
-
-    message_id_audio = Column(BigInteger)
-    message_id_audio_text = Column(BigInteger)
-
     file_id_audio = Column(String)
-    file_id_text = Column(String)
-
-    datetime = Column(DateTime, nullable=False)  # дату доставать из msg
-
     approved = Column(Boolean, default=False)
     id_who_approve = Column(BigInteger)
+
+    datetime = Column(DateTime, nullable=False)  # дату доставать из msg
 
     process = Column(Boolean, default=True)
     reject = Column(Boolean, default=False)
     approve = Column(Boolean, default=False)
-    public = Column(Boolean, default=False)
+    approve_promo = Column(Boolean, default=False)  # Принятие трека с доступом к промо
+    aggregating = Column(Boolean, default=False)  # Трек на отгрузке агрегатору
+    aggregated = Column(Boolean, default=False)  # Трек отгружен агрегатору
 
     # Свойство column_property для гарантии уникальности значений True
-    process_only = column_property(process & ~reject & ~approve & ~public)
-    reject_only = column_property(~process & reject & ~approve & ~public)
-    approve_only = column_property(~process & ~reject & approve & ~public)
-    public_only = column_property(~process & ~reject & ~approve & public)
+    process_only = column_property(process & ~reject & ~approve & ~approve_promo & ~aggregating & ~aggregated)
+    reject_only = column_property(~process & reject & ~approve & ~approve_promo & ~aggregating & ~aggregated)
+    approve_only = column_property(~process & ~reject & approve & ~approve_promo & ~aggregating & ~aggregated)
+    approve_promo_only = column_property(~process & ~reject & ~approve & approve_promo & ~aggregating & ~aggregated)
+    aggregating_only = column_property(~process & ~reject & ~approve & ~approve_promo & aggregating & ~aggregated)
+    aggregated_only = column_property(~process & ~reject & ~approve & ~approve_promo & ~aggregating & aggregated)
+
+
+    # Определение связи с TrackInfo
+    track_info = relationship("TrackInfo", uselist=False, back_populates="track")
+    album = relationship('Album', back_populates='tracks')  # новое отношение с альбомом
+
+
+class TrackInfo(Base):
+    __tablename__ = 'tracks_info'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    track_id = Column(Integer, ForeignKey('tracks.id'))  # Ссылка на таблицу tracks
+    title = Column(String)
+    text_file_id = Column(String)
+    tiktok_time = Column(String)
+    explicit_lyrics = Column(Boolean)
+
+    beat_alienation = Column(String)  # Отчуждение на бит
+    words_alienation = Column(String)  # Отчуждение на слова
+
+    beatmaker_percent = Column(Integer)
+    words_author_percent = Column(Integer)
+    feat_percent = Column(Integer)
+
+    # if False - artist author of beat/words and without feat
+    beat_status = Column(Boolean, default=False)
+    words_status = Column(Boolean, default=False)
+    feat_status = Column(Boolean, default=False)
+
+    # Определение связи с Track
+    track = relationship('Track', back_populates='track_info', uselist=False)
+
+
+class Album(Base):
+    __tablename__ = 'albums'
+
+    # todo не забыть добавить колонки для промо
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.tg_id'))
+    album_cover = Column(String)  # Обложка
+
+    signed_license = Column(String)  # Подписанное ЛС на проверку
+    unsigned_license = Column(String)  # Неподписанное ЛС на проверку
+    mail_track_photo = Column(String)  # трек номер отправленного письма с ЛС
+
+    tracks = relationship('Track', back_populates='album')  # новое отношение с треками
+    user = relationship("User", back_populates="albums")
