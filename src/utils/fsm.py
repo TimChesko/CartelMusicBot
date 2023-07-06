@@ -51,7 +51,6 @@ class PersonalDataFilling(StatesGroup):
     place_of_birth = State()  # место рождения
     registration_address = State()  # адрес регистрации
     physical_inn_code = State()  # ИНН по паспорту
-    email = State()
 
     recipient = State()  # Получатель
     account_code = State()  # Номер счёта
@@ -63,6 +62,7 @@ class PersonalDataFilling(StatesGroup):
     swift_code = State()  # Свифт-код
 
     finish = State()
+
 
 # Public tracks states
 class PublicTrack(StatesGroup):

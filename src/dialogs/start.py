@@ -13,7 +13,7 @@ from src.utils.fsm import StartMenu, Listening, Library, PublicTrack, Service, L
 async def get_data(dialog_manager: DialogManager, **kwargs):
     data = dialog_manager.middleware_data
     user_id = data['event_from_user'].id
-    library = await TrackHandler(data['engine'], data['database_logger']).has_chats_by_tg_id(user_id)
+    library = await TrackHandler(data['engine'], data['database_logger']).has_tracks_by_tg_id(user_id)
     user_data = not (await UserHandler(data['engine'], data['database_logger']).check_all_data_complete(user_id))
     tracks = await TrackHandler(data['engine'], data['database_logger']).check_chat_exists(user_id)
     return {

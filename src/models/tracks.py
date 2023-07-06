@@ -13,7 +13,7 @@ class TrackHandler:
         self.engine = engine
         self.logger = logger
 
-    async def has_Track_by_tg_id(self, tg_id: int) -> bool:
+    async def has_tracks_by_tg_id(self, tg_id: int) -> bool:
         async with DatabaseManager.create_session(self.engine) as session:
             try:
                 query = select(Track).where(and_(Track.user_id == int(tg_id))).limit(1)

@@ -3,7 +3,7 @@ from sqlalchemy import select, and_
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.database.process import DatabaseManager
-from src.models.tables import User
+from src.models.tables import User, PersonalData
 
 
 class UserHandler:
@@ -111,7 +111,7 @@ class UserHandler:
         """
         async with DatabaseManager.create_session(self.engine) as session:
             try:
-                query = select(User).where(and_(User.tg_id == tg_id))
+                query = select(PersonalData).where(and_(PersonalData.tg_id == tg_id))
                 result = await session.execute(query)
                 user = result.scalar_one_or_none()
                 if user:
