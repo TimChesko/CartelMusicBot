@@ -95,7 +95,6 @@ class Track(Base):
     aggregating_only = column_property(~process & ~reject & ~approve & ~approve_promo & aggregating & ~aggregated)
     aggregated_only = column_property(~process & ~reject & ~approve & ~approve_promo & ~aggregating & aggregated)
 
-
     # Определение связи с TrackInfo
     track_info = relationship("TrackInfo", uselist=False, back_populates="track")
     album = relationship('Album', back_populates='tracks')  # новое отношение с альбомом

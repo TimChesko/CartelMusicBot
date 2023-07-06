@@ -8,7 +8,7 @@ from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back, Start, Scrolli
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.data import config
-from src.models.chats import TrackHandler
+from src.models.tracks import TrackHandler
 from src.models.user import UserHandler
 from src.utils.fsm import Listening, ListeningNewTrack, ListeningEditTrack
 

@@ -5,7 +5,7 @@ from aiogram_dialog.widgets.kbd import Start, Button
 from aiogram_dialog.widgets.text import Const
 
 from src.dialogs.utils.common import on_start_copy_start_data
-from src.models.chats import TrackHandler
+from src.models.tracks import TrackHandler
 from src.models.user import UserHandler
 from src.utils.fsm import StartMenu, Listening, Library, PublicTrack, Service, ListeningNewTrack, PersonalDataFilling
 
