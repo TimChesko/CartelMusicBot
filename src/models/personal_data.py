@@ -32,3 +32,5 @@ class PersonalDataHandler:
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
+
+

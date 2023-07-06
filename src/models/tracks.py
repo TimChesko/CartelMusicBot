@@ -56,7 +56,7 @@ class TrackHandler:
 
     async def add_track_to_chat(self, chat_id: int, user_id: int,
                                 track_title: str,
-                                message_id_audio: int, message_id_audio_text: int,
+                                message_id_audio: int,
                                 file_id_audio: str, file_id_text: str) -> bool:
         async with DatabaseManager.create_session(self.engine) as session:
             try:
@@ -64,7 +64,6 @@ class TrackHandler:
                                  user_id=user_id,
                                  track_title=track_title,
                                  message_id_audio=message_id_audio,
-                                 message_id_audio_text=message_id_audio_text,
                                  file_id_audio=file_id_audio,
                                  file_id_text=file_id_text,
                                  datetime=datetime.datetime.now())

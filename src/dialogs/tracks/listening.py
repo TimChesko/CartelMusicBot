@@ -4,7 +4,7 @@ from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back, Start, ScrollingGroup, Multiselect
+from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back, Start, ScrollingGroup, Multiselect, SwitchTo
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.data import config
@@ -32,19 +32,6 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
     return {
         "nickname": user_nickname,
     }
-
-
-dialog = Dialog(
-    Window(
-        Const("Выберете действие:"),
-        Start(Const("Измненный трек"), id="edit_old_track", state=ListeningEditTrack.select_track),
-        Start(Const("Новый трек"),
-              id="add_new_track",
-              state=ListeningNewTrack.track),
-        Cancel(Const("Назад")),
-        state=Listening.start
-    )
-)
 
 
 async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
@@ -83,15 +70,12 @@ async def on_finish_add(callback: CallbackQuery, _, dialog_manager: DialogManage
     chat_id = config.CHATS_BACKUP[0]  # TODO нужный чат
     user = await UserHandler(data['engine'], data['database_logger']).get_all_by_tg_id(callback.from_user.id)
     user_name = user.tg_id if user.tg_username is None else f"@{user.tg_username}"
-    msg_audio = await data['bot'].send_document(chat_id, document=dialog_manager.dialog_data["track_text"], )
     msg_audio_text = await data['bot'].send_audio(chat_id, audio=dialog_manager.dialog_data["track"],
-                                                  reply_to_message_id=msg_audio.message_id,
                                                   caption=f"Title: {dialog_manager.dialog_data['track_title']}\n" \
                                                           f"User: {user_name} / nickname: {user.nickname}")
     await TrackHandler(data['engine'], data['database_logger']).add_track_to_chat(
         chat_id, callback.from_user.id,
-        dialog_manager.dialog_data["track_title"],
-        msg_audio.message_id, msg_audio_text.message_id,
+        dialog_manager.dialog_data["track_title"], msg_audio_text.message_id,
         dialog_manager.dialog_data["track"], dialog_manager.dialog_data["track_text"]
     )
     await callback.message.answer("Ваш трек отправлен на модерацию")
@@ -128,17 +112,18 @@ async def get_music_title(message: Message, _, manager: DialogManager):
 
 new_track = Dialog(
     Window(
+        Const('Кидай сюда треки свои помойные, выбирай, можно скинуть переделанное говно или опять хуйней удивить'),
+        SwitchTo(Const('Удивляю'), state=ListeningNewTrack.start, id='listening_new_track'),
+        SwitchTo(Const('Переделал'), state=ListeningEditTrack.start, id='listening_old_track'),
+        Cancel(Const('Назад')),
+        state=Listening.start
+    ),
+    Window(
         Format("{nickname}, скиньте ваш трек"),
         Cancel(Const("Назад")),
         MessageInput(get_music_file, content_types=[ContentType.AUDIO]),
         MessageInput(other_type_handler_audio),
-        state=ListeningNewTrack.track
-    ),
-    Window(
-        Const("Скиньте документ в формате txt или docs с текстом трека"),
-        MessageInput(get_document_file, content_types=[ContentType.DOCUMENT]),
-        MessageInput(other_type_handler_docs),
-        state=ListeningNewTrack.text
+        state=ListeningNewTrack.start
     ),
     Window(
         Const("Дайте название вашему треку"),
@@ -147,13 +132,13 @@ new_track = Dialog(
         state=ListeningNewTrack.title
     ),
     Window(
-        Const("Подтверждение отправки данного трека c текстом:"),
+        Const("Подтверждение отправки данного трека"),
         Row(
             Button(Const("Подтверждаю"), on_click=on_finish_add, id="approve_track"),
             Back(Const("Изменить"), id="edit_track"),
         ),
         Cancel(Const("Вернуться в главное меню")),
-        state=ListeningNewTrack.apply
+        state=ListeningNewTrack.finish
     ),
     getter=get_data
 )
