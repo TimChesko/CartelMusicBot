@@ -1,11 +1,12 @@
 from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.kbd import Start, Button
 from aiogram_dialog.widgets.text import Const
 
 from src.dialogs.utils.common import on_start_copy_start_data
-from src.models.personal_data import PersonalDataHandler
 from src.models.tracks import TrackHandler
+from src.models.user import UserHandler
 from src.utils.fsm import StartMenu, Listening, Library, PublicTrack, Service, ListeningNewTrack, PersonalDataFilling
 
 
@@ -13,8 +14,7 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
     data = dialog_manager.middleware_data
     user_id = data['event_from_user'].id
     library = await TrackHandler(data['engine'], data['database_logger']).has_tracks_by_tg_id(user_id)
-    user_data = not (
-        await PersonalDataHandler(data['engine'], data['database_logger']).check_all_data_complete(user_id))
+    user_data = not (await UserHandler(data['engine'], data['database_logger']).check_all_data_complete(user_id))
     tracks = await TrackHandler(data['engine'], data['database_logger']).check_chat_exists(user_id)
     return {
         "library_check": library,
@@ -26,7 +26,7 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
 
 start_menu = Dialog(
     Window(
-        Const("Выберете нужную категорию"),
+        Const("Выберите нужную категорию"),
         Start(
             Const("Трек на прослушивание"),
             id='listening',
@@ -39,7 +39,7 @@ start_menu = Dialog(
             when='library_check'
         ),
         Start(
-            Const("Пройти верификацию"),
+            Const("Заполнить личные данные"),
             id='my_data',
             state=PersonalDataFilling.start,
             when='my_data_check'

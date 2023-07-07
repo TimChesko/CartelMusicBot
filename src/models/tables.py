@@ -25,7 +25,7 @@ class User(Base):
     # uselist for one-to-one, one user have only one personal data
     personal_data = relationship("PersonalData", uselist=False, back_populates="user")
     # chats show how to realize one-to-many
-    chats = relationship("Chats", back_populates="user")  # Добавить связь с Chats
+    tracks = relationship("Track", back_populates="user")  # Добавить связь с Track
     albums = relationship("Album", back_populates="user")
 
     # def __repr__(self):
@@ -65,16 +65,20 @@ class PersonalData(Base):
 
     moderated = Column(Boolean, default=False)
 
+    user = relationship("User", back_populates="personal_data")
+
 
 class Track(Base):
     __tablename__ = "tracks"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey('users.tg_id'), nullable=False)  # Ссылка на таблицу users
+    # listening_chat_id = Column(BigInteger) пока уберем, думаю над целесообразностью
     album_id = Column(Integer, ForeignKey('albums.id'))  # новая ссылка на альбом
 
     track_title = Column(String)
     file_id_audio = Column(String)
+    task_msg_id = Column(Integer)
     approved = Column(Boolean, default=False)
     id_who_approve = Column(BigInteger)
 
@@ -98,6 +102,7 @@ class Track(Base):
     # Определение связи с TrackInfo
     track_info = relationship("TrackInfo", uselist=False, back_populates="track")
     album = relationship('Album', back_populates='tracks')  # новое отношение с альбомом
+    user = relationship("User", back_populates="tracks")
 
 
 class TrackInfo(Base):
@@ -133,7 +138,7 @@ class Album(Base):
     # todo не забыть добавить колонки для промо
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.tg_id'))
+    user_id = Column(BigInteger, ForeignKey('users.tg_id'))
     album_cover = Column(String)  # Обложка
 
     signed_license = Column(String)  # Подписанное ЛС на проверку

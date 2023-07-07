@@ -8,6 +8,7 @@ from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back, Start, Scrolli
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.data import config
+from src.keyboards.inline.listening_task import markup_listening
 from src.models.tracks import TrackHandler
 from src.models.user import UserHandler
 from src.utils.fsm import Listening, ListeningNewTrack, ListeningEditTrack
@@ -21,10 +22,6 @@ async def get_music_file(message: Message, _, manager: DialogManager):
     await manager.next()
 
 
-async def other_type_handler_audio(message: Message, _, __):
-    await message.answer("Пришлите трек в формате mp3")
-
-
 async def get_data(dialog_manager: DialogManager, **kwargs):
     data = dialog_manager.middleware_data
     user_nickname = await UserHandler(data['engine'], data['database_logger']) \
@@ -32,6 +29,19 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
     return {
         "nickname": user_nickname,
     }
+
+
+# dialog = Dialog(
+#     Window(
+#         Const("Выберете действие:"),
+#         Start(Const("Измненный трек"), id="edit_old_track", state=ListeningEditTrack.select_track),
+#         Start(Const("Новый трек"),
+#               id="add_new_track",
+#               state=ListeningNewTrack.start),
+#         Cancel(Const("Назад")),
+#         state=Listening.start
+#     )
+# )
 
 
 async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
@@ -70,13 +80,16 @@ async def on_finish_add(callback: CallbackQuery, _, dialog_manager: DialogManage
     chat_id = config.CHATS_BACKUP[0]  # TODO нужный чат
     user = await UserHandler(data['engine'], data['database_logger']).get_all_by_tg_id(callback.from_user.id)
     user_name = user.tg_id if user.tg_username is None else f"@{user.tg_username}"
-    msg_audio_text = await data['bot'].send_audio(chat_id, audio=dialog_manager.dialog_data["track"],
-                                                  caption=f"Title: {dialog_manager.dialog_data['track_title']}\n" \
-                                                          f"User: {user_name} / nickname: {user.nickname}")
-    await TrackHandler(data['engine'], data['database_logger']).add_track_to_chat(
-        chat_id, callback.from_user.id,
-        dialog_manager.dialog_data["track_title"], msg_audio_text.message_id,
-        dialog_manager.dialog_data["track"], dialog_manager.dialog_data["track_text"]
+    msg_audio = await data['bot'].send_audio(chat_id=chat_id,
+                                             audio=dialog_manager.dialog_data["track"],
+                                             caption=f"Title: {dialog_manager.dialog_data['track_title']}\n" \
+                                                     f"User: {user_name} / nickname: {user.nickname}",
+                                             reply_markup=markup_listening(callback.from_user.id))
+    await TrackHandler(data['engine'], data['database_logger']).add_track_to_tracks(
+        user_id=callback.from_user.id,
+        task_msg_id=msg_audio.message_id,
+        track_title=dialog_manager.dialog_data["track_title"],
+        file_id_audio=dialog_manager.dialog_data["track"]
     )
     await callback.message.answer("Ваш трек отправлен на модерацию")
     dialog_manager.show_mode = ShowMode.SEND
@@ -86,20 +99,12 @@ async def on_finish_add(callback: CallbackQuery, _, dialog_manager: DialogManage
     await dialog_manager.done()
 
 
-async def other_type_handler_docs(message: Message, _, __):
-    await message.answer("Пришлите текст трека в формате docs или txt")
+async def other_type_handler_audio(message: Message, _, __):
+    await message.answer("Пришлите трек в формате mp3")
 
 
 async def other_type_handler_text(message: Message, _, __):
     await message.answer("Пришлите название трека")
-
-
-async def get_document_file(message: Message, _, manager: DialogManager):
-    if manager.is_preview():
-        await manager.next()
-        return
-    manager.dialog_data["track_text"] = message.document.file_id
-    await manager.next()
 
 
 async def get_music_title(message: Message, _, manager: DialogManager):
@@ -110,14 +115,17 @@ async def get_music_title(message: Message, _, manager: DialogManager):
     await manager.next()
 
 
-new_track = Dialog(
+track_menu = Dialog(
     Window(
-        Const('Кидай сюда треки свои помойные, выбирай, можно скинуть переделанное говно или опять хуйней удивить'),
-        SwitchTo(Const('Удивляю'), state=ListeningNewTrack.start, id='listening_new_track'),
-        SwitchTo(Const('Переделал'), state=ListeningEditTrack.start, id='listening_old_track'),
+        Const('Удиви или скинь переделанное'),
+        Start(Const('Удивляю'), state=ListeningNewTrack.start, id='listening_new_track'),
+        Start(Const('Переделал'), state=ListeningEditTrack.start, id='listening_old_track'),
         Cancel(Const('Назад')),
         state=Listening.start
-    ),
+    )
+)
+
+new_track = Dialog(
     Window(
         Format("{nickname}, скиньте ваш трек"),
         Cancel(Const("Назад")),
