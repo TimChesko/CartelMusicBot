@@ -8,7 +8,7 @@ from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back, Start, Scrolli
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.data import config
-from src.keyboards.inline.listening_task import markup_listening
+from src.keyboards.inline.listening import markup_listening
 from src.models.tracks import TrackHandler
 from src.models.user import UserHandler
 from src.utils.fsm import Listening, ListeningNewTrack, ListeningEditTrack
@@ -25,7 +25,7 @@ async def get_music_file(message: Message, _, manager: DialogManager):
 async def get_data(dialog_manager: DialogManager, **kwargs):
     data = dialog_manager.middleware_data
     user_nickname = await UserHandler(data['engine'], data['database_logger']) \
-        .get_user_nickname(data['event_from_user'].id)
+        .get_user_nickname_by_tg_id(data['event_from_user'].id)
     return {
         "nickname": user_nickname,
     }
@@ -78,19 +78,23 @@ edit_old_track = Dialog(
 async def on_finish_add(callback: CallbackQuery, _, dialog_manager: DialogManager):
     data = dialog_manager.middleware_data
     chat_id = config.CHATS_BACKUP[0]  # TODO нужный чат
-    user = await UserHandler(data['engine'], data['database_logger']).get_all_by_tg_id(callback.from_user.id)
-    user_name = user.tg_id if user.tg_username is None else f"@{user.tg_username}"
-    msg_audio = await data['bot'].send_audio(chat_id=chat_id,
-                                             audio=dialog_manager.dialog_data["track"],
-                                             caption=f"Title: {dialog_manager.dialog_data['track_title']}\n" \
-                                                     f"User: {user_name} / nickname: {user.nickname}",
-                                             reply_markup=markup_listening(callback.from_user.id))
+    nickname, tg_username = await UserHandler(data['engine'], data['database_logger']).get_all_by_tg_id(
+        callback.from_user.id)
+    user_name = callback.from_user.id if tg_username is None else f"@{callback.from_user.username}"
     await TrackHandler(data['engine'], data['database_logger']).add_track_to_tracks(
         user_id=callback.from_user.id,
-        task_msg_id=msg_audio.message_id,
         track_title=dialog_manager.dialog_data["track_title"],
         file_id_audio=dialog_manager.dialog_data["track"]
     )
+    track_id = await TrackHandler(data['engine'], data['database_logger']).get_id_by_file_id_audio(
+        dialog_manager.dialog_data["track"])
+    msg_audio: Message = await data['bot'].send_audio(chat_id=chat_id,
+                                                      audio=dialog_manager.dialog_data["track"],
+                                                      caption=f"Title: {dialog_manager.dialog_data['track_title']}\n" \
+                                                              f"User: {user_name} / nickname: {nickname}",
+                                                      reply_markup=markup_listening(track_id))
+    await TrackHandler(data['engine'], data['database_logger']).set_task_msg_id_to_tracks(track_id,
+                                                                                          msg_audio.message_id)
     await callback.message.answer("Ваш трек отправлен на модерацию")
     dialog_manager.show_mode = ShowMode.SEND
     if dialog_manager.is_preview():

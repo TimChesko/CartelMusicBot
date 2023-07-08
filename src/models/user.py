@@ -15,10 +15,10 @@ class UserHandler:
     async def get_all_by_tg_id(self, tg_id: int):
         async with DatabaseManager.create_session(self.engine) as session:
             try:
-                query = select(User).where(and_(User.tg_id == tg_id))
+                query = select(User.nickname, User.tg_username).where(and_(User.tg_id == tg_id))
                 result = await session.execute(query)
-                user = result.scalar_one_or_none()
-                return user
+                row = result.first()
+                return row
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
@@ -67,14 +67,14 @@ class UserHandler:
                     await session.commit()
                     return True
                 else:
-                    self.logger.error(f"Пользователь с tg_id {user_id} не найден")
+                    self.logger.error(f"Пользователь с tg_id {user_id} не найден, set_user_nickname")
                     return False
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при изменении никнейма: %s", e)
                 await session.rollback()
                 return False
 
-    async def get_user_nickname(self, tg_id: int):
+    async def get_user_nickname_by_tg_id(self, tg_id: int):
         async with DatabaseManager.create_session(self.engine) as session:
             try:
                 query = select(User.nickname).where(and_(User.tg_id == tg_id))
@@ -95,7 +95,7 @@ class UserHandler:
                     await session.commit()
                     return True
                 else:
-                    self.logger.error(f"Пользователь с tg_id {user_id} не найден")
+                    self.logger.error(f"Пользователь с tg_id {user_id} не найден, set_privilege")
                     return False
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при добавлении нового пользователя: %s", e)

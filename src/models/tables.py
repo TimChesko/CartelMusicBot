@@ -81,6 +81,7 @@ class Track(Base):
     task_msg_id = Column(Integer)
     approved = Column(Boolean, default=False)
     id_who_approve = Column(BigInteger)
+    reject_reason = Column(String)
 
     datetime = Column(DateTime, nullable=False)  # дату доставать из msg
 
