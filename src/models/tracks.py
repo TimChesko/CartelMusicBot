@@ -24,14 +24,29 @@ class TrackHandler:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
 
-    async def has_reject_by_tg_id(self, tg_id: int, limit: int):
+    # async def has_reject_by_tg_id(self, tg_id: int, limit: int):
+    #     async with DatabaseManager.create_session(self.engine) as session:
+    #         try:
+    #             query = select(Track).where(and_(Track.user_id == int(tg_id), Track.reject == True)).limit(limit)
+    #             result = await session.execute(query)
+    #             chat = result.all()
+    #             if not chat:
+    #                 chat = None
+    #             return chat
+    #         except SQLAlchemyError as e:
+    #             self.logger.error("Ошибка при выполнении запроса: %s", e)
+    #             return False
+
+    async def has_reject_by_tg_id(self, tg_id: int):
         async with DatabaseManager.create_session(self.engine) as session:
             try:
-                query = select(Track).where(and_(Track.user_id == int(tg_id), Track.reject == True)).limit(limit)
+                query = select(Track.reject).where(and_(Track.user_id == int(tg_id)))
                 result = await session.execute(query)
                 chat = result.all()
-                if not chat:
-                    chat = None
+                # if chat is None:
+                #     return False
+                # else:
+                #     return True
                 return chat
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)

@@ -1,3 +1,4 @@
+import logging
 from operator import itemgetter
 
 from aiogram.enums import ContentType
@@ -46,33 +47,11 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
 
 async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    tracks = await TrackHandler(data['engine'], data['database_logger']).has_reject_by_tg_id(data['event_from_user'].id,
-                                                                                             1)
+    rejects = await TrackHandler(data['engine'], data['database_logger']).has_reject_by_tg_id(data['event_from_user'].id)
+    logging.info(rejects)
     return {
-        "tracks": [(f"Track: {i.track_title}", i.id) for i in tracks[0]],
+        "rejects_check": rejects
     }
-
-
-edit_old_track = Dialog(
-    Window(
-        Const("Выберете трек"),
-        ScrollingGroup(
-            Multiselect(
-                Format("✓ {item[0]}"),
-                Format("{item[0]}"),
-                id="ms",
-                items="tracks",
-                item_id_getter=itemgetter(1),
-            ),
-            width=1,
-            height=5,
-            id='scroll_tracks_with_pager',
-        ),
-        Back(),
-        getter=tracks_getter,
-        state=ListeningEditTrack.select_track,
-    )
-)
 
 
 async def on_finish_add(callback: CallbackQuery, _, dialog_manager: DialogManager):
@@ -123,9 +102,10 @@ track_menu = Dialog(
     Window(
         Const('Удиви или скинь переделанное'),
         Start(Const('Удивляю'), state=ListeningNewTrack.start, id='listening_new_track'),
-        Start(Const('Переделал'), state=ListeningEditTrack.start, id='listening_old_track'),
+        Start(Const('Переделал'), state=ListeningEditTrack.start, id='listening_old_track', when='rejects_check'),
         Cancel(Const('Назад')),
-        state=Listening.start
+        state=Listening.start,
+        getter=tracks_getter
     )
 )
 
@@ -153,4 +133,25 @@ new_track = Dialog(
         state=ListeningNewTrack.finish
     ),
     getter=get_data
+)
+
+old_track = Dialog(
+    Window(
+        Const("Выберете трек"),
+        ScrollingGroup(
+            Multiselect(
+                Format("✓ {item[0]}"),
+                Format("{item[0]}"),
+                id="ms",
+                items="tracks",
+                item_id_getter=itemgetter(1),
+            ),
+            width=1,
+            height=5,
+            id='scroll_tracks_with_pager',
+        ),
+        Back(),
+        getter=tracks_getter,
+        state=ListeningEditTrack.start,
+    )
 )
