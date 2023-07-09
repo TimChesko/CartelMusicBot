@@ -128,7 +128,7 @@ class TrackHandler:
                 self.logger.error("Ошибка при установке трека в состояние 'в процессе': %s", e)
                 return False
 
-    async def set_track_to_reject(self, track_id):
+    async def set_track_to_reject(self, track_id, listener):
         async with DatabaseManager.create_session(self.engine) as session:
             try:
                 await session.execute(
@@ -137,7 +137,8 @@ class TrackHandler:
                                                                      approve=False,
                                                                      approve_promo=False,
                                                                      aggregating=False,
-                                                                     aggregated=False)
+                                                                     aggregated=False,
+                                                                     id_who_approve=listener)
                 )
                 await session.commit()
                 return True

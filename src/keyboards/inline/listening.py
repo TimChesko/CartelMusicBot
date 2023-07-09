@@ -20,6 +20,7 @@ def markup_reject_patterns(track_id):
     reasons.button(text='Плохо сведено', callback_data=f'listening_reason-mixing_{track_id}')
     reasons.button(text='Нас посадят', callback_data=f'listening_reason-incorrect_{track_id}')
     reasons.button(text='Уже отправлял', callback_data=f'listening_reason-alrdy-was_{track_id}')
+    reasons.button(text='Назад', callback_data=f'listening_back_{track_id}')
 
     reasons.adjust(2)
     return reasons.as_markup()
