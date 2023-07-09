@@ -1,11 +1,12 @@
 import logging
 from operator import itemgetter
+from typing import Any
 
 from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back, Start, ScrollingGroup, Multiselect, SwitchTo
+from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back, Start, ScrollingGroup, Multiselect, SwitchTo, Select
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.data import config
@@ -32,25 +33,17 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
     }
 
 
-# dialog = Dialog(
-#     Window(
-#         Const("Выберете действие:"),
-#         Start(Const("Измненный трек"), id="edit_old_track", state=ListeningEditTrack.select_track),
-#         Start(Const("Новый трек"),
-#               id="add_new_track",
-#               state=ListeningNewTrack.start),
-#         Cancel(Const("Назад")),
-#         state=Listening.start
-#     )
-# )
-
-
 async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    rejects = await TrackHandler(data['engine'], data['database_logger']).has_reject_by_tg_id(data['event_from_user'].id)
+    rejects = await TrackHandler(data['engine'], data['database_logger']).has_reject_by_tg_id(
+        data['event_from_user'].id)
+    reject_tracks = await TrackHandler(data['engine'], data['database_logger']).get_rejected_by_tg_id(
+        data['event_from_user'].id)
     logging.info(rejects)
+    logging.info(reject_tracks)
     return {
-        "rejects_check": rejects
+        "rejects_check": rejects,
+        'reject_tracks': reject_tracks
     }
 
 
@@ -135,22 +128,36 @@ new_track = Dialog(
     getter=get_data
 )
 
+
+async def on_item_selected(
+        callback: CallbackQuery,
+        widget: Any,
+        manager: DialogManager,
+        selected_item: str):
+    await callback.answer(selected_item)
+
+
+# async def track_id_getter(track_title) -> str:
+#     data = dialog_manager.middleware_data
+#     await TrackHandler()
+
+
 old_track = Dialog(
     Window(
-        Const("Выберете трек"),
+        Const("Выберите трек"),
         ScrollingGroup(
-            Multiselect(
-                Format("✓ {item[0]}"),
-                Format("{item[0]}"),
+            Select(
+                Format("🔴{item}"),
                 id="ms",
-                items="tracks",
+                items="reject_tracks",
                 item_id_getter=itemgetter(1),
+                on_click=on_item_selected
             ),
             width=1,
             height=5,
             id='scroll_tracks_with_pager',
         ),
-        Back(),
+        Cancel(),
         getter=tracks_getter,
         state=ListeningEditTrack.start,
     )
