@@ -16,23 +16,6 @@ from src.models.user import UserHandler
 from src.utils.fsm import Listening, ListeningNewTrack, ListeningEditTrack
 
 
-async def get_music_file(message: Message, _, manager: DialogManager):
-    if manager.is_preview():
-        await manager.next()
-        return
-    manager.dialog_data["track"] = message.audio.file_id
-    await manager.next()
-
-
-async def get_data(dialog_manager: DialogManager, **kwargs):
-    data = dialog_manager.middleware_data
-    user_nickname = await UserHandler(data['engine'], data['database_logger']) \
-        .get_user_nickname_by_tg_id(data['event_from_user'].id)
-    return {
-        "nickname": user_nickname,
-    }
-
-
 async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     rejects = await TrackHandler(data['engine'], data['database_logger']).has_reject_by_tg_id(
@@ -44,6 +27,43 @@ async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
     return {
         "rejects_check": rejects,
         'reject_tracks': reject_tracks
+    }
+
+
+track_menu = Dialog(
+    Window(
+        Const('Удиви или скинь переделанное'),
+        Start(Const('Удивляю'), state=ListeningNewTrack.start, id='listening_new_track'),
+        Start(Const('Переделал'), state=ListeningEditTrack.start, id='listening_old_track', when='rejects_check'),
+        Cancel(Const('Назад')),
+        state=Listening.start,
+        getter=tracks_getter
+    )
+)
+
+
+async def get_music_file(message: Message, _, manager: DialogManager):
+    if manager.is_preview():
+        await manager.next()
+        return
+    manager.dialog_data["track"] = message.audio.file_id
+    await manager.next()
+
+
+async def get_music_title(message: Message, _, manager: DialogManager):
+    if manager.is_preview():
+        await manager.next()
+        return
+    manager.dialog_data["track_title"] = message.text
+    await manager.next()
+
+
+async def get_data(dialog_manager: DialogManager, **kwargs):
+    data = dialog_manager.middleware_data
+    user_nickname = await UserHandler(data['engine'], data['database_logger']) \
+        .get_user_nickname_by_tg_id(data['event_from_user'].id)
+    return {
+        "nickname": user_nickname,
     }
 
 
@@ -83,25 +103,6 @@ async def other_type_handler_text(message: Message, _, __):
     await message.answer("Пришлите название трека")
 
 
-async def get_music_title(message: Message, _, manager: DialogManager):
-    if manager.is_preview():
-        await manager.next()
-        return
-    manager.dialog_data["track_title"] = message.text
-    await manager.next()
-
-
-track_menu = Dialog(
-    Window(
-        Const('Удиви или скинь переделанное'),
-        Start(Const('Удивляю'), state=ListeningNewTrack.start, id='listening_new_track'),
-        Start(Const('Переделал'), state=ListeningEditTrack.start, id='listening_old_track', when='rejects_check'),
-        Cancel(Const('Назад')),
-        state=Listening.start,
-        getter=tracks_getter
-    )
-)
-
 new_track = Dialog(
     Window(
         Format("{nickname}, скиньте ваш трек"),
@@ -137,17 +138,12 @@ async def on_item_selected(
     await callback.answer(selected_item)
 
 
-# async def track_id_getter(track_title) -> str:
-#     data = dialog_manager.middleware_data
-#     await TrackHandler()
-
-
 old_track = Dialog(
     Window(
         Const("Выберите трек"),
         ScrollingGroup(
             Select(
-                Format("🔴{item}"),
+                Format("🔴{item[0]}"),
                 id="ms",
                 items="reject_tracks",
                 item_id_getter=itemgetter(1),
@@ -160,5 +156,21 @@ old_track = Dialog(
         Cancel(),
         getter=tracks_getter,
         state=ListeningEditTrack.start,
-    )
+    ),
+    Window(
+        Format("{nickname}, скиньте ваш трек"),
+        Cancel(Const("Назад")),
+        MessageInput(get_music_file, content_types=[ContentType.AUDIO]),
+        MessageInput(other_type_handler_audio),
+        state=ListeningEditTrack.select_track
+    ),
+    Window(
+        Const("Подтверждение отправки данного трека"),
+        Row(
+            Button(Const("Подтверждаю"), on_click=on_finish_add, id="approve_old_track"),
+            Back(Const("Изменить"), id="edit_old_track"),
+        ),
+        Cancel(Const("Вернуться в главное меню")),
+        state=ListeningEditTrack.finish
+    ),
 )
