@@ -12,7 +12,7 @@ class UserHandler:
         self.engine = engine
         self.logger = logger
 
-    async def get_all_by_tg_id(self, tg_id: int):
+    async def get_nicknames_by_tg_id(self, tg_id: int):
         async with DatabaseManager.create_session(self.engine) as session:
             try:
                 query = select(User.nickname, User.tg_username).where(and_(User.tg_id == tg_id))
