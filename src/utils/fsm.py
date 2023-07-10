@@ -29,12 +29,24 @@ class ListeningEditTrack(StatesGroup):
     finish = State()
 
 
-class Library(StatesGroup):
+class MyTracks(StatesGroup):
     start = State()
-    process = State()
-    reject = State()
-    approve = State()
-    public = State()
+
+
+class MyTracksApproved(StatesGroup):
+    start = State()
+
+
+
+class MyTracksRejected(StatesGroup):
+    start = State()
+    track_info = State()
+    select_track = State()
+    finish = State()
+
+
+class MyTracksProcessed(StatesGroup):
+    ...
 
 
 class PersonalDataFilling(StatesGroup):

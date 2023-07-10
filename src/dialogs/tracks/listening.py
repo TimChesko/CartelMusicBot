@@ -18,6 +18,8 @@ from src.utils.fsm import Listening, ListeningNewTrack, ListeningEditTrack
 
 async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
+    process = await TrackHandler(data['engine'], data['database_logger']).check_count_process_by_tg_id(
+        data['event_from_user'].id)
     rejects = await TrackHandler(data['engine'], data['database_logger']).has_reject_by_tg_id(
         data['event_from_user'].id)
     reject_tracks = await TrackHandler(data['engine'], data['database_logger']).get_rejected_by_tg_id(
@@ -26,15 +28,16 @@ async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
     logging.info(reject_tracks)
     return {
         "rejects_check": rejects,
-        'reject_tracks': reject_tracks
+        'reject_tracks': reject_tracks,
+        'process_check': process
     }
 
 
 track_menu = Dialog(
     Window(
         Const('Удиви или скинь переделанное'),
-        Start(Const('Удивляю'), state=ListeningNewTrack.start, id='listening_new_track'),
-        Start(Const('Переделал'), state=ListeningEditTrack.start, id='listening_old_track', when='rejects_check'),
+        Start(Const('Новый трек'), state=ListeningNewTrack.start, id='listening_new_track', when='process_check'),
+        Start(Const('Отклоненные'), state=ListeningEditTrack.start, id='listening_old_track', when='rejects_check'),
         Cancel(Const('Назад')),
         state=Listening.start,
         getter=tracks_getter
