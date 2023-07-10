@@ -35,7 +35,27 @@ class MyTracks(StatesGroup):
 
 class MyTracksApproved(StatesGroup):
     start = State()
-    filling_info = State()
+    filling_data = State()
+
+    confirm_title = State()
+    update_title = State()
+
+    get_text = State()
+
+    set_beat_author = State()  # Автор бита (если сам артист переходит сразу в другой блок)
+    purchased_beat = State()  # Купленный бит, нужно отчуждение
+    percent_beat = State()  # Битмарь работает за процент, нужен процент битмаря
+
+    set_text_author = State()  # Автор слов (если сам артист переходит сразу в другой блок)
+    purchased_text = State()  # Купленные слова, нужно отчуждение
+    percent_text = State()  # Автор слов работает под процент, нужен его процент
+
+    explicit_content = State()  # Ненормативная лексика (да/нет)
+
+    feat_or_not = State()  # Фит (да/нет)
+    feat_percent = State()  # Процент от трека от заполняемой стороны (не от приглашаемого)
+    invitation = State()  # Приглашение на фит (приглашаемый должен быть зареган в нашей системе)
+    confirm_on_moderation = State()
 
 
 class MyTracksRejected(StatesGroup):
