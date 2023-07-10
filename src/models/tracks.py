@@ -127,10 +127,13 @@ class TrackHandler:
         async with DatabaseManager.create_session(self.engine) as session:
             try:
                 query = select(Track.process).where(
-                    and_(Track.user_id == int(tg_id)))
+                    and_(Track.user_id == int(tg_id), Track.process == True))
                 result = await session.execute(query)
-                chat = result.all()
-                return chat
+                process = result.all()
+                if len(process) < 3:
+                    return True
+                else:
+                    return False
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
