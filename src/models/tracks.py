@@ -123,15 +123,27 @@ class TrackHandler:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
 
-    async def get_title_by_tg_id(self, tg_id: int):
+    async def get_title_by_track_id(self, track_id):
         async with DatabaseManager.create_session(self.engine) as session:
             try:
-                query = select(Track.track_title).where(and_(Track.user_id == int(tg_id)))
+                query = select(Track.track_title).where(and_(Track.id == int(track_id)))
                 result = await session.execute(query)
                 title = result.scalar_one_or_none()
                 return title
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
+                return False
+
+    async def update_track_file_id_audio(self, track_id, file_id_audio):
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                await session.execute(
+                    update(Track).where(Track.id == track_id).values(file_id_audio=file_id_audio)
+                )
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при установке трека в состояние 'в процессе': %s", e)
                 return False
 
     # SET STATES FOR TRACKS (process, reject, approve, public & etc)
