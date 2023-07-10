@@ -10,7 +10,7 @@ from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back, Start, Scrolli
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.data import config
-from src.keyboards.inline.listening import markup_listening
+from src.keyboards.inline.listening import markup_new_listening, markup_edit_listening
 from src.models.tracks import TrackHandler
 from src.models.user import UserHandler
 from src.utils.fsm import Listening, ListeningNewTrack, ListeningEditTrack
@@ -78,7 +78,7 @@ async def on_finish_new_track(callback: CallbackQuery, _, manager: DialogManager
                                                       audio=manager.dialog_data["track"],
                                                       caption=f"Title: {manager.dialog_data['track_title']}\n" \
                                                               f"User: {user_name} / nickname: {nickname}",
-                                                      reply_markup=markup_listening(track_id))
+                                                      reply_markup=markup_new_listening(track_id))
     await TrackHandler(data['engine'], data['database_logger']).set_task_msg_id_to_tracks(track_id,
                                                                                           msg_audio.message_id)
     await callback.message.answer("Ваш трек отправлен на модерацию")
@@ -161,9 +161,10 @@ async def on_finish_old_track(callback: CallbackQuery, _, manager: DialogManager
     msg_audio: Message = await data['bot'].send_audio(chat_id=chat_id,
                                                       audio=manager.dialog_data["track"],
                                                       caption=f"ПОВТОРНОЕ ПРОСЛУШИВАНИЕ \n"
+                                                              f"Серийный номер: #{track_id}"
                                                               f"Title: {manager.dialog_data['track_title']}\n"
                                                               f"User: {user_name} / nickname: {nickname}",
-                                                      reply_markup=markup_listening(track_id))
+                                                      reply_markup=markup_edit_listening(track_id))
     await TrackHandler(data['engine'], data['database_logger']).set_task_msg_id_to_tracks(track_id,
                                                                                           msg_audio.message_id)
     await callback.message.answer(f"Ваш трек повторно отправлен на модерацию")
@@ -199,7 +200,7 @@ old_track = Dialog(
         getter=title_getter
     ),
     Window(
-        Const("Подтверждение отправки данного трека"),
+        Const("Подтверждение отправки трека"),
         Row(
             Button(Const("Подтверждаю"), on_click=on_finish_old_track, id="approve_old_track"),
             Back(Const("Изменить"), id="edit_old_track"),
