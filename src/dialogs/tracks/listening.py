@@ -33,7 +33,7 @@ async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
     }
 
 
-track_menu = Dialog(
+listening_menu = Dialog(
     Window(
         Const('Удиви или скинь переделанное'),
         Start(Const('Новый трек'), state=ListeningNewTrack.start, id='listening_new_track', when='process_check'),
@@ -175,7 +175,7 @@ async def on_finish_old_track(callback: CallbackQuery, _, manager: DialogManager
     await manager.done()
 
 
-old_track = Dialog(
+edit_track = Dialog(
     Window(
         Const("Выберите трек"),
         ScrollingGroup(

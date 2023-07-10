@@ -35,7 +35,7 @@ class MyTracks(StatesGroup):
 
 class MyTracksApproved(StatesGroup):
     start = State()
-
+    filling_info = State()
 
 
 class MyTracksRejected(StatesGroup):
