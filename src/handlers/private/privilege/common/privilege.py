@@ -1,4 +1,4 @@
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.types import Message
 from structlog._log_levels import BoundLoggerFilteringAtDebug
 
@@ -8,7 +8,7 @@ from src.models.user import UserHandler
 router = Router()
 
 
-@router.message(lambda c: c.text.startswith("/privilege"))
+@router.message(F.text.startswith("/privilege"))
 async def privilege(msg: Message, config, engine, database_logger: BoundLoggerFilteringAtDebug):
     command = msg.text.split(" ")
     match command:
@@ -41,7 +41,7 @@ async def privilege(msg: Message, config, engine, database_logger: BoundLoggerFi
                 tg_id = int(tg_id_str)
                 if tg_id != msg.from_user.id:
                     await UserHandler(engine, database_logger).set_privilege(tg_id, 'user')
-                    await msg.answer(f"У пользователя {tg_id} сброшена привелегия до 'user' ")
+                    await msg.answer(f"У пользователя {tg_id} сброшена привилегия до 'user' ")
                 else:
                     await msg.answer(f"В целях безопасности, вы не можете изменить свою роль")
             except ValueError:

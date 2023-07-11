@@ -39,9 +39,18 @@ async def other_type_handler_docs(message: Message, _, __):
     await message.answer("Пришлите текст трека в формате docs или txt")
 
 
+async def other_type_handler_text(message: Message, _, __):
+    await message.answer("Пришлите название трека")
+
+
 async def on_item_selected(_, __, manager: DialogManager, selected_item: str):
     manager.dialog_data["track_id"] = int(selected_item)
     logging.info(selected_item)
+    await manager.next()
+
+
+async def set_music_title(message: Message, _, manager: DialogManager):
+    manager.dialog_data["track_title"] = message.text
     await manager.next()
 
 
@@ -80,15 +89,24 @@ approved_filling_data = Dialog(
     ),
     Window(
         Format("Подтвердите название трека\n"
-               "Актуальное название: {title}"),
+               "Актуальное название: {track_title}"),
         Next(Const('Обновить заголовок')),
         SwitchTo(Const('Продолжить'), state=MyTracksApproved.get_text, id='approved_to_get_text'),
-        state=MyTracksApproved.confirm_title
+        Cancel(),
+        state=MyTracksApproved.confirm_title,
+        getter=title_getter
+    ),
+    Window(
+        Const("Дайте название вашему треку"),
+        MessageInput(set_music_title, content_types=[ContentType.TEXT]),
+        MessageInput(other_type_handler_text),
+        state=MyTracksApproved.update_title
     ),
     Window(
         Const("Скиньте документ в формате txt или docs с текстом трека"),
         MessageInput(get_document_file, content_types=[ContentType.DOCUMENT]),
         MessageInput(other_type_handler_docs),
+        Cancel(),
         state=MyTracksApproved.get_text
     ),
 )
