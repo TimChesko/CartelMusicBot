@@ -3,7 +3,7 @@ from sqlalchemy import select, and_
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.database.process import DatabaseManager
-from src.models.tables import User, PersonalData
+from src.models.tables import User
 
 
 class UserHandler:
@@ -101,5 +101,3 @@ class UserHandler:
                 self.logger.error("Ошибка при добавлении нового пользователя: %s", e)
                 await session.rollback()
                 return False
-
-

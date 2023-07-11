@@ -13,7 +13,6 @@ class ChatActions(BaseMiddleware):
             event: Message,
             data: Dict[str, Any]
     ) -> Any:
-
         chat_action = get_flag(data, 'chat_action')
         if not chat_action:
             return await handler(event, data)

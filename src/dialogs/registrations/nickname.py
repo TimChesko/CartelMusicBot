@@ -1,6 +1,6 @@
 from aiogram.types import CallbackQuery, ContentType, Message
 from aiogram_dialog import (
-    Dialog, DialogManager, Window, StartMode,
+    Dialog, DialogManager, Window, StartMode, ShowMode,
 )
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Back, Button, Row
@@ -17,23 +17,17 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
 
 
 async def nickname_check(message: Message, _, manager: DialogManager):
-    if manager.is_preview():
-        await manager.next()
-        return
     manager.dialog_data["nickname"] = message.text
     await manager.next()
 
 
 async def on_finish(callback: CallbackQuery, _, manager: DialogManager):
     data = (await manager.load_data())['middleware_data']
-    if manager.is_preview():
-        await manager.done()
-        return
     nickname = manager.dialog_data.get("nickname", "")
     await UserHandler(data['engine'], data['database_logger']).set_user_nickname(
         callback.from_user.id, nickname)
-    await callback.message.answer("Спасибо за регистрацию")
-    await manager.start(StartMenu.start, mode=StartMode.RESET_STACK)
+    await callback.message.answer("Спасибо за регистрацию ❤️")
+    await manager.start(StartMenu.start, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND)
 
 
 reg_nickname = Dialog(
@@ -44,7 +38,7 @@ reg_nickname = Dialog(
     ),
     Window(
         Multi(
-            Format("Ваш псевдоним: {nickname}!")
+            Format("Ваш псевдоним: {nickname}")
         ),
         Row(
             Back(Const("Изменить")),

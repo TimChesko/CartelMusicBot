@@ -1,12 +1,11 @@
 import logging
 from _operator import itemgetter
-from typing import Any
 
 from aiogram.enums import ContentType
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import Message
 from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Button, Back, Row, Next, SwitchTo
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Next, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.models.tracks import TrackHandler
@@ -40,11 +39,7 @@ async def other_type_handler_docs(message: Message, _, __):
     await message.answer("Пришлите текст трека в формате docs или txt")
 
 
-async def on_item_selected(
-        callback: CallbackQuery,
-        widget: Any,
-        manager: DialogManager,
-        selected_item: str):
+async def on_item_selected(_, __, manager: DialogManager, selected_item: str):
     manager.dialog_data["track_id"] = int(selected_item)
     logging.info(selected_item)
     await manager.next()

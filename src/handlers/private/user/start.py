@@ -12,7 +12,8 @@ router = Router()
 
 
 @router.message(CommandStart(), flags={'chat_action': 'typing'})
-async def cmd_start(msg: Message, engine: AsyncEngine, database_logger: BoundLoggerFilteringAtDebug,
+async def cmd_start(msg: Message,
+                    engine: AsyncEngine, database_logger: BoundLoggerFilteringAtDebug,
                     dialog_manager: DialogManager):
     user = await UserHandler(engine, database_logger).get_nicknames_by_tg_id(msg.from_user.id)
     if not user:

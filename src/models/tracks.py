@@ -30,10 +30,6 @@ class TrackHandler:
                 query = select(Track.reject).where(and_(Track.user_id == int(tg_id)))
                 result = await session.execute(query)
                 chat = result.all()
-                # if chat is None:
-                #     return False
-                # else:
-                #     return True
                 return chat
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)

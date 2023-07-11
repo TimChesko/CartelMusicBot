@@ -3,7 +3,6 @@ from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncEngine
 from structlog._log_levels import BoundLoggerFilteringAtDebug
 
-from src.data import config
 from src.keyboards.inline.listening import markup_reject_patterns, markup_new_listening, markup_edit_listening, \
     markup_edit_reject_patterns
 from src.models.tracks import TrackHandler

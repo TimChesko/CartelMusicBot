@@ -2,7 +2,6 @@ from typing import Any, Awaitable, Callable, Dict
 
 from aiogram.types import TelegramObject, Message
 
-from src.data import config
 from src.models.user import UserHandler
 
 

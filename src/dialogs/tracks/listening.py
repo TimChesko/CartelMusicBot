@@ -1,12 +1,11 @@
 import logging
 from operator import itemgetter
-from typing import Any
 
 from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back, Start, ScrollingGroup, Multiselect, SwitchTo, Select
+from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back, Start, ScrollingGroup, Select
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.data import config
@@ -124,11 +123,7 @@ new_track = Dialog(
 )
 
 
-async def on_item_selected(
-        callback: CallbackQuery,
-        widget: Any,
-        manager: DialogManager,
-        selected_item: str):
+async def on_item_selected(_, __, manager: DialogManager, selected_item: str):
     manager.dialog_data["track_id"] = int(selected_item)
     logging.info(selected_item)
     await manager.next()

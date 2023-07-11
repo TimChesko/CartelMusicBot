@@ -1,4 +1,5 @@
 from aiogram import Router, F
+
 from . import user, privilege
 
 router = Router()
