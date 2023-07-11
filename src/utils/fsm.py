@@ -35,6 +35,8 @@ class MyTracks(StatesGroup):
 
 class MyTracksApproved(StatesGroup):
     start = State()
+    track_info = State()
+
     filling_data = State()
 
     confirm_title = State()
