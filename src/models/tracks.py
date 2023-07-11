@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import select, and_, update
+from sqlalchemy import select, and_, update, or_
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.database.process import DatabaseManager
@@ -116,6 +116,18 @@ class TrackHandler:
             try:
                 query = select(Track.track_title, Track.id).where(
                     and_(Track.user_id == int(tg_id), Track.reject == True))
+                result = await session.execute(query)
+                chat = result.all()
+                return chat
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при выполнении запроса: %s", e)
+                return False
+
+    async def get_approved_by_tg_id(self, tg_id: int):
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                query = select(Track.track_title, Track.id).where(
+                    and_(Track.user_id == int(tg_id), or_(Track.approve == True, Track.approve_promo == True)))
                 result = await session.execute(query)
                 chat = result.all()
                 return chat

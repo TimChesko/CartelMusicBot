@@ -16,7 +16,7 @@ reloading_on_listening = Dialog(
         ScrollingGroup(
             Select(
                 Format("🔴 {item[0]}"),
-                id="ms",
+                id="rejected_tracks_item",
                 items="reject_tracks",
                 item_id_getter=itemgetter(1),
                 on_click=on_item_selected
