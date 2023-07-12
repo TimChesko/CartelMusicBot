@@ -155,7 +155,7 @@ async def on_finish_old_track(callback: CallbackQuery, _, manager: DialogManager
         track_id=track_id,
         file_id_audio=manager.dialog_data["track"]
     )
-    await TrackHandler(data['engine'], data['database_logger']).set_track_to_process(track_id)
+    await TrackHandler(data['engine'], data['database_logger']).set_new_status_track(track_id, 'process')
     msg_audio: Message = await data['bot'].send_audio(chat_id=chat_id,
                                                       audio=manager.dialog_data["track"],
                                                       caption=f"ПОВТОРНОЕ ПРОСЛУШИВАНИЕ \n"

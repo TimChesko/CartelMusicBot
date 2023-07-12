@@ -1,3 +1,5 @@
+import logging
+
 from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.kbd import Start
 from aiogram_dialog.widgets.text import Const
@@ -15,6 +17,7 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
     user_data = not (
         await PersonalDataHandler(data['engine'], data['database_logger']).check_all_data_complete(user_id))
     tracks = await TrackHandler(data['engine'], data['database_logger']).check_chat_exists(user_id)
+    logging.info(library)
     return {
         "library_check": library,
         'my_data_check': user_data,

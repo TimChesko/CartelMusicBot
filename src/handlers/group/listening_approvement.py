@@ -27,7 +27,7 @@ async def taking_task(callback: CallbackQuery, bot: Bot, engine: AsyncEngine,
                                                         f'Артист: {nickname} / @{username} \n'
                                                         f'Одобрил: {callback.from_user.id} / @{callback.from_user.username}',
                                                 reply_markup=None)
-            await TrackHandler(engine, database_logger).set_track_to_approve(track_id, callback.from_user.id)
+            await TrackHandler(engine, database_logger).set_new_status_track(track_id, 'approve', callback.from_user.id)
             await bot.send_message(user_id, f'Ваш трек "{title}" одобрен! \n'
                                             f'Он добавлен в раздел "Треки" \n'
                                             f'Чтобы перейти в этот раздел пройдите'
@@ -40,7 +40,8 @@ async def taking_task(callback: CallbackQuery, bot: Bot, engine: AsyncEngine,
                                                         f'Артист: {nickname} / @{username} \n'
                                                         f'Одобрил: {callback.from_user.id} / @{callback.from_user.username}',
                                                 reply_markup=None)
-            await TrackHandler(engine, database_logger).set_track_to_approve(track_id, callback.from_user.id)
+            await TrackHandler(engine, database_logger).set_new_status_track(track_id, 'approve',
+                                                                             callback.from_user.id)
             await bot.send_message(user_id, f'Ваш трек "{title}" одобрен! \n'
                                             f'Он добавлен в раздел "Треки" \n'
                                             f'Чтобы перейти в этот раздел пройдите'
@@ -52,7 +53,8 @@ async def taking_task(callback: CallbackQuery, bot: Bot, engine: AsyncEngine,
                                                         f'Артист: {nickname} / @{username} \n'
                                                         f'Одобрил: {callback.from_user.id} / @{callback.from_user.username}',
                                                 reply_markup=None)
-            await TrackHandler(engine, database_logger).set_track_to_approve_promo(track_id, callback.from_user.id)
+            await TrackHandler(engine, database_logger).set_new_status_track(track_id, 'approve_promo',
+                                                                             callback.from_user.id)
             await bot.send_message(user_id, f'Ваш трек "{title}" одобрен с доступом к промо! \n'
                                             f'Он добавлен в раздел "Треки" \n'
                                             f'К каждому треку нужно заполнять информацию\n'
@@ -66,7 +68,8 @@ async def taking_task(callback: CallbackQuery, bot: Bot, engine: AsyncEngine,
                                                         f'Артист: {nickname} / @{username} \n'
                                                         f'Одобрил: {callback.from_user.id} / @{callback.from_user.username}',
                                                 reply_markup=None)
-            await TrackHandler(engine, database_logger).set_track_to_approve_promo(track_id, callback.from_user.id)
+            await TrackHandler(engine, database_logger).set_new_status_track(track_id, 'approve_promo',
+                                                                             callback.from_user.id)
             await bot.send_message(user_id, f'Ваш трек "{title}" одобрен с доступом к промо! \n'
                                             f'Он добавлен в раздел "Треки" \n'
                                             f'К каждому треку нужно заполнять информацию\n'
@@ -85,7 +88,7 @@ async def taking_task(callback: CallbackQuery, bot: Bot, engine: AsyncEngine,
                                                         f'Отклонил: {callback.from_user.id} / @{callback.from_user.username}',
                                                 # TODO поменять @{callback.from_user.username} на запрос из бд с информацией о сотрудниках
                                                 reply_markup=None)
-            await TrackHandler(engine, database_logger).set_track_to_reject(track_id, callback.from_user.id)
+            await TrackHandler(engine, database_logger).set_new_status_track(track_id, 'reject', callback.from_user.id)
             await bot.send_message(user_id, f'Ваш трек "{title}" отклонен( \n'
                                             f'Ну реально, иди поспи, сынок, музыка - не твое \n'
                                             f'Но если ты из тех кто не сдается и даже не знает, что такое матерый,'
@@ -100,7 +103,7 @@ async def taking_task(callback: CallbackQuery, bot: Bot, engine: AsyncEngine,
                                                         f'Отклонил: {callback.from_user.id} / @{callback.from_user.username}',
                                                 # TODO поменять @{callback.from_user.username} на запрос из бд с информацией о сотрудниках
                                                 reply_markup=None)
-            await TrackHandler(engine, database_logger).set_track_to_reject(track_id, callback.from_user.id)
+            await TrackHandler(engine, database_logger).set_new_status_track(track_id, 'reject', callback.from_user.id)
             await bot.send_message(user_id, f'Ваш трек "{title}" отклонен( \n'
                                             f'Ну реально, иди поспи, сынок, музыка - не твое \n'
                                             f'Но если ты из тех кто не сдается и даже не знает, что такое матерый,'

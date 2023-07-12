@@ -86,7 +86,7 @@ class Track(Base):
 
     status = Column(Enum('process', 'reject', 'approve',
                          'approve_promo', 'aggregating',
-                         'aggregated', name='track_status'))
+                         'aggregated', name='track_status'), default='process')
 
     # Определение связи с TrackInfo
     track_info = relationship("TrackInfo", uselist=False, back_populates="track")
