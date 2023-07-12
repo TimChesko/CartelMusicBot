@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger
-from sqlalchemy.orm import DeclarativeBase, relationship, column_property
+from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger, Enum
+from sqlalchemy.orm import DeclarativeBase, relationship
 
 
 class Base(DeclarativeBase):
@@ -73,7 +73,7 @@ class Track(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey('users.tg_id'), nullable=False)  # Ссылка на таблицу users
-    # listening_chat_id = Column(BigInteger) пока уберем, думаю над целесообразностью
+    listening_chat_id = Column(BigInteger)
     album_id = Column(Integer, ForeignKey('albums.id'))  # новая ссылка на альбом
 
     track_title = Column(String)
@@ -85,20 +85,7 @@ class Track(Base):
 
     datetime = Column(DateTime, nullable=False)  # дату доставать из msg
 
-    process = Column(Boolean, default=True)
-    reject = Column(Boolean, default=False)
-    approve = Column(Boolean, default=False)
-    approve_promo = Column(Boolean, default=False)  # Принятие трека с доступом к промо
-    aggregating = Column(Boolean, default=False)  # Трек на отгрузке агрегатору
-    aggregated = Column(Boolean, default=False)  # Трек отгружен агрегатору
-
-    # Свойство column_property для гарантии уникальности значений True
-    process_only = column_property(process & ~reject & ~approve & ~approve_promo & ~aggregating & ~aggregated)
-    reject_only = column_property(~process & reject & ~approve & ~approve_promo & ~aggregating & ~aggregated)
-    approve_only = column_property(~process & ~reject & approve & ~approve_promo & ~aggregating & ~aggregated)
-    approve_promo_only = column_property(~process & ~reject & ~approve & approve_promo & ~aggregating & ~aggregated)
-    aggregating_only = column_property(~process & ~reject & ~approve & ~approve_promo & aggregating & ~aggregated)
-    aggregated_only = column_property(~process & ~reject & ~approve & ~approve_promo & ~aggregating & aggregated)
+    status = Column(Enum('process', 'reject', 'approve', 'approve_promo', 'aggregating', 'aggregated'))
 
     # Определение связи с TrackInfo
     track_info = relationship("TrackInfo", uselist=False, back_populates="track")
