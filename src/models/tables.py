@@ -85,7 +85,9 @@ class Track(Base):
 
     datetime = Column(DateTime, nullable=False)  # дату доставать из msg
 
-    status = Column(Enum('process', 'reject', 'approve', 'approve_promo', 'aggregating', 'aggregated'))
+    status = Column(Enum('process', 'reject', 'approve',
+                         'approve_promo', 'aggregating',
+                         'aggregated', name='track_status'))
 
     # Определение связи с TrackInfo
     track_info = relationship("TrackInfo", uselist=False, back_populates="track")
