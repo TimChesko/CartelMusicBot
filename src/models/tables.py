@@ -79,7 +79,6 @@ class Track(Base):
     track_title = Column(String)
     file_id_audio = Column(String)
     task_msg_id = Column(Integer)
-    approved = Column(Boolean, default=False)
     id_who_approve = Column(BigInteger)
     reject_reason = Column(String)
 
