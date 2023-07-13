@@ -1,7 +1,9 @@
+import logging
+
 from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
-from aiogram_dialog import DialogManager, StartMode
+from aiogram_dialog import DialogManager, StartMode, ShowMode
 from sqlalchemy.ext.asyncio import AsyncEngine
 from structlog._log_levels import BoundLoggerFilteringAtDebug
 
@@ -20,4 +22,5 @@ async def cmd_start(msg: Message,
         await UserHandler(engine, database_logger).add_new_user(msg)
         await dialog_manager.start(RegNickname.nickname, mode=StartMode.RESET_STACK)
     else:
-        await dialog_manager.start(StartMenu.start, mode=StartMode.RESET_STACK)
+        await msg.delete()
+        start = await dialog_manager.start(StartMenu.start, mode=StartMode.RESET_STACK)
