@@ -83,7 +83,6 @@ class UserHandler:
                 return nickname
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при добавлении нового пользователя: %s", e)
-                await session.rollback()
                 return False
 
     async def set_privilege(self, user_id: int, new_privilege: str) -> bool:

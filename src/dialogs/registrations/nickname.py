@@ -6,6 +6,7 @@ from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Back, Button, Row
 from aiogram_dialog.widgets.text import Const, Format, Multi
 
+from src.models.personal_data import PersonalDataHandler
 from src.models.user import UserHandler
 from src.utils.fsm import RegNickname, StartMenu
 
@@ -26,6 +27,7 @@ async def on_finish(callback: CallbackQuery, _, manager: DialogManager):
     nickname = manager.dialog_data.get("nickname", "")
     await UserHandler(data['engine'], data['database_logger']).set_user_nickname(
         callback.from_user.id, nickname)
+    await PersonalDataHandler(data['engine'], data['database_logger']).create_row(callback.from_user.id)
     await callback.message.answer("Спасибо за регистрацию ❤️")
     await manager.start(StartMenu.start, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND)
 

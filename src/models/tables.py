@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from aiogram.loggers import event
 from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger, Enum
 from sqlalchemy.orm import DeclarativeBase, relationship
 
@@ -28,14 +29,12 @@ class User(Base):
     tracks = relationship("Track", back_populates="user")  # Добавить связь с Track
     albums = relationship("Album", back_populates="user")
 
-    # def __repr__(self):
-    #     return f"User(tg_id='{self.tg_id}', first_name='{self.first_name}', surname='{self.surname}')"
-    # now I don't know how to use it \0_0/
-
 
 class PersonalData(Base):
     __tablename__ = 'personal_data'
     tg_id = Column(BigInteger, ForeignKey('users.tg_id'), primary_key=True, nullable=False)
+    confirm_use_personal_data = Column(Boolean, default=False)
+
     # ФИО
     first_name = Column(String)
     surname = Column(String)
@@ -50,7 +49,7 @@ class PersonalData(Base):
     date_of_birth = Column(DateTime)  # дата рождения
     place_of_birth = Column(String)  # место рождения
     registration_address = Column(String)  # адрес регистрации
-    all_user_data = Column(Boolean, default=False)
+    all_passport_data = Column(Integer, default=0)  # 0 - нет, 1 - в обработке, 2 - проверены
 
     # Банковские данные
     recipient = Column(String)  # Получатель
@@ -61,10 +60,9 @@ class PersonalData(Base):
     inn_code = Column(Integer)  # ИНН
     kpp_code = Column(Integer)  # КПП
     swift_code = Column(String)  # Свифт-код
-    all_cash_data = Column(Boolean, default=False)
+    all_bank_data = Column(Integer, default=0)  # 0 - нет, 1 - в обработке, 2 - проверены
 
     moderated = Column(Boolean, default=False)
-
     user = relationship("User", back_populates="personal_data")
 
 
