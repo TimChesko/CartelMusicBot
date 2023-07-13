@@ -1,4 +1,4 @@
-from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
+from aiogram_dialog import DialogManager, Dialog, Window, ShowMode, LaunchMode
 from aiogram_dialog.widgets.kbd import Start, Button
 from aiogram_dialog.widgets.text import Const
 
@@ -70,5 +70,6 @@ start_menu = Dialog(
         state=StartMenu.start,
         getter=get_data
     ),
-    on_start=on_start_copy_start_data
+    on_start=on_start_copy_start_data,
+    launch_mode=LaunchMode.ROOT
 )

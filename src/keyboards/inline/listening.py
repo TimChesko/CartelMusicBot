@@ -1,3 +1,4 @@
+from aiogram.utils.deep_linking import create_deep_link
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
@@ -7,7 +8,8 @@ def markup_new_listening(track_id):
     approvement.button(text='Одобрить', callback_data=f'listening_approve_{track_id}')
     approvement.button(text='Одобрить с промо', callback_data=f'listening_approve-promo_{track_id}')
     approvement.button(text='Отклонить шаблон', callback_data=f'listening_pattern-reject_{track_id}')
-    approvement.button(text='Отклонить с ответом', callback_data=f'listening_answer-reject_{track_id}')
+    approvement.button(text='Отклонить с ответом',
+                       url=f'{create_deep_link("CartelRecordsBot", link_type="start", payload=f"{track_id}", encode=True)}')
 
     approvement.adjust(1)
     return approvement.as_markup()
@@ -32,7 +34,8 @@ def markup_edit_listening(track_id):
     approvement.button(text='Одобрить', callback_data=f'listening_approve-edit_{track_id}')
     approvement.button(text='Одобрить с промо', callback_data=f'listening_approve-promo-edit_{track_id}')
     approvement.button(text='Отклонить шаблон', callback_data=f'listening_pattern-reject-edit_{track_id}')
-    approvement.button(text='Отклонить с ответом', callback_data=f'listening_answer-reject-edit_{track_id}')
+    approvement.button(text='Отклонить с ответом', callback_data=f'listening_answer-reject-edit_{track_id}',
+                       url=f'https://t.me/CartelRecordsBot')
 
     approvement.adjust(1)
     return approvement.as_markup()

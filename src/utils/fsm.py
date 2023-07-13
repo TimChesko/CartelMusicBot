@@ -6,6 +6,11 @@ class RegNickname(StatesGroup):
     finish = State()
 
 
+class RejectAnswer(StatesGroup):
+    start = State()
+    finish = State()
+
+
 class StartMenu(StatesGroup):
     start = State()
 
