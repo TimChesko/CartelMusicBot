@@ -6,8 +6,9 @@ from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Button, Back, Row, Next
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.dialogs.tracks.listening import on_item_selected, tracks_getter, set_music_file_for_edit, \
-    other_type_handler_audio, title_getter, on_finish_old_track
+from src.dialogs.listening.edit import on_item_selected, set_music_file_for_edit, title_getter, on_finish_old_track
+from src.dialogs.listening.menu import tracks_getter
+from src.dialogs.listening.new import other_type_handler_audio
 from src.utils.fsm import MyTracksRejected
 
 reloading_on_listening = Dialog(

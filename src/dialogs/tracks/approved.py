@@ -30,13 +30,19 @@ async def title_getter(dialog_manager: DialogManager, **_kwargs):
     }
 
 
-async def get_document_file(message: Message, _, manager: DialogManager):
+async def get_text_file(message: Message, _, manager: DialogManager):
+    manager.dialog_data["track_text"] = message.document.file_id
+    await manager.next()
+
+
+async def get_alienation_file(message: Message, _, manager: DialogManager):
+    # Отчуждение
     manager.dialog_data["track_text"] = message.document.file_id
     await manager.next()
 
 
 async def other_type_handler_docs(message: Message, _, __):
-    await message.answer("Пришлите текст трека в формате docs или txt")
+    await message.answer("Нужно прислать файл с требуемыми данными")
 
 
 async def other_type_handler_text(message: Message, _, __):
@@ -100,13 +106,29 @@ approved_filling_data = Dialog(
         Const("Дайте название вашему треку"),
         MessageInput(set_music_title, content_types=[ContentType.TEXT]),
         MessageInput(other_type_handler_text),
+        Cancel(),
         state=MyTracksApproved.update_title
     ),
     Window(
         Const("Скиньте документ в формате txt или docs с текстом трека"),
-        MessageInput(get_document_file, content_types=[ContentType.DOCUMENT]),
+        MessageInput(get_text_file, content_types=[ContentType.DOCUMENT]),
         MessageInput(other_type_handler_docs),
         Cancel(),
         state=MyTracksApproved.get_text
     ),
+    Window(
+        Const('Выберите кто является автором музыки, если бит выкуплен - понадобится отчуждение'),
+        Next(Const('Выкуплен')),
+        SwitchTo(Const('Процент'), state=MyTracksApproved.percent_beat, id='beat_percent'),
+        SwitchTo(Const('Я автор'), state=MyTracksApproved.set_text_author, id='to_text_author'),
+        Cancel(),
+        state=MyTracksApproved.set_beat_author
+    ),
+    Window(
+        Const('Пришлите отчуждение в формате PDF'),
+        MessageInput(get_alienation_file, content_types=[ContentType.DOCUMENT]),
+        MessageInput(other_type_handler_docs),
+        Cancel(),
+        state=MyTracksApproved.purchased_beat
+    )
 )
