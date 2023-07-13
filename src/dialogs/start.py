@@ -1,4 +1,4 @@
-from aiogram_dialog import DialogManager, Dialog, Window
+from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
 from aiogram_dialog.widgets.kbd import Start, Button
 from aiogram_dialog.widgets.text import Const
 
@@ -21,6 +21,10 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
     }
 
 
+async def start_listening(_, __, manager: DialogManager):
+    manager.show_mode = ShowMode.EDIT
+
+
 async def start_profile(_, __, manager: DialogManager):
     data = manager.middleware_data
     user_id = data['event_from_user'].id
@@ -39,6 +43,7 @@ start_menu = Dialog(
             Const("Трек на прослушивание"),
             id='listening',
             state=Listening.start,
+            on_click=start_listening
         ),
         Start(
             Const("Мои треки"),

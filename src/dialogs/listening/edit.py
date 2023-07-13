@@ -4,8 +4,10 @@ from operator import itemgetter
 from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
+from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back, ScrollingGroup, Select
+from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.data import config
@@ -17,24 +19,29 @@ from src.models.user import UserHandler
 from src.utils.fsm import ListeningEditTrack
 
 
-async def on_item_selected(_, __, manager: DialogManager, selected_item: str):
+async def on_item_selected(callback: CallbackQuery, __, manager: DialogManager, selected_item: str):
     manager.dialog_data["track_id"] = int(selected_item)
     logging.info(selected_item)
     await manager.next()
 
 
-async def title_getter(dialog_manager: DialogManager, **_kwargs):
+async def on_finish_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     track_id = dialog_manager.dialog_data['track_id']
-    title = await TrackHandler(data['engine'], data['database_logger']).get_title_by_track_id(track_id)
+    title, file_id_audio = await TrackHandler(data['engine'], data['database_logger']).get_title_and_file_id_by_id(
+        track_id)
+    audio = MediaAttachment(ContentType.AUDIO, file_id=MediaId(file_id_audio))
     dialog_manager.dialog_data['track_title'] = title
     return {
-        'title': title
+        'title': title,
+        'audio': audio
     }
 
 
-async def set_music_file_for_edit(message: Message, _, manager: DialogManager):
-    manager.dialog_data["track"] = message.audio.file_id
+async def set_music_file_for_edit(msg: Message, _, manager: DialogManager):
+    manager.dialog_data["track"] = msg.audio.file_id
+    await msg.delete()
+    manager.show_mode = ShowMode.EDIT
     await manager.next()
 
 
@@ -59,7 +66,8 @@ async def on_finish_old_track(callback: CallbackQuery, _, manager: DialogManager
                                                       reply_markup=markup_edit_listening(track_id))
     await TrackHandler(data['engine'], data['database_logger']).set_task_msg_id_to_tracks(track_id,
                                                                                           msg_audio.message_id)
-    await callback.message.answer(f"Ваш трек повторно отправлен на модерацию")
+    await callback.message.edit_caption(
+        caption=f'Трек "{manager.dialog_data["track_title"]}" повторно отправлен на модерацию')
     manager.show_mode = ShowMode.SEND
     await manager.done()
 
@@ -89,15 +97,17 @@ edit_track = Dialog(
         MessageInput(set_music_file_for_edit, content_types=[ContentType.AUDIO]),
         MessageInput(other_type_handler_audio),
         state=ListeningEditTrack.select_track,
-        getter=title_getter
+        getter=on_finish_getter
     ),
     Window(
-        Const("Подтверждение отправки трека"),
+        Format('Подтверждение отправки трека "{title}"'),
+        DynamicMedia('audio'),
         Row(
             Button(Const("Подтверждаю"), on_click=on_finish_old_track, id="approve_old_track"),
             Back(Const("Изменить"), id="edit_old_track"),
         ),
         Cancel(Const("Вернуться в главное меню")),
-        state=ListeningEditTrack.finish
+        state=ListeningEditTrack.finish,
+        getter=on_finish_getter
     ),
 )

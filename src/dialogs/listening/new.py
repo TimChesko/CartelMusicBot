@@ -1,8 +1,10 @@
 from aiogram.enums import ContentType
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InputMediaAudio, InputMedia
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
+from aiogram_dialog.api.entities import MediaId, MediaAttachment
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back
+from aiogram_dialog.widgets.media import Media, DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.data import config
@@ -12,14 +14,27 @@ from src.models.user import UserHandler
 from src.utils.fsm import ListeningNewTrack
 
 
-async def set_music_file(message: Message, _, manager: DialogManager):
-    manager.dialog_data["track"] = message.audio.file_id
+async def set_music_file(msg: Message, _, manager: DialogManager):
+    manager.dialog_data["track"] = msg.audio.file_id
+    await msg.delete()
+    manager.show_mode = ShowMode.EDIT
     await manager.next()
 
 
-async def set_music_title(message: Message, _, manager: DialogManager):
-    manager.dialog_data["track_title"] = message.text
+async def set_music_title(msg: Message, _, manager: DialogManager):
+    manager.dialog_data["track_title"] = msg.text
+    await msg.delete()
+    manager.show_mode = ShowMode.EDIT
     await manager.next()
+
+
+async def on_finish_getter(dialog_manager: DialogManager, **kwargs):
+    audio_id = dialog_manager.dialog_data['track']
+    audio = MediaAttachment(ContentType.AUDIO, file_id=MediaId(audio_id))
+    return {
+        'title': dialog_manager.dialog_data['track_title'],
+        'audio': audio
+    }
 
 
 async def nickname_getter(dialog_manager: DialogManager, **kwargs):
@@ -51,17 +66,17 @@ async def on_finish_new_track(callback: CallbackQuery, _, manager: DialogManager
                                                       reply_markup=markup_new_listening(track_id))
     await TrackHandler(data['engine'], data['database_logger']).set_task_msg_id_to_tracks(track_id,
                                                                                           msg_audio.message_id)
-    await callback.message.answer("Ваш трек отправлен на модерацию")
+    await callback.message.edit_caption(caption=f'Трек "{manager.dialog_data["track_title"]}" отправлен на модерацию')
     manager.show_mode = ShowMode.SEND
     await manager.done()
 
 
-async def other_type_handler_audio(message: Message, _, __):
-    await message.answer("Пришлите трек в формате mp3")
+async def other_type_handler_audio(msg: Message, _, __):
+    await msg.answer("Пришлите трек в формате mp3")
 
 
-async def other_type_handler_text(message: Message, _, __):
-    await message.answer("Пришлите название трека")
+async def other_type_handler_text(msg: Message, _, __):
+    await msg.answer("Пришлите название трека")
 
 
 new_track = Dialog(
@@ -79,13 +94,15 @@ new_track = Dialog(
         state=ListeningNewTrack.title
     ),
     Window(
-        Const("Подтверждение отправки данного трека"),
+        Format('Подтверждение отправки трека "{title}"'),
+        DynamicMedia('audio'),
         Row(
             Button(Const("Подтверждаю"), on_click=on_finish_new_track, id="approve_track"),
             Back(Const("Изменить"), id="edit_track"),
         ),
         Cancel(Const("Вернуться в главное меню")),
-        state=ListeningNewTrack.finish
+        state=ListeningNewTrack.finish,
+        getter=on_finish_getter
     ),
     getter=nickname_getter
 )

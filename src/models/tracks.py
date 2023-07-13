@@ -138,6 +138,16 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
+    async def get_title_and_file_id_by_id(self, track_id: int):
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                result = await session.execute(select(Track.track_title, Track.file_id_audio).where(Track.id == track_id))
+                row = result.first()
+                return row
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
     async def update_track_file_id_audio(self, track_id: int, file_id_audio: int) -> bool:
         async with DatabaseManager.create_session(self.engine) as session:
             try:
