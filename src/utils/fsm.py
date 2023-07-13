@@ -120,16 +120,17 @@ class Passport(StatesGroup):
     first_name = State()
     surname = State()
     middle_name = State()
+
     passport_series = State()
     passport_number = State()
     who_issued_it = State()
     date_of_issue = State()
     unit_code = State()
     date_of_birth = State()
+    place_of_birth = State()
     registration_address = State()
+
     confirm = State()
-
-
 
 
 class Bank(StatesGroup):

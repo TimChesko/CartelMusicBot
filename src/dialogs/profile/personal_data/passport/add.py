@@ -1,20 +1,19 @@
 import logging
 import re
+from datetime import date
 
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Window, Dialog, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import MessageInput, TextInput
-from aiogram_dialog.widgets.kbd import Button, SwitchTo, Cancel, Back
+from aiogram_dialog.widgets.kbd import Button, SwitchTo, Cancel, Back, Calendar, ManagedCalendarAdapter
 from aiogram_dialog.widgets.text import Const
 
+from src.dialogs.utils.calendar import CustomCalendar
+from src.models.personal_data import PersonalDataHandler
 from src.utils.fsm import Passport
 
 
-async def data_text(
-        message: Message,
-        widget: TextInput,
-        manager: DialogManager,
-        data):
+async def data_text(message: Message, widget: TextInput, manager: DialogManager, data):
     if re.match(r'^[a-zA-Zа-яА-Я]+$', data) is not None:
         manager.dialog_data[widget.widget_id] = message.text
         await message.delete()
@@ -33,19 +32,16 @@ async def is_numeric_with_minus(text):
     for i, char in enumerate(text):
         if char.isdigit():
             continue
-        elif char == '-' and 0 < i < len(text) - 1 and not has_minus and text[i - 1].isdigit() and text[
-            i + 1].isdigit():
+        elif char == '-' and 0 < i < len(text) - 1 \
+                and not has_minus and text[i - 1].isdigit() \
+                and text[i + 1].isdigit():
             has_minus = True
         else:
             return False
     return True
 
 
-async def data_int(
-        message: Message,
-        widget: TextInput,
-        manager: DialogManager,
-        data):
+async def data_int(message: Message, widget: TextInput, manager: DialogManager, data):
     if await is_numeric_with_minus(data):
         manager.dialog_data[widget.widget_id] = message.text
         await message.delete()
@@ -56,6 +52,22 @@ async def data_int(
         await message.answer("Ответ должен быть БЕЗ букв, пробелов и знаков, за исключением '-'.\n"
                              "Пример: 12345 или 111-111\n"
                              "Повторите попытку вновь.")
+
+
+async def on_date_selected(_, widget: ManagedCalendarAdapter, manager: DialogManager, selected_date: date):
+    manager.dialog_data[widget.widget_id] = selected_date.strftime("%Y-%m-%d")
+    await manager.next()
+
+
+async def on_finally(callback: CallbackQuery, _, manager: DialogManager):
+    data = manager.middleware_data
+    user_id = data['event_from_user'].id
+    answer = list(manager.dialog_data.values())
+    await PersonalDataHandler(data['engine'], data['database_logger'])\
+        .update_all_passport_data(user_id, answer)
+    await callback.answer("Вы успешно внесли данные о паспорте !")
+    manager.show_mode = ShowMode.SEND
+    await manager.done()
 
 
 passport = Dialog(
@@ -98,10 +110,12 @@ passport = Dialog(
         TextInput(id="passport_who_issued_it", on_success=data_text),
         state=Passport.who_issued_it
     ),
-    # TODO виджет календарь
     Window(
         Const("Дата выдачи паспорта"),
-        TextInput(id="passport_date_of_issue", on_success=data_text),
+        CustomCalendar(
+            id="passport_date_of_issue",
+            on_click=on_date_selected,
+        ),
         state=Passport.date_of_issue
     ),
     Window(
@@ -109,11 +123,18 @@ passport = Dialog(
         TextInput(id="passport_unit_code", on_success=data_int),
         state=Passport.unit_code
     ),
-    # TODO виджет календарь
     Window(
         Const("Дата вашего рождения"),
-        TextInput(id="passport_date_of_birth", on_success=data_text),
+        CustomCalendar(
+            id="passport_date_of_birth",
+            on_click=on_date_selected,
+        ),
         state=Passport.date_of_birth
+    ),
+    Window(
+        Const("Место рождения\nПример: Москва"),
+        TextInput(id="passport_place_of_birth", on_success=data_text),
+        state=Passport.place_of_birth
     ),
     Window(
         Const("Место регистрации"),
@@ -124,7 +145,7 @@ passport = Dialog(
         Const("Проверьте и подтвердите правильность всех данных. "
               "В целях безопасности, в дальнейшем у вас не будет возможности просмотреть"
               " внесенные данные без помощи модераторов."),
-        Button(Const("Подтвердить"), id="passport_confirm", on_click=...),
+        Button(Const("Подтвердить"), id="passport_confirm", on_click=on_finally),
         Back(Const("Назад")),
         state=Passport.confirm
     )

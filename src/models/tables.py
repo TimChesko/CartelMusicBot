@@ -44,8 +44,8 @@ class PersonalData(Base):
     passport_series = Column(Integer)  # серия паспорта
     passport_number = Column(Integer)  # номер паспорта
     who_issued_it = Column(String)  # кем выдан
-    date_of_issue = Column(String)  # когда выдан
-    unit_code = Column(Integer)  # код подразделения
+    date_of_issue = Column(DateTime)  # когда выдан
+    unit_code = Column(String)  # код подразделения
     date_of_birth = Column(DateTime)  # дата рождения
     place_of_birth = Column(String)  # место рождения
     registration_address = Column(String)  # адрес регистрации
