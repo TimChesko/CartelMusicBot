@@ -23,4 +23,4 @@ async def cmd_start(msg: Message,
         await dialog_manager.start(RegNickname.nickname, mode=StartMode.RESET_STACK)
     else:
         await msg.delete()
-        start = await dialog_manager.start(StartMenu.start, mode=StartMode.RESET_STACK)
+        await dialog_manager.start(StartMenu.start, mode=StartMode.RESET_STACK)
