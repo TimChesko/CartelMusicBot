@@ -3,8 +3,8 @@ from _operator import itemgetter
 
 from aiogram.enums import ContentType
 from aiogram.types import Message
-from aiogram_dialog import Dialog, Window, DialogManager
-from aiogram_dialog.widgets.input import MessageInput
+from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
+from aiogram_dialog.widgets.input import MessageInput, TextInput
 from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Next, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
@@ -38,7 +38,7 @@ async def get_text_file(message: Message, _, manager: DialogManager):
 async def get_alienation_file(message: Message, _, manager: DialogManager):
     # Отчуждение
     manager.dialog_data["track_text"] = message.document.file_id
-    await manager.next()
+    await manager.switch_to(MyTracksApproved.set_text_author)
 
 
 async def other_type_handler_docs(message: Message, _, __):
@@ -95,23 +95,27 @@ approved_filling_data = Dialog(
     ),
     Window(
         Format("Подтвердите название трека\n"
-               "Актуальное название: {track_title}"),
+               "Актуальное название: '{track_title}'"),
         Next(Const('Обновить заголовок')),
-        SwitchTo(Const('Продолжить'), state=MyTracksApproved.get_text, id='approved_to_get_text'),
+        SwitchTo(Const('Продолжить'),
+                 state=MyTracksApproved.get_text,
+                 id='approved_to_get_text'),
         Cancel(),
         state=MyTracksApproved.confirm_title,
         getter=title_getter
     ),
     Window(
         Const("Дайте название вашему треку"),
-        MessageInput(set_music_title, content_types=[ContentType.TEXT]),
+        MessageInput(set_music_title,
+                     content_types=[ContentType.TEXT]),
         MessageInput(other_type_handler_text),
         Cancel(),
         state=MyTracksApproved.update_title
     ),
     Window(
         Const("Скиньте документ в формате txt или docs с текстом трека"),
-        MessageInput(get_text_file, content_types=[ContentType.DOCUMENT]),
+        MessageInput(get_text_file,
+                     content_types=[ContentType.DOCUMENT]),
         MessageInput(other_type_handler_docs),
         Cancel(),
         state=MyTracksApproved.get_text
@@ -119,16 +123,25 @@ approved_filling_data = Dialog(
     Window(
         Const('Выберите кто является автором музыки, если бит выкуплен - понадобится отчуждение'),
         Next(Const('Выкуплен')),
-        SwitchTo(Const('Процент'), state=MyTracksApproved.percent_beat, id='beat_percent'),
-        SwitchTo(Const('Я автор'), state=MyTracksApproved.set_text_author, id='to_text_author'),
+        SwitchTo(Const('Процент'),
+                 state=MyTracksApproved.percent_beat,
+                 id='beat_percent'),
+        SwitchTo(Const('Я автор'),
+                 state=MyTracksApproved.set_text_author,
+                 id='to_text_author'),
         Cancel(),
         state=MyTracksApproved.set_beat_author
     ),
     Window(
         Const('Пришлите отчуждение в формате PDF'),
-        MessageInput(get_alienation_file, content_types=[ContentType.DOCUMENT]),
+        MessageInput(get_alienation_file,
+                     content_types=[ContentType.DOCUMENT]),
         MessageInput(other_type_handler_docs),
         Cancel(),
         state=MyTracksApproved.purchased_beat
+    ),
+    Window(
+        Const('Укажите процент битмейкера:'),
+        TextInput()
     )
 )
