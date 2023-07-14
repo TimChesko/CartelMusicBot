@@ -98,7 +98,7 @@ class TrackHandler:
         async with DatabaseManager.create_session(self.engine) as session:
             try:
                 result = await session.execute(
-                    select(Track.user_id, Track.track_title, Track.task_msg_id).where(Track.id == track_id))
+                    select(Track.user_id, Track.track_title).where(Track.id == track_id))
                 track_info = result.first()
                 return track_info
             except SQLAlchemyError as e:
@@ -145,6 +145,16 @@ class TrackHandler:
                 result = await session.execute(select(Track.track_title).where(Track.id == track_id))
                 title = result.scalar_one_or_none()
                 return title
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
+    async def get_task_msg_id_by_track_id(self, track_id: int):
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                result = await session.execute(select(Track.task_msg_id).where(Track.id == track_id))
+                msg_id = result.scalar_one_or_none()
+                return msg_id
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False

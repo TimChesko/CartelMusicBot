@@ -23,6 +23,17 @@ class UserHandler:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
 
+    async def check_user_by_tg_id(self, tg_id: int):
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                query = select(User).where(and_(User.tg_id == tg_id))
+                result = await session.execute(query)
+                row = result.scalar_one_or_none()
+                return row
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при выполнении запроса: %s", e)
+                return False
+
     async def get_ban_by_tg_id(self, tg_id: int):
         async with DatabaseManager.create_session(self.engine) as session:
             try:
