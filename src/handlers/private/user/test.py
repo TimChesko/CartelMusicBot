@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from structlog._log_levels import BoundLoggerFilteringAtDebug
 
 from src.models.user import UserHandler
-from src.utils.fsm import RegNickname, StartMenu, Profile
+from src.utils.fsm import RegNickname, StartMenu, Profile, DialogInput
 
 router = Router()
 
@@ -16,4 +16,4 @@ async def cmd_start(msg: Message,
                     engine: AsyncEngine,
                     database_logger: BoundLoggerFilteringAtDebug,
                     dialog_manager: DialogManager):
-    await dialog_manager.start(state=Profile.menu, mode=StartMode.RESET_STACK)
+    await dialog_manager.start(state=DialogInput.text, mode=StartMode.RESET_STACK)

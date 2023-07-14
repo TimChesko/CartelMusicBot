@@ -145,3 +145,8 @@ class PersonalData(StatesGroup):
 class ProfileEdit(StatesGroup):
     menu = State()
     process = State()
+
+
+class DialogInput(StatesGroup):
+    text = State()
+    date = State()
