@@ -1,20 +1,12 @@
-import logging
 from operator import itemgetter
 
-from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Dialog, Window
-from aiogram_dialog.widgets.common import ManagedWidget
 from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.dialogs.profile import personal_data
 from src.models.personal_data import PersonalDataHandler
 from src.utils.fsm import ProfileEdit, Passport
-
-
-async def get_data(dialog_manager: DialogManager, **kwargs):
-    return {
-    }
 
 
 async def create_list_buttons(list_edit: list) -> list:
@@ -50,7 +42,7 @@ async def get_list_edit(data, dialog_manager, user_id):
     return list_edit
 
 
-async def on_lick_edit(callback: CallbackQuery, select: ManagedWidget, manager: DialogManager, data):
+async def on_lick_edit(_, __, manager: DialogManager, data):
     middleware_data = manager.middleware_data
     user_id = middleware_data['event_from_user'].id
     state = getattr(Passport, data)

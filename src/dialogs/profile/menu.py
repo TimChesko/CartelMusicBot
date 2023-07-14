@@ -1,7 +1,5 @@
-import logging
-
 from aiogram_dialog import Dialog, Window, DialogManager
-from aiogram_dialog.widgets.kbd import Start, Back, Cancel, Button
+from aiogram_dialog.widgets.kbd import Start, Cancel, Button
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.models.personal_data import PersonalDataHandler
@@ -9,7 +7,7 @@ from src.models.user import UserHandler
 from src.utils.fsm import Profile, Passport, Bank, ProfileEdit
 
 
-async def get_data(dialog_manager: DialogManager, **kwargs):
+async def get_data(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     user_id = data['event_from_user'].id
     passport_id, bank_id = await PersonalDataHandler(data['engine'], data['database_logger']).get_all_data_status(
@@ -39,6 +37,10 @@ async def edit_passport(_, __, manager: DialogManager):
     await manager.start(state=ProfileEdit.menu, data={"type_data": "passport"})
 
 
+async def edit_bank(_, __, manager: DialogManager):
+    await manager.start(state=Bank.edit_data, data={"type_data": "bank"})
+
+
 menu = Dialog(
     Window(
         Format("Ваш псевдоним: {nickname}\n"
@@ -52,10 +54,10 @@ menu = Dialog(
               id="profile_add_passport",
               when="add_passport",
               state=Passport.add_data),
-        Start(Const("Изменить банковские данные"),
-              id="profile_edit_bank",
-              when="edit_bank",
-              state=Bank.edit_data),
+        Button(Const("Изменить банковские данные"),
+               id="profile_edit_bank",
+               when="edit_bank",
+               on_click=edit_bank),
         Start(Const("Добавить банковские данные"),
               id="profile_add_bank",
               when="add_bank",
