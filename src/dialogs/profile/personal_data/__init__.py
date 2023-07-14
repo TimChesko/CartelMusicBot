@@ -1,6 +1,6 @@
 from aiogram import Router
 
-from . import confirm, passport, bank
+from . import confirm, passport, bank, string
 
 router = Router()
 router.include_router(passport.router)

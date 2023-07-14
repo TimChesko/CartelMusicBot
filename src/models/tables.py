@@ -49,7 +49,7 @@ class PersonalData(Base):
     date_of_birth = Column(DateTime)  # дата рождения
     place_of_birth = Column(String)  # место рождения
     registration_address = Column(String)  # адрес регистрации
-    all_passport_data = Column(Integer, default=0)  # 0 - нет, 1 - в обработке, 2 - проверены
+    all_passport_data = Column(Integer, default=0)  # 0 - нет, 1 - в обработке, 2 - отклонены, 3 - проверены
 
     # Банковские данные
     recipient = Column(String)  # Получатель
@@ -60,7 +60,7 @@ class PersonalData(Base):
     inn_code = Column(Integer)  # ИНН
     kpp_code = Column(Integer)  # КПП
     swift_code = Column(String)  # Свифт-код
-    all_bank_data = Column(Integer, default=0)  # 0 - нет, 1 - в обработке, 2 - проверены
+    all_bank_data = Column(Integer, default=0)  # 0 - нет, 1 - в обработке, 2 - отклонены, 3 - проверены
 
     moderated = Column(Boolean, default=False)
     user = relationship("User", back_populates="personal_data")

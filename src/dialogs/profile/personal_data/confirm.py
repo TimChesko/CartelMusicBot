@@ -12,7 +12,8 @@ async def update_data(callback: CallbackQuery, _, manager: DialogManager):
     user_id = data['event_from_user'].id
     await PersonalDataHandler(data['engine'], data['database_logger']).confirm_personal_data(user_id)
     await manager.start(state=Profile.menu)
-    await manager.done()
+    await manager.mark_closed()
+
 
 confirm_personal_data = Dialog(
     Window(

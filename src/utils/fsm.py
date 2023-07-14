@@ -140,3 +140,8 @@ class Bank(StatesGroup):
 
 class PersonalData(StatesGroup):
     confirm = State()
+
+
+class ProfileEdit(StatesGroup):
+    menu = State()
+    process = State()
