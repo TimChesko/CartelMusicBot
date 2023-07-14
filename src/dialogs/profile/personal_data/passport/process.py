@@ -32,6 +32,8 @@ async def profile_edit_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     user_id = data['event_from_user'].id
     list_edit = await get_list_edit(data, dialog_manager, user_id)
+    if len(list_edit) == 0:
+        await dialog_manager.done()
     return {
         "profile_edit": await create_list_buttons(list_edit)
     }
