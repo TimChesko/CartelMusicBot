@@ -1,78 +1,65 @@
-from operator import itemgetter
+import logging
+import re
 
-from aiogram_dialog import DialogManager, Dialog, Window
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel
-from aiogram_dialog.widgets.text import Const, Format
+from aiogram_dialog import DialogManager
 
-from src.dialogs.profile import personal_data
-from src.models.personal_data import PersonalDataHandler
-from src.utils.fsm import ProfileEdit, Passport
-
-
-async def create_list_buttons(list_edit: list) -> list:
-    passport = personal_data.string.passport
-    result = []
-    for item in list_edit:
-        if item in passport:
-            info = passport[item]
-            button = [item, info['type'], info['request'], info['example'], info['input']]
-            result.append(button)
-    return result
+from src.dialogs.profile.personal_data import string
+from src.dialogs.profile.personal_data.passport.edit import update_edit_data
+from src.utils.fsm import DialogInput
 
 
-async def profile_edit_getter(dialog_manager: DialogManager, **_kwargs):
-    data = dialog_manager.middleware_data
-    user_id = data['event_from_user'].id
-    list_edit = await get_list_edit(data, dialog_manager, user_id)
-    if len(list_edit) == 0:
-        await dialog_manager.done()
-    return {
-        "profile_edit": await create_list_buttons(list_edit)
+async def find_data_location(data):
+    if data in string.passport:
+        return "password"
+    elif data in string.bank:
+        return "bank"
+    else:
+        return ""
+
+
+async def start_dialog_filling_profile(data_name: str, manager: DialogManager, error: str = None):
+    all_data = string.passport
+    data = {"data_type": data_name,
+            "request": all_data[data_name]['request'],
+            "example": all_data[data_name]['example'],
+            "error": error}
+    if "date" in all_data[data_name]['input']:
+        await manager.start(state=DialogInput.date, data=data)
+    else:
+        await manager.start(state=DialogInput.text, data=data)
+
+
+async def process_input(input_result: str, input_type: list, manager: DialogManager):
+    template_input = {
+        "int": ["0-9", "цифры"],
+        "punctuation": [",.", "точки, запятые"],
+        "minus": ["-", "тире"],
+        "text": ["a-zA-Zа-яА-Я", "буквы"],
+        "space": ["\s", "пробелы"],
+        "any": [".*", "любые символы"],
+        "date": [".*", "любое число"],
     }
 
+    input_pattern = ""
+    list_use = []
+    for item in input_type:
+        logging.info(item)
+        input_pattern += template_input.get(item, [""])[0]
+        list_use.append(template_input.get(item, [""])[1])
 
-async def get_list_edit(data, dialog_manager, user_id):
-    if dialog_manager.start_data['type_data'] == "passport":
-        list_edit = await PersonalDataHandler(data['engine'], data['database_logger']).find_none_columns_passport(
-            user_id)
-    elif dialog_manager.start_data['type_data'] == "bank":
-        list_edit = await PersonalDataHandler(data['engine'], data['database_logger']).find_none_columns_bank(user_id)
+    use_s = ", ".join(list_use)
+    if "any" in input_type:
+        regex_pattern = rf'{input_pattern}$'
     else:
-        list_edit = []
-    return list_edit
+        regex_pattern = rf'^[{input_pattern}]+$'
 
-
-async def on_lick_edit(_, __, manager: DialogManager, data):
-    middleware_data = manager.middleware_data
-    user_id = middleware_data['event_from_user'].id
-    state = getattr(Passport, data)
-    list_edit = await get_list_edit(middleware_data, manager, user_id)
-    await manager.start(state=state, data={"profile_edit": data, "count_edit": len(list_edit)})
-
-
-dialog = Dialog(
-    Window(
-        Const("Выберете что вы хотите изменить"),
-        ScrollingGroup(
-            Select(
-                Format("{item[1]}"),
-                id="scroll_profile",
-                items="profile_edit",
-                item_id_getter=itemgetter(0),
-                on_click=on_lick_edit
-            ),
-            width=1,
-            height=5,
-            hide_on_single_page=True,
-            id='scroll_profile_data_edit',
-        ),
-        Cancel(Const("< Вернуться в профиль")),
-        getter=profile_edit_getter,
-        state=ProfileEdit.menu,
-    ),
-    Window(
-        Format("{request}"),
-        Cancel(Const("Отменить процедуру")),
-        state=ProfileEdit.process
-    )
-)
+    if "date" in input_type or re.match(regex_pattern, input_result[0]):
+        # TODO сохранять в дату диалога, затем пачкой выгрузить
+        manager.dialog_data["task_list_start"].append(manager.dialog_data["task_list_end"].pop(0))
+        if len(manager.dialog_data["task_list_end"]) != 0:
+            await start_dialog_filling_profile(manager.dialog_data["task_list_end"][0], manager)
+        else:
+            await manager.next()
+    else:
+        error = f"Ответ может содержать {use_s}\nПовторите попытку снова"
+        await start_dialog_filling_profile(manager.dialog_data["task_list_end"][0], manager, error)

@@ -54,7 +54,7 @@ passport = {
         "type": "Код региона",
         "request": "Пришлите - код региона",
         "example": "660-550",
-        "input": ["int", "punctuation"],
+        "input": ["int", "minus"],
         "state": fsm.Passport.unit_code
     },
     "date_of_birth": {
