@@ -133,3 +133,14 @@ class Album(Base):
 
     tracks = relationship('Track', back_populates='album')  # новое отношение с треками
     user = relationship("User", back_populates="albums")
+
+
+class Employee(Base):
+    __tablename__ = 'employees'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(BigInteger, ForeignKey('users.tg_id'))
+
+    first_name = Column(String)
+    surname = Column(String)
+    middle_name = Column(String)

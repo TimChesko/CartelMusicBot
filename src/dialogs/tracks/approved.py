@@ -140,8 +140,8 @@ approved_filling_data = Dialog(
         Cancel(),
         state=MyTracksApproved.purchased_beat
     ),
-    Window(
-        Const('Укажите процент битмейкера:'),
-        TextInput()
-    )
+#     Window(
+#         Const('Укажите процент битмейкера:'),
+#         TextInput()
+#     )
 )
