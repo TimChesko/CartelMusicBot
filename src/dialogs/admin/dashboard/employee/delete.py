@@ -9,3 +9,4 @@ from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.user import UserHandler
 from src.utils.fsm import AdminMenu, AdminListening, AdminDashboardPIN, AdminDashboard, AdminEmployee, AdminAddEmployee
 
+# TODO Снятие должности у работника

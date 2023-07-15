@@ -135,12 +135,12 @@ class Album(Base):
     user = relationship("User", back_populates="albums")
 
 
-class Employee(Base):
-    __tablename__ = 'employees'
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(BigInteger, ForeignKey('users.tg_id'))
-
-    first_name = Column(String)
-    surname = Column(String)
-    middle_name = Column(String)
+# class Employee(Base):
+#     __tablename__ = 'employees'
+#
+#     id = Column(Integer, primary_key=True, autoincrement=True)
+#     user_id = Column(BigInteger, ForeignKey('users.tg_id'))
+#
+#     first_name = Column(String)
+#     surname = Column(String)
+#     middle_name = Column(String)

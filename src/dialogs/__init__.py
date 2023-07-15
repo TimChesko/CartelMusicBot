@@ -1,8 +1,9 @@
 from aiogram import Router
 
-from . import registrations, tracks, start, profile, listening
+from . import registrations, tracks, start, profile, listening, admin
 
 router = Router()
+router.include_router(admin.router)
 router.include_router(start.start_menu)
 router.include_router(registrations.router)
 router.include_router(tracks.router)

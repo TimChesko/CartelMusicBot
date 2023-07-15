@@ -1,26 +1,33 @@
+import logging
+
+from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery
-from aiogram_dialog import Window, Dialog, LaunchMode, DialogManager
-from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.kbd import Start, Cancel, Button, Row, Back
+from aiogram_dialog import Window, Dialog, DialogManager, ShowMode
+from aiogram_dialog.widgets.input import TextInput, MessageInput
+from aiogram_dialog.widgets.kbd import Cancel, Button, Row, Back
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.data import config
-from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.user import UserHandler
-from src.utils.fsm import AdminMenu, AdminListening, AdminDashboardPIN, AdminDashboard, AdminEmployee, AdminAddEmployee
+from src.utils.fsm import AdminAddEmployee
 
 
 async def employee_id(
         message: Message,
-        widget: TextInput,
-        manager: DialogManager,
-        data):
-    if data.isdigit():
-        manager.dialog_data['employee_id'] = data
+        message_input: MessageInput,
+        manager: DialogManager):
+    data = manager.middleware_data
+    user = await UserHandler(data['engine'], data['database_logger']).get_privilege_by_tg_id(message.from_user.id)
+    # if user in config.PRIVILEGES[1:]:
+    #     await message.delete()
+    #     await message.answer('Вы уже добавили этого сотрудника!')
+    #  TODO убрать комментарий, поменять второй условие на elif
+    if message.text.isdigit():
+        manager.dialog_data['employee_id'] = message.text
         await message.delete()
+        manager.show_mode = ShowMode.EDIT
         await manager.next()
     else:
-        await message.delete()
         await message.answer('Telegram id может состоять только из цифр!')
 
 
@@ -40,6 +47,7 @@ async def set_privilege(callback: CallbackQuery, button: Button, manager: Dialog
 
 async def developer_getter(dialog_manager: DialogManager, **kwargs):
     user_id = dialog_manager.middleware_data['event_from_user'].id
+    logging.info(user_id)
     return {
         'developer': user_id in config.DEVELOPERS
     }
@@ -55,12 +63,12 @@ async def on_finish_getter(dialog_manager: DialogManager, **kwargs):
 async def on_finish_privilege(callback: CallbackQuery, _, manager: DialogManager):
     data = manager.middleware_data
     user_id = int(manager.dialog_data['employee_id'])
-    privilege = manager.dialog_data['privilege']
     user = await UserHandler(data['engine'], data['database_logger']).check_user_by_tg_id(user_id)
     if not user:
         await callback.answer('Ваш работник должен пройти первичную регистрацию по команде "/start",\n'
                               ' на данный момент пользователь не найден!')
     else:
+        privilege = manager.dialog_data['privilege']
         await UserHandler(data['engine'], data['database_logger']).set_privilege(user_id, privilege)
         await manager.done()
 
@@ -68,9 +76,10 @@ async def on_finish_privilege(callback: CallbackQuery, _, manager: DialogManager
 new_employee = Dialog(
     Window(
         Const('Введите Telegram id работника'),
-        TextInput(id='employee_id',
-                  on_success=employee_id,
-                  on_error=incorrect_type),
+        MessageInput(employee_id,
+                     content_types=[ContentType.TEXT],
+                     # filter=F.text.isdigit()
+                     ),
         Cancel(Const('Назад')),
         state=AdminAddEmployee.start
     ),
@@ -89,6 +98,7 @@ new_employee = Dialog(
                id='admin',
                on_click=set_privilege,
                when='developer'),
+        Back(),
         state=AdminAddEmployee.privilege,
         getter=developer_getter
     ),

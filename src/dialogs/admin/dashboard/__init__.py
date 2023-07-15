@@ -1,7 +1,7 @@
 from aiogram import Router
 
-from src.dialogs.admin.dashboard import menu, PIN, employee
+from src.dialogs.admin.dashboard import PIN, employee, main
 
 router = Router()
 
-router.include_routers(PIN.code, menu.admin_main, employee.router)
+router.include_routers(PIN.code, main.dashboard, employee.router)

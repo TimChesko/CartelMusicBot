@@ -15,6 +15,35 @@ class StartMenu(StatesGroup):
     start = State()
 
 
+class AdminMenu(StatesGroup):
+    start = State()
+
+
+class AdminListening(StatesGroup):
+    start = State()
+
+
+class AdminDashboardPIN(StatesGroup):
+    start = State()
+
+
+class AdminEmployee(StatesGroup):
+    start = State()
+
+
+class AdminStatistic(StatesGroup):
+    start = State()
+
+class AdminAddEmployee(StatesGroup):
+    start = State()
+    privilege = State()
+    finish = State()
+
+
+class AdminDashboard(StatesGroup):
+    start = State()
+
+
 class Listening(StatesGroup):
     start = State()
     track = State()
