@@ -79,32 +79,30 @@ class PersonalDataHandler:
                 await session.rollback()
                 return False
 
-    async def update_all_passport_data(self, tg_id: int, data: list) -> bool:
+    async def update_all_personal_data(self, tg_id: int, personal_data: str, save_input: dict) -> bool:
         async with DatabaseManager.create_session(self.engine) as session:
             try:
-                personal_data = PersonalData(tg_id=tg_id)
+                existing_data = await session.execute(select(PersonalData).where(PersonalData.tg_id == tg_id))
+                existing_data = (existing_data.first())[0] if existing_data else None
 
-                # Внесение значений из массива ответов
-                personal_data.first_name = data[0]
-                personal_data.surname = data[1]
-                personal_data.middle_name = data[2]
-
-                personal_data.passport_series = int(data[3])
-                personal_data.passport_number = int(data[4])
-                personal_data.who_issued_it = data[5]
-                personal_data.date_of_issue = datetime.datetime.strptime(data[6], "%Y-%m-%d")
-                personal_data.unit_code = data[7]
-                personal_data.date_of_birth = datetime.datetime.strptime(data[8], "%Y-%m-%d")
-                personal_data.place_of_birth = data[9]
-                personal_data.registration_address = data[10]
-                personal_data.all_passport_data = 1
-
-                # Добавление пользователя в сессию и сохранение в базу данных
-                await session.merge(personal_data)
+                if existing_data:
+                    for key, value in save_input.items():
+                        setattr(existing_data, key, value)
+                    if personal_data == "passport":
+                        existing_data.all_passport_data = 1
+                    elif personal_data == "bank":
+                        existing_data.all_bank_data = 1
+                else:
+                    if personal_data == "passport":
+                        save_input["all_passport_data"] = 1
+                    elif personal_data == "bank":
+                        save_input["all_bank_data"] = 1
+                    personal_data = PersonalData(tg_id=tg_id, **save_input)
+                    session.add(personal_data)
                 await session.commit()
                 return True
             except SQLAlchemyError as e:
-                self.logger.error("Ошибка при создании строки в PersonalData: %s", e)
+                self.logger.error("Ошибка при обновлении персональных данных: %s", e)
                 await session.rollback()
                 return False
 

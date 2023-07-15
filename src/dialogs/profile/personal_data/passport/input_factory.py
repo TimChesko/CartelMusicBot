@@ -6,8 +6,33 @@ from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.kbd import Button
 from aiogram_dialog.widgets.text import Format, Const
 
+from src.dialogs.profile.personal_data import string
 from src.dialogs.utils.calendar import CustomCalendar
 from src.utils.fsm import DialogInput
+
+
+async def start_dialog_filling_profile(
+        personal_data: str,
+        data_name: str,
+        manager: DialogManager,
+        error: str = None):
+    """
+    Запускаем диалог для получение данных ввода
+    :param personal_data: passport or bank
+    :param data_name: personal data name / example: first_name
+    :param manager:
+    :param error: send error with text
+    :return:
+    """
+    all_data = string.personal_data[personal_data][data_name]
+    data = {"data_type": data_name,
+            "request": all_data['request'],
+            "example": all_data['example'],
+            "error": error}
+    if "date" in all_data['input']:
+        await manager.start(state=DialogInput.date, data=data)
+    else:
+        await manager.start(state=DialogInput.text, data=data)
 
 
 async def get_data(dialog_manager: DialogManager, **_kwargs):
