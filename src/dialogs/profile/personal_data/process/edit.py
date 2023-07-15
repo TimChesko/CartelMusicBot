@@ -7,8 +7,8 @@ from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.dialogs.profile.personal_data import string
-from src.dialogs.profile.personal_data.passport.input_factory import start_dialog_filling_profile
-from src.dialogs.profile.personal_data.passport.process import process_input
+from src.dialogs.profile.personal_data.process.input_factory import start_dialog_filling_profile
+from src.dialogs.profile.personal_data.process.process import process_input
 from src.models.personal_data import PersonalDataHandler
 from src.utils.fsm import ProfileEdit
 
