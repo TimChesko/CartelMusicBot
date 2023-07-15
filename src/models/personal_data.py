@@ -150,8 +150,7 @@ class PersonalDataHandler:
                         PersonalData.bank_recipient,
                         PersonalData.correct_code,
                         PersonalData.inn_code,
-                        PersonalData.kpp_code,
-                        PersonalData.swift_code,
+                        PersonalData.kpp_code
                     ]
                     for column in columns_to_check:
                         column_value = getattr(personal_data, column.name)
@@ -161,13 +160,13 @@ class PersonalDataHandler:
                 self.logger.error("Ошибка при поиске всех None в bank: %s", e)
         return none_columns
 
-    async def update_personal_data(self, user_id: int, found_key: str, data, location: str, count_edit: int) -> bool:
+    async def update_personal_data(self, user_id: int, data_key: str, data_value, location: str, count_edit: int) -> bool:
         async with DatabaseManager.create_session(self.engine) as session:
             try:
-                if location == "password":
-                    update_data = {found_key: data, "all_passport_data": 2 if count_edit > 1 else 1}
+                if location == "passport":
+                    update_data = {data_key: data_value, "all_passport_data": 2 if count_edit > 1 else 1}
                 elif location == "bank":
-                    update_data = {found_key: data, "all_passport_data": 2 if count_edit > 1 else 1}
+                    update_data = {data_key: data_value, "all_bank_data": 2 if count_edit > 1 else 1}
                 else:
                     return False
                 query = update(PersonalData).where(PersonalData.tg_id == user_id).values(**update_data)

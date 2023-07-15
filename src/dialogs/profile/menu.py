@@ -38,7 +38,7 @@ async def edit_passport(_, __, manager: DialogManager):
 
 
 async def edit_bank(_, __, manager: DialogManager):
-    await manager.start(state=Bank.edit_data, data={"type_data": "bank"})
+    await manager.start(state=ProfileEdit.menu, data={"type_data": "bank"})
 
 
 menu = Dialog(
