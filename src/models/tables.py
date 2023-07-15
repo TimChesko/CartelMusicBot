@@ -53,13 +53,12 @@ class PersonalData(Base):
 
     # Банковские данные
     recipient = Column(String)  # Получатель
-    account_code = Column(Integer)  # Номер счёта
-    bik_code = Column(Integer)  # БИК
+    account_code = Column(BigInteger)  # Номер счёта
+    bik_code = Column(BigInteger)  # БИК
     bank_recipient = Column(String)  # Банк получатель
-    correct_code = Column(Integer)  # Корр. Счет
-    inn_code = Column(Integer)  # ИНН
-    kpp_code = Column(Integer)  # КПП
-    swift_code = Column(String)  # Свифт-код
+    correct_code = Column(BigInteger)  # Корр. Счет
+    inn_code = Column(BigInteger)  # ИНН
+    kpp_code = Column(BigInteger)  # КПП
     all_bank_data = Column(Integer, default=0)  # 0 - нет, 1 - в обработке, 2 - отклонены, 3 - проверены
 
     moderated = Column(Boolean, default=False)

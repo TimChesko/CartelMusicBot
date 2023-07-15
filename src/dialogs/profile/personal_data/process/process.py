@@ -38,13 +38,14 @@ async def process_result(_, result: Any, manager: DialogManager):
 
 async def process_input(profile_edit: bool, input_result: str, input_type: list, manager: DialogManager):
     template_input = {
-        "int": ["0-9", "цифры"],
+        "int": ["\d{1,9}", "число до 9 знаков"],
         "punctuation": [",.", "точки, запятые"],
         "minus": ["-", "тире"],
         "text": ["a-zA-Zа-яА-Я", "буквы"],
         "space": ["\s", "пробелы"],
         "any": [".*", "любые символы"],
         "date": [".*", "любое число"],
+        "big_int": ["\d{1,20}", "число до 20 знаков"]
     }
 
     input_pattern = ""
@@ -56,6 +57,8 @@ async def process_input(profile_edit: bool, input_result: str, input_type: list,
     use_s = ", ".join(list_use)
     if "any" in input_type:
         regex_pattern = rf'{input_pattern}$'
+    elif "big_int" or "int" in input_type:
+        regex_pattern = rf'^{input_pattern}$'
     else:
         regex_pattern = rf'^[{input_pattern}]+$'
 
@@ -75,6 +78,7 @@ async def process_input(profile_edit: bool, input_result: str, input_type: list,
                 personal_data_type,
                 count_edit
             )
+            return True
         else:
             old_item = manager.dialog_data["task_list_end"].pop(0)
             if "date" in input_type:
@@ -99,6 +103,7 @@ async def process_input(profile_edit: bool, input_result: str, input_type: list,
                 personal_data_type,
                 data_name,
                 manager, error)
+            return False
         else:
             await start_dialog_filling_profile(
                 manager.dialog_data["personal_data"],

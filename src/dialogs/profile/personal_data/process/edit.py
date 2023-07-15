@@ -45,11 +45,11 @@ async def profile_edit_getter(dialog_manager: DialogManager, **_kwargs):
     }
 
 
-async def get_list_edit(data, dialog_manager, user_id):
-    if dialog_manager.start_data['type_data'] == "passport":
+async def get_list_edit(data, manager, user_id):
+    if manager.dialog_data['type_data'] == "passport":
         list_edit = await PersonalDataHandler(data['engine'], data['database_logger']).find_none_columns_passport(
             user_id)
-    elif dialog_manager.start_data['type_data'] == "bank":
+    elif manager.dialog_data['type_data'] == "bank":
         list_edit = await PersonalDataHandler(data['engine'], data['database_logger']).find_none_columns_bank(user_id)
     else:
         list_edit = []
@@ -57,23 +57,28 @@ async def get_list_edit(data, dialog_manager, user_id):
 
 
 async def on_click_edit(_, __, manager: DialogManager, data):
-    await start_dialog_filling_profile(manager.start_data['type_data'], data, manager)
+    await start_dialog_filling_profile(manager.dialog_data['type_data'], data, manager)
 
 
 async def process_result(_, result: Any, manager: DialogManager):
-    personal_data_type = manager.dialog_data['type_data'] = manager.start_data['type_data']
+    personal_data_type = manager.dialog_data['type_data']
     manager.dialog_data['data_name'] = result[1]
     manager.dialog_data['count_edit'] = \
         len(await get_list_edit(manager.middleware_data, manager, manager.middleware_data['event_from_user'].id))
     if "back" != result[0]:
-        await process_input(True, result,
-                            string.personal_data[personal_data_type][result[1]]['input'],
-                            manager)
+        next_turn = await process_input(True, result,
+                                        string.personal_data[personal_data_type][result[1]]['input'],
+                                        manager)
+        if not next_turn:
+            return
     manager.dialog_data['count_edit'] = \
         len(await get_list_edit(manager.middleware_data, manager, manager.middleware_data['event_from_user'].id))
-    logging.info(manager.dialog_data['count_edit'])
     if manager.dialog_data['count_edit'] == 0:
         await manager.done()
+
+
+async def on_start(_, manager: DialogManager):
+    manager.dialog_data['type_data'] = manager.start_data['type_data']
 
 
 dialog = Dialog(
@@ -97,4 +102,5 @@ dialog = Dialog(
         state=ProfileEdit.menu,
     ),
     on_process_result=process_result,
+    on_start=on_start
 )

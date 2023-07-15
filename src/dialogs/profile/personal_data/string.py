@@ -80,13 +80,13 @@ personal_data = {
             "type": "Номер счета",
             "request": "Пришлите - номер счета",
             "example": "40217210300013628341",
-            "input": ["int"],
+            "input": ["big_int"],
         },
         "bik_code": {
             "type": "БИК код",
             "request": "Пришлите - банковский идентификационный код",
             "example": "044525974",
-            "input": ["int"],
+            "input": ["big_int"],
         },
         "bank_recipient": {
             "type": "Банк получателя",
@@ -104,13 +104,13 @@ personal_data = {
             "type": "ИНН",
             "request": "Пришлите - ИНН",
             "example": "7710341679",
-            "input": ["int"],
+            "input": ["big_int"],
         },
         "kpp_code": {
             "type": "КПП код",
             "request": "Пришлите - код причины постановки на учет (КПП)",
             "example": "771302001",
-            "input": ["int"],
+            "input": ["big_int"],
         }
     }
 }
