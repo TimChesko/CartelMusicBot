@@ -13,18 +13,20 @@ from src.utils.fsm import RegNickname, StartMenu
 
 async def get_data(dialog_manager: DialogManager, **kwargs):
     return {
-        "nickname": dialog_manager.dialog_data.get("nickname", "")
+        "nickname": dialog_manager.dialog_data['nickname']
     }
 
 
-async def nickname_check(message: Message, _, manager: DialogManager):
-    manager.dialog_data["nickname"] = message.text
+async def nickname_check(msg: Message, _, manager: DialogManager):
+    manager.dialog_data["nickname"] = msg.text
+    await msg.delete()
+    manager.show_mode = ShowMode.EDIT
     await manager.next()
 
 
 async def on_finish(callback: CallbackQuery, _, manager: DialogManager):
     data = (await manager.load_data())['middleware_data']
-    nickname = manager.dialog_data.get("nickname", "")
+    nickname = manager.dialog_data['nickname']
     await UserHandler(data['engine'], data['database_logger']).set_user_nickname(
         callback.from_user.id, nickname)
     await PersonalDataHandler(data['engine'], data['database_logger']).create_row(callback.from_user.id)

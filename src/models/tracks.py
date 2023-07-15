@@ -94,6 +94,17 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
+    async def get_custom_answer_info_by_id(self, track_id: int):
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                result = await session.execute(
+                    select(Track.user_id, Track.track_title).where(Track.id == track_id))
+                track_info = result.first()
+                return track_info
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
     async def get_rejected_by_tg_id(self, tg_id: int):
         async with DatabaseManager.create_session(self.engine) as session:
             try:
@@ -134,6 +145,27 @@ class TrackHandler:
                 result = await session.execute(select(Track.track_title).where(Track.id == track_id))
                 title = result.scalar_one_or_none()
                 return title
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
+    async def get_task_msg_id_by_track_id(self, track_id: int):
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                result = await session.execute(select(Track.task_msg_id).where(Track.id == track_id))
+                msg_id = result.scalar_one_or_none()
+                return msg_id
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
+    async def get_title_and_file_id_by_id(self, track_id: int):
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                result = await session.execute(
+                    select(Track.track_title, Track.file_id_audio).where(Track.id == track_id))
+                row = result.first()
+                return row
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
