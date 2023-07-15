@@ -122,25 +122,25 @@ class Passport(StatesGroup):
     add_data = State()
     edit_data = State()
 
-    first_name = State()
-    surname = State()
-    middle_name = State()
-    passport_series = State()
-    passport_number = State()
-    who_issued_it = State()
-    date_of_issue = State()
-    unit_code = State()
-    date_of_birth = State()
-    registration_address = State()
     confirm = State()
-
-
 
 
 class Bank(StatesGroup):
     add_data = State()
     edit_data = State()
 
+    confirm = State()
+
 
 class PersonalData(StatesGroup):
     confirm = State()
+
+
+class ProfileEdit(StatesGroup):
+    menu = State()
+    process = State()
+
+
+class DialogInput(StatesGroup):
+    text = State()
+    date = State()

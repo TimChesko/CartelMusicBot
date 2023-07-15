@@ -44,23 +44,22 @@ class PersonalData(Base):
     passport_series = Column(Integer)  # серия паспорта
     passport_number = Column(Integer)  # номер паспорта
     who_issued_it = Column(String)  # кем выдан
-    date_of_issue = Column(String)  # когда выдан
-    unit_code = Column(Integer)  # код подразделения
+    date_of_issue = Column(DateTime)  # когда выдан
+    unit_code = Column(String)  # код подразделения
     date_of_birth = Column(DateTime)  # дата рождения
     place_of_birth = Column(String)  # место рождения
     registration_address = Column(String)  # адрес регистрации
-    all_passport_data = Column(Integer, default=0)  # 0 - нет, 1 - в обработке, 2 - проверены
+    all_passport_data = Column(Integer, default=0)  # 0 - нет, 1 - в обработке, 2 - отклонены, 3 - проверены
 
     # Банковские данные
     recipient = Column(String)  # Получатель
-    account_code = Column(Integer)  # Номер счёта
-    bik_code = Column(Integer)  # БИК
+    account_code = Column(BigInteger)  # Номер счёта
+    bik_code = Column(BigInteger)  # БИК
     bank_recipient = Column(String)  # Банк получатель
-    correct_code = Column(Integer)  # Корр. Счет
-    inn_code = Column(Integer)  # ИНН
-    kpp_code = Column(Integer)  # КПП
-    swift_code = Column(String)  # Свифт-код
-    all_bank_data = Column(Integer, default=0)  # 0 - нет, 1 - в обработке, 2 - проверены
+    correct_code = Column(BigInteger)  # Корр. Счет
+    inn_code = Column(BigInteger)  # ИНН
+    kpp_code = Column(BigInteger)  # КПП
+    all_bank_data = Column(Integer, default=0)  # 0 - нет, 1 - в обработке, 2 - отклонены, 3 - проверены
 
     moderated = Column(Boolean, default=False)
     user = relationship("User", back_populates="personal_data")
