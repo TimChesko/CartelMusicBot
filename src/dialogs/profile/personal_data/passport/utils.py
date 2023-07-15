@@ -1,7 +1,8 @@
 from datetime import datetime
+from typing import Any
 
 
-async def convert_data_types(data):
+async def convert_data_types(data: dict):
     converted_data = {}
     for key, value in data.items():
         # Попытка конвертировать в число
@@ -18,7 +19,7 @@ async def convert_data_types(data):
     return converted_data
 
 
-async def convert_data_type_one(value):
+async def convert_data_type_one(value: Any):
     # Попытка конвертировать в число
     try:
         converted_value = int(value)

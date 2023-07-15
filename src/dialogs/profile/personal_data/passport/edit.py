@@ -6,7 +6,6 @@ from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.dialogs.profile import personal_data
 from src.dialogs.profile.personal_data import string
 from src.dialogs.profile.personal_data.passport.input_factory import start_dialog_filling_profile
 from src.dialogs.profile.personal_data.passport.process import process_input
@@ -75,8 +74,6 @@ async def process_result(_, result: Any, manager: DialogManager):
     logging.info(manager.dialog_data['count_edit'])
     if manager.dialog_data['count_edit'] == 0:
         await manager.done()
-
-
 
 
 dialog = Dialog(

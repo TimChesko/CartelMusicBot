@@ -1,4 +1,3 @@
-import logging
 import re
 from typing import Any
 
@@ -6,7 +5,7 @@ from aiogram_dialog import DialogManager
 
 from src.dialogs.profile.personal_data import string
 from src.dialogs.profile.personal_data.passport.input_factory import start_dialog_filling_profile
-from src.dialogs.profile.personal_data.passport.utils import convert_data_types, convert_data_type_one
+from src.dialogs.profile.personal_data.passport.utils import convert_data_type_one
 from src.models.personal_data import PersonalDataHandler
 
 
