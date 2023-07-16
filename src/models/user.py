@@ -85,22 +85,6 @@ class UserHandler:
                 self.logger.error("Ошибка при добавлении нового пользователя: %s", e)
                 return False
 
-    async def set_privilege(self, user_id: int, new_privilege: str) -> bool:
-        async with DatabaseManager.create_session(self.engine) as session:
-            try:
-                user = await session.get(User, user_id)
-                if user:
-                    user.privilege = new_privilege
-                    await session.commit()
-                    return True
-                else:
-                    self.logger.error(f"Пользователь с tg_id {user_id} не найден, set_privilege")
-                    return False
-            except SQLAlchemyError as e:
-                self.logger.error("Ошибка при добавлении нового пользователя: %s", e)
-                await session.rollback()
-                return False
-
     async def update_nickname(self, user_id: int, nickname: str) -> bool:
         async with DatabaseManager.create_session(self.engine) as session:
             try:

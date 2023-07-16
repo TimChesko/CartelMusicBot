@@ -10,7 +10,6 @@ from src.utils.fsm import AdminMenu, AdminListening, AdminDashboardPIN, AdminDas
 dashboard = Dialog(
     Window(
         Const('АДМИН ПАНЕЛЬ'),
-        # TODO Добавить список работников
         Start(Const('Добавить работника'),
               id='add_employee',
               state=AdminAddEmployee.start),
