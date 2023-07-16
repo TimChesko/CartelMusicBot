@@ -17,12 +17,11 @@ async def privilege_getter(dialog_manager: DialogManager, **kwargs):
     privilege = await EmployeeHandler(data['engine'], data['database_logger']).get_privilege_by_tg_id(user_id)
     if user_id in config.DEVELOPERS:
         return {
-            privilege: True for privilege in config.PRIVILEGES
+            privilege: True for privilege in config.PRIVILEGES[2:]
         }
-    user_privilege_index = config.PRIVILEGES.index(privilege)
-    # TODO доделать под список только из модераторов
+    user_privilege_index = config.PRIVILEGES[2:].index(privilege)
     return {
-        privilege: user_privilege_index >= config.PRIVILEGES.index(privilege) for privilege in config.PRIVILEGES
+        privilege: user_privilege_index >= config.PRIVILEGES[2:].index(privilege) for privilege in config.PRIVILEGES[2:]
     }
 
 
