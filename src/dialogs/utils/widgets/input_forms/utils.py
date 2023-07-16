@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime
 from typing import Any
 
@@ -20,7 +19,7 @@ async def convert_database_to_data(data_list: list) -> dict:
         data_name, text, example, input_type = data
         result_dict[data_name] = {
             'data_name': data_name,
-            'text': text+"\n\n"+"Пример: "+example,
+            'text': text + "\n\n" + "Пример: " + example,
             'input_type': input_type.split(",")}
     return result_dict
 

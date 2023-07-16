@@ -1,5 +1,3 @@
-import logging
-
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, ShowMode, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel, Back
