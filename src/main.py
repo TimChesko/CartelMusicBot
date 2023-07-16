@@ -13,6 +13,7 @@ from src.data import config
 from src.database.process import DatabaseManager
 from src.dialogs.utils.common import on_unknown_intent, on_unknown_state
 from src.middlewares.ban import CheckBan
+from src.middlewares.employee import EmployeeCheck
 from src.middlewares.throttling import ThrottlingMiddleware
 from src.utils.notify import notify_admins
 
@@ -29,6 +30,7 @@ async def set_handlers(dp: Dispatcher) -> None:
 async def set_middlewares(dp: Dispatcher) -> None:
     dp.message.middleware(CheckBan())
     dp.message.middleware(ThrottlingMiddleware(storage=dp.storage))
+    dp.message.middleware(EmployeeCheck())
 
 
 async def set_logging(dp: Dispatcher) -> None:

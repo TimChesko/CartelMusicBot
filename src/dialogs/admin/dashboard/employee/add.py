@@ -17,7 +17,8 @@ async def employee_id(
         message_input: MessageInput,
         manager: DialogManager):
     data = manager.middleware_data
-    user = await UserHandler(data['engine'], data['database_logger']).get_privilege_by_tg_id(message.from_user.id)
+    # user = await UserHandler(data['engine'], data['database_logger']).get_privilege_by_tg_id(message.from_user.id)
+    # TODO заменить на запрос из employee
     # if user in config.PRIVILEGES[1:]:
     #     await message.delete()
     #     await message.answer('Вы уже добавили этого сотрудника!')

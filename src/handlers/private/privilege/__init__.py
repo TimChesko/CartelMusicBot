@@ -1,13 +1,12 @@
 from aiogram import Router
 
-from src.middlewares.check_privilege import CheckPrivilege
-from . import common, moderator
+from src.middlewares.employee import EmployeeCheck
+from . import moderator, menu
 
 router = Router()
 
 router.message.middleware(
-    CheckPrivilege("moderator")
+    EmployeeCheck()
 )
 
-router.include_routers(common.router,
-                       moderator.router)
+router.include_routers(menu.router)

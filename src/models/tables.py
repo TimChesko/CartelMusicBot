@@ -20,7 +20,6 @@ class User(Base):
     nickname = Column(String)
 
     ban = Column(Boolean, default=False)
-    privilege = Column(String, default="user")
     last_active = Column(DateTime, default=datetime.now())
 
     # uselist for one-to-one, one user have only one personal data
@@ -28,6 +27,7 @@ class User(Base):
     # chats show how to realize one-to-many
     tracks = relationship("Track", back_populates="user")  # Добавить связь с Track
     albums = relationship("Album", back_populates="user")
+    employee = relationship("Employee", uselist=False, back_populates='user')
 
 
 class PersonalData(Base):
@@ -160,12 +160,23 @@ class Album(Base):
     user = relationship("User", back_populates="albums")
 
 
-# class Employee(Base):
-#     __tablename__ = 'employees'
-#
-#     id = Column(Integer, primary_key=True, autoincrement=True)
-#     user_id = Column(BigInteger, ForeignKey('users.tg_id'))
-#
-#     first_name = Column(String)
-#     surname = Column(String)
-#     middle_name = Column(String)
+class Employee(Base):
+    """
+        regs - the moderator has not registered yet
+        works - the moderator has been registered
+        fired - the moderator has been fired (уволен)
+    """
+    __tablename__ = 'employees'
+
+    tg_id = Column(BigInteger, ForeignKey('users.tg_id'), primary_key=True, nullable=False)
+
+    first_name = Column(String)
+    surname = Column(String)
+    middle_name = Column(String)
+
+    privilege = Column(Enum('manager', 'moderator', 'curator', 'admin', name='privilege_status'), default="user")
+    state = Column(Enum('regs', 'works', 'fired', name='employee_status'), default='regs')
+    add_date = Column(DateTime, nullable=False)
+    fired_date = Column(DateTime)
+
+    user = relationship("User", back_populates="employee")
