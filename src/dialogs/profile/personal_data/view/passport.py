@@ -1,19 +1,17 @@
-import logging
-
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, ShowMode, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel, Back
 from aiogram_dialog.widgets.text import Const
 
-from src.dialogs.profile.personal_data.widget_forms.process_input import start_input_form, process_input_result
-from src.dialogs.profile.personal_data.widget_forms.utils import convert_data_types, get_data_from_db
+from src.dialogs.utils.widgets.input_forms.process_input import InputForm, process_input_result
+from src.dialogs.utils.widgets.input_forms.utils import convert_data_types, get_data_from_db
 from src.utils.fsm import Passport
 
 
 async def create_form(_, __, manager: DialogManager):
     buttons = [False, True, False]
     task_list = await get_data_from_db("passport", manager)
-    await start_input_form(buttons, task_list, manager)
+    await InputForm(manager).start_dialog(buttons, task_list)
 
 
 async def on_finally_passport(callback: CallbackQuery, _, manager: DialogManager):
