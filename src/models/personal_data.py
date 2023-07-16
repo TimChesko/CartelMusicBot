@@ -4,7 +4,7 @@ from sqlalchemy import select, and_, update
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.database.process import DatabaseManager
-from src.models.tables import PersonalData
+from src.models.tables import PersonalData, Social
 
 
 class PersonalDataHandler:
@@ -175,5 +175,59 @@ class PersonalDataHandler:
                 return True
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при обновлении значения в таблице PersonalData: %s", e)
+                await session.rollback()
+                return False
+
+    async def get_social_data(self, tg_id: int):
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                query = select(Social).where(Social.personal_data_tg_id == tg_id)
+                result = await session.execute(query)
+                social_data = result.fetchall()
+                social_data_with_id = [(row.id, row.title, row.link) for row in social_data]
+                return social_data_with_id
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при получении данных из таблицы Social: %s", e)
+                return []
+
+    async def get_social_by_id(self, social_id: int):
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                query = select(Social).where(Social.id == social_id)
+                result = await session.execute(query)
+                social_data = result.scalar_one_or_none()
+                if social_data:
+                    return [social_data.id, social_data.title, social_data.link]
+                else:
+                    return None
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при получении данных из таблицы Social: %s", e)
+                return None
+
+    async def add_social_data(self, tg_id: int, title: str, link: str) -> bool:
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                social_data = Social(personal_data_tg_id=tg_id, title=title, link=link)
+                session.add(social_data)
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при добавлении данных в таблицу Social: %s", e)
+                await session.rollback()
+                return False
+
+    async def update_social_data(self, social_id: int, title: str, link: str) -> bool:
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                social_data = session.query(Social).filter(Social.id == social_id).first()
+                if social_data:
+                    social_data.title = title
+                    social_data.link = link
+                    await session.commit()
+                    return True
+                else:
+                    return False
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при обновлении данных в таблице Social: %s", e)
                 await session.rollback()
                 return False

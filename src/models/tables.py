@@ -61,8 +61,21 @@ class PersonalData(Base):
     kpp_code = Column(BigInteger)  # КПП
     all_bank_data = Column(Integer, default=0)  # 0 - нет, 1 - в обработке, 2 - отклонены, 3 - проверены
 
+    social = relationship("Social", back_populates="personal_data", uselist=False)
+
     moderated = Column(Boolean, default=False)
     user = relationship("User", back_populates="personal_data")
+
+
+class Social(Base):
+    __tablename__ = 'social'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    personal_data_tg_id = Column(Integer, ForeignKey('personal_data.tg_id'), nullable=False)
+    title = Column(String)
+    link = Column(String)
+
+    personal_data = relationship("PersonalData", back_populates="social")
 
 
 class Track(Base):

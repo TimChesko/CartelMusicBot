@@ -34,6 +34,7 @@ class AdminEmployee(StatesGroup):
 class AdminStatistic(StatesGroup):
     start = State()
 
+
 class AdminAddEmployee(StatesGroup):
     start = State()
     privilege = State()
@@ -127,6 +128,14 @@ class Bank(StatesGroup):
     edit_data = State()
 
     confirm = State()
+
+
+class Nickname(StatesGroup):
+    edit = State()
+
+
+class Social(StatesGroup):
+    view_data = State()
 
 
 class PersonalData(StatesGroup):

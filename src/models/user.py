@@ -1,5 +1,5 @@
 from aiogram.types import Message
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, update
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.database.process import DatabaseManager
@@ -109,5 +109,17 @@ class UserHandler:
                     return False
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при добавлении нового пользователя: %s", e)
+                await session.rollback()
+                return False
+
+    async def update_nickname(self, user_id: int, nickname: str) -> bool:
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                query = update(User).where(User.tg_id == user_id).values({"nickname": nickname})
+                await session.execute(query)
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при обновлении nickname в таблице UserHandler: %s", e)
                 await session.rollback()
                 return False
