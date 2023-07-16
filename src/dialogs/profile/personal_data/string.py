@@ -1,5 +1,4 @@
-{
-    "passport": {
+{"passport": {
         "first_name": {
             "type": "Имя",
             "request": "Пришлите ваше - имя",
