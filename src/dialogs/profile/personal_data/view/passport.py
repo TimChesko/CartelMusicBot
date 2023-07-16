@@ -5,6 +5,7 @@ from aiogram_dialog.widgets.text import Const
 
 from src.dialogs.utils.widgets.input_forms.process_input import InputForm, process_input_result
 from src.dialogs.utils.widgets.input_forms.utils import convert_data_types, get_data_from_db
+from src.models.personal_data import PersonalDataHandler
 from src.utils.fsm import Passport
 
 
@@ -18,8 +19,10 @@ async def on_finally_passport(callback: CallbackQuery, _, manager: DialogManager
     middleware_data = manager.middleware_data
     user_id = middleware_data['event_from_user'].id
     data = await convert_data_types(manager.dialog_data['save_input'])
-    # await PersonalDataHandler(middleware_data['engine'], middleware_data['database_logger']). \
-    #     update_all_personal_data(user_id, "passport", data)
+
+    await PersonalDataHandler(middleware_data['engine'], middleware_data['database_logger']). \
+        update_all_personal_data(user_id, "passport", data)
+
     await callback.message.answer("Вы успешно внесли данные о паспорте !\n"
                                   "Чтобы обезопасить себя, нажмите на 3 точки в правом углу, "
                                   "затем clear history/очистить историю. Чтобы удалить все внесенные данные из чата.")
