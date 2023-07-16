@@ -5,7 +5,7 @@ from aiogram_dialog import DialogManager
 
 from src.dialogs.profile.personal_data import string
 from src.dialogs.profile.personal_data.process.input_factory import start_dialog_filling_profile
-from src.dialogs.profile.personal_data.process.utils import convert_data_type_one
+from src.dialogs.profile.personal_data.widget_forms.utils import convert_data_type_one
 from src.models.personal_data import PersonalDataHandler
 
 

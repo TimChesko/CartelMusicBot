@@ -1,29 +1,27 @@
+import logging
+
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, ShowMode, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel, Back
 from aiogram_dialog.widgets.text import Const
 
-from src.dialogs.profile.personal_data import string
-from src.dialogs.profile.personal_data.process.process import save_task_list_and_start, process_result
-from src.dialogs.profile.personal_data.process.utils import convert_data_types
-from src.models.personal_data import PersonalDataHandler
+from src.dialogs.profile.personal_data.widget_forms.process_input import start_input_form, process_input_result
+from src.dialogs.profile.personal_data.widget_forms.utils import convert_data_types, get_data_from_db
 from src.utils.fsm import Passport
 
 
-async def create_task_list(_, __, manager: DialogManager):
-    all_data = string.personal_data['passport']
-    tasks = []
-    for i in all_data:
-        tasks.append(i)
-    await save_task_list_and_start('passport', tasks, manager)
+async def create_form(_, __, manager: DialogManager):
+    buttons = [False, True, False]
+    task_list = await get_data_from_db("passport", manager)
+    await start_input_form(buttons, task_list, manager)
 
 
 async def on_finally_passport(callback: CallbackQuery, _, manager: DialogManager):
     middleware_data = manager.middleware_data
     user_id = middleware_data['event_from_user'].id
     data = await convert_data_types(manager.dialog_data['save_input'])
-    await PersonalDataHandler(middleware_data['engine'], middleware_data['database_logger']). \
-        update_all_personal_data(user_id, "passport", data)
+    # await PersonalDataHandler(middleware_data['engine'], middleware_data['database_logger']). \
+    #     update_all_personal_data(user_id, "passport", data)
     await callback.message.answer("Вы успешно внесли данные о паспорте !\n"
                                   "Чтобы обезопасить себя, нажмите на 3 точки в правом углу, "
                                   "затем clear history/очистить историю. Чтобы удалить все внесенные данные из чата.")
@@ -40,7 +38,7 @@ add_full_data = Dialog(
         Button(
             Const("Продолжить"),
             id="passport_start",
-            on_click=create_task_list
+            on_click=create_form
         ),
         Cancel(Const("Вернуться в профиль")),
         state=Passport.add_data
@@ -53,5 +51,5 @@ add_full_data = Dialog(
         Back(Const("Назад")),
         state=Passport.confirm
     ),
-    on_process_result=process_result,
+    on_process_result=process_input_result,
 )

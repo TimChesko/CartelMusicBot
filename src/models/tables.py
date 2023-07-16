@@ -78,6 +78,18 @@ class Social(Base):
     personal_data = relationship("PersonalData", back_populates="social")
 
 
+class PersonalDataTemplate(Base):
+    __tablename__ = 'personal_data_template'
+
+    id = Column(Integer, primary_key=True)
+    header_data = Column(String)
+    name_data = Column(String)
+    title = Column(String)
+    text = Column(String)
+    example = Column(String)
+    input_type = Column(String)
+
+
 class Track(Base):
     __tablename__ = "tracks"
 

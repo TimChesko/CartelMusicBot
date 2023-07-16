@@ -37,10 +37,10 @@ async def start_dialog_filling_profile(
 
 async def get_data(dialog_manager: DialogManager, **_kwargs):
     start_data = dialog_manager.start_data
-    request = start_data["request"] if start_data["error"] is None \
-        else f'{start_data["error"]}\n\n{start_data["request"]}'
+    # request = start_data["request"] if "error" in start_data \
+    #     else f'{start_data["error"]}\n\n{start_data["request"]}'
     return {
-        "request": request,
+        "request": start_data["request"],
         "example": start_data["example"]
     }
 

@@ -1,5 +1,3 @@
-import datetime
-
 from sqlalchemy import select, and_, update
 from sqlalchemy.exc import SQLAlchemyError
 
