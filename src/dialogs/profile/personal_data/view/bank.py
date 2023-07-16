@@ -5,7 +5,7 @@ from aiogram_dialog.widgets.text import Const
 
 from src.dialogs.profile.personal_data import string
 from src.dialogs.profile.personal_data.process.process import save_task_list_and_start, process_result
-from src.dialogs.profile.personal_data.process.utils import convert_data_types
+from src.dialogs.profile.personal_data.widget_forms.utils import convert_data_types
 from src.models.personal_data import PersonalDataHandler
 from src.utils.fsm import Bank
 
