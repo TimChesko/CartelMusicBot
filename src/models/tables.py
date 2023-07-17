@@ -41,8 +41,8 @@ class PersonalData(Base):
     middle_name = Column(String)
 
     # Личные данные
-    passport_series = Column(Integer)  # серия паспорта
-    passport_number = Column(Integer)  # номер паспорта
+    passport_series = Column(String)  # серия паспорта
+    passport_number = Column(String)  # номер паспорта
     who_issued_it = Column(String)  # кем выдан
     date_of_issue = Column(DateTime)  # когда выдан
     unit_code = Column(String)  # код подразделения
@@ -53,12 +53,12 @@ class PersonalData(Base):
 
     # Банковские данные
     recipient = Column(String)  # Получатель
-    account_code = Column(BigInteger)  # Номер счёта
-    bik_code = Column(BigInteger)  # БИК
+    account_code = Column(String)  # Номер счёта
+    bik_code = Column(String)  # БИК
     bank_recipient = Column(String)  # Банк получатель
-    correct_code = Column(BigInteger)  # Корр. Счет
-    inn_code = Column(BigInteger)  # ИНН
-    kpp_code = Column(BigInteger)  # КПП
+    correct_code = Column(String)  # Корр. Счет
+    inn_code = Column(String)  # ИНН
+    kpp_code = Column(String)  # КПП
     all_bank_data = Column(Integer, default=0)  # 0 - нет, 1 - в обработке, 2 - отклонены, 3 - проверены
 
     social = relationship("Social", back_populates="personal_data", uselist=False)

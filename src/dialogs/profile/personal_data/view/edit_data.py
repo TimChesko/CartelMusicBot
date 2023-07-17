@@ -33,10 +33,12 @@ async def profile_edit_getter(dialog_manager: DialogManager, **_kwargs):
     }
 
 
-async def create_form(_, __, manager: DialogManager, *_kwargs):
+async def create_form(callback: CallbackQuery, _, manager: DialogManager, *_kwargs):
     buttons = [False, True, False]
-    task_list = await get_list_edit(manager)
-    await InputForm(manager).start_dialog(buttons, task_list)
+    list_edit = await get_list_edit(manager)
+    key = callback.data.split(":")[-1]
+    task = {key: list_edit[key]}
+    await InputForm(manager).start_dialog(buttons, task)
 
 
 async def on_finally(callback: CallbackQuery, __, manager: DialogManager):

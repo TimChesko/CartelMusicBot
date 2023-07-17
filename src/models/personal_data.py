@@ -104,60 +104,6 @@ class PersonalDataHandler:
                 await session.rollback()
                 return False
 
-    async def find_none_columns_passport(self, tg_id: int) -> list:
-        none_columns = []
-        async with DatabaseManager.create_session(self.engine) as session:
-            try:
-                query = select(PersonalData).where(PersonalData.tg_id == tg_id)
-                result = await session.execute(query)
-                personal_data = result.scalar_one_or_none()
-                if personal_data:
-                    columns_to_check = [
-                        PersonalData.first_name,
-                        PersonalData.surname,
-                        PersonalData.middle_name,
-                        PersonalData.passport_series,
-                        PersonalData.passport_number,
-                        PersonalData.who_issued_it,
-                        PersonalData.date_of_issue,
-                        PersonalData.unit_code,
-                        PersonalData.date_of_birth,
-                        PersonalData.place_of_birth,
-                        PersonalData.registration_address,
-                    ]
-                    for column in columns_to_check:
-                        column_value = getattr(personal_data, column.name)
-                        if column_value is None:
-                            none_columns.append(column.name)
-            except SQLAlchemyError as e:
-                self.logger.error("Ошибка при поиске всех None в passport: %s", e)
-        return none_columns
-
-    async def find_none_columns_bank(self, tg_id: int) -> list:
-        none_columns = []
-        async with DatabaseManager.create_session(self.engine) as session:
-            try:
-                query = select(PersonalData).where(PersonalData.tg_id == tg_id)
-                result = await session.execute(query)
-                personal_data = result.scalar_one_or_none()
-                if personal_data:
-                    columns_to_check = [
-                        PersonalData.recipient,
-                        PersonalData.account_code,
-                        PersonalData.bik_code,
-                        PersonalData.bank_recipient,
-                        PersonalData.correct_code,
-                        PersonalData.inn_code,
-                        PersonalData.kpp_code
-                    ]
-                    for column in columns_to_check:
-                        column_value = getattr(personal_data, column.name)
-                        if column_value is None:
-                            none_columns.append(column.name)
-            except SQLAlchemyError as e:
-                self.logger.error("Ошибка при поиске всех None в bank: %s", e)
-        return none_columns
-
     async def get_social_data(self, tg_id: int):
         async with DatabaseManager.create_session(self.engine) as session:
             try:
@@ -209,22 +155,6 @@ class PersonalDataHandler:
                 await session.rollback()
                 return False
 
-    async def update_social_data(self, social_id: int, title: str, link: str) -> bool:
-        async with DatabaseManager.create_session(self.engine) as session:
-            try:
-                social_data = session.query(Social).filter(Social.id == social_id).first()
-                if social_data:
-                    social_data.title = title
-                    social_data.link = link
-                    await session.commit()
-                    return True
-                else:
-                    return False
-            except SQLAlchemyError as e:
-                self.logger.error("Ошибка при обновлении данных в таблице Social: %s", e)
-                await session.rollback()
-                return False
-
     async def update_personal_data(self, tg_id: int, header_data: str, data: dict) -> bool:
         async with DatabaseManager.create_session(self.engine) as session:
             try:
@@ -238,8 +168,9 @@ class PersonalDataHandler:
                 list_name_data = template_result.scalars().all()
 
                 count_none = sum(1 for key in list_name_data if getattr(personal_data, key) is None)
-
+                self.logger.info(count_none)
                 all_data_field = f"all_{header_data}_data"
+                self.logger.info(all_data_field)
                 if hasattr(PersonalData, all_data_field):
                     setattr(personal_data, all_data_field, 2 if count_none > 1 else 1)
 
