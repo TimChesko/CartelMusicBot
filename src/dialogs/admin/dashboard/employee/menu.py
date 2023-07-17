@@ -13,9 +13,8 @@ from src.utils.fsm import AdminEmployee, AdminAddEmployee
 
 async def privilege_filter(callback: CallbackQuery, btn: SwitchTo, manager: DialogManager):
     manager.start_data['filter'] = btn.widget_id
-    logging.info(btn)
     if btn.widget_id in config.PRIVILEGES:
-        manager.start_data['title'] = await btn.text.render_text({}, manager)
+        manager.start_data['title'] = btn.text.__dict__['text']
     else:
         manager.start_data['title'] = 'Сотрудники'
 
@@ -32,10 +31,10 @@ async def employee_getter(dialog_manager: DialogManager, **kwargs):
     }
 
 
-# async def on_item_selected(callback: CallbackQuery, __, manager: DialogManager, selected_item: str):
-#     manager.dialog_data["employee_id"] = int(selected_item)
-#     logging.info(selected_item)
-#     await manager.next()
+async def on_item_selected(callback: CallbackQuery, __, manager: DialogManager, selected_item: str):
+    manager.dialog_data["employee_id"] = int(selected_item)
+    logging.info(selected_item)
+    await manager.next()
 
 
 admin_main = Dialog(
