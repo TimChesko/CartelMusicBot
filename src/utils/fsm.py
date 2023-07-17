@@ -136,7 +136,8 @@ class Nickname(StatesGroup):
 
 class Social(StatesGroup):
     view_data = State()
-
+    confirm = State()
+    view_link = State()
 
 class PersonalData(StatesGroup):
     confirm = State()

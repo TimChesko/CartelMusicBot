@@ -1,4 +1,4 @@
-from sqlalchemy import select, and_, update
+from sqlalchemy import select, and_, delete
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.database.process import DatabaseManager
@@ -181,7 +181,7 @@ class PersonalDataHandler:
             try:
                 query = select(Social).where(Social.personal_data_tg_id == tg_id)
                 result = await session.execute(query)
-                social_data = result.fetchall()
+                social_data = result.scalars().all()
                 social_data_with_id = [(row.id, row.title, row.link) for row in social_data]
                 return social_data_with_id
             except SQLAlchemyError as e:
@@ -214,6 +214,19 @@ class PersonalDataHandler:
                 await session.rollback()
                 return False
 
+    async def delete_social_data(self, social_id: int) -> bool:
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                await session.execute(
+                    delete(Social).where(Social.id == social_id)
+                )
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при удалении данных из таблицы Social: %s", e)
+                await session.rollback()
+                return False
+
     async def update_social_data(self, social_id: int, title: str, link: str) -> bool:
         async with DatabaseManager.create_session(self.engine) as session:
             try:
@@ -237,7 +250,8 @@ class PersonalDataHandler:
                 personal_data_result = await session.execute(personal_data_query)
                 personal_data = personal_data_result.scalar_one_or_none()
 
-                template_query = select(PersonalDataTemplate.name_data).where(PersonalDataTemplate.header_data == header_data)
+                template_query = select(PersonalDataTemplate.name_data).where(
+                    PersonalDataTemplate.header_data == header_data)
                 template_result = await session.execute(template_query)
                 list_name_data = template_result.scalars().all()
 

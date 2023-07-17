@@ -92,6 +92,7 @@ dialog_input = Dialog(
             on_click=on_stop,
             when="btn_stop"
         ),
+        disable_web_page_preview=True,
         state=DialogInput.text,
         getter=get_data
     ),
@@ -107,6 +108,7 @@ dialog_input = Dialog(
             on_click=on_back,
             when="btn_back_date"
         ),
+        disable_web_page_preview=True,
         state=DialogInput.date,
         getter=get_data
     )
