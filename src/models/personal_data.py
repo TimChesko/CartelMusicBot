@@ -158,24 +158,6 @@ class PersonalDataHandler:
                 self.logger.error("Ошибка при поиске всех None в bank: %s", e)
         return none_columns
 
-    # async def update_personal_data(self, user_id: int, data_key: str, data_value, location: str, count_edit: int) -> bool:
-    #     async with DatabaseManager.create_session(self.engine) as session:
-    #         try:
-    #             if location == "passport":
-    #                 update_data = {data_key: data_value, "all_passport_data": 2 if count_edit > 1 else 1}
-    #             elif location == "bank":
-    #                 update_data = {data_key: data_value, "all_bank_data": 2 if count_edit > 1 else 1}
-    #             else:
-    #                 return False
-    #             query = update(PersonalData).where(PersonalData.tg_id == user_id).values(**update_data)
-    #             await session.execute(query)
-    #             await session.commit()
-    #             return True
-    #         except SQLAlchemyError as e:
-    #             self.logger.error("Ошибка при обновлении значения в таблице PersonalData: %s", e)
-    #             await session.rollback()
-    #             return False
-
     async def get_social_data(self, tg_id: int):
         async with DatabaseManager.create_session(self.engine) as session:
             try:
@@ -271,3 +253,32 @@ class PersonalDataHandler:
                 self.logger.error("Ошибка при обновлении данных в: %s", e)
                 await session.rollback()
                 return False
+
+    async def get_personal_data_by_header(self, tg_id: int, header_data: str):
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                # Fetch the personal data for the given tg_id
+                personal_data_query = select(PersonalData).where(PersonalData.tg_id == tg_id)
+                personal_data_result = await session.execute(personal_data_query)
+                personal_data = personal_data_result.scalar_one_or_none()
+
+                # Fetch the name_data, text, example, and input_type values for the given header_data
+                template_query = select(
+                    PersonalDataTemplate.name_data,
+                    PersonalDataTemplate.title,
+                    PersonalDataTemplate.text,
+                    PersonalDataTemplate.example,
+                    PersonalDataTemplate.input_type
+                ).where(PersonalDataTemplate.header_data == header_data).order_by(PersonalDataTemplate.id)
+                template_result = await session.execute(template_query)
+                template_data = template_result.all()
+
+                # Find the columns with None values
+                none_columns = [(name_data, title, text, example, input_type)
+                                for name_data, title, text, example, input_type in template_data
+                                if getattr(personal_data, name_data) is None]
+
+                return none_columns
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при получении данных из таблицы PersonalData: %s", e)
+                return []

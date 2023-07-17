@@ -16,9 +16,10 @@ async def get_data_from_db(header_data: str, manager: DialogManager):
 async def convert_database_to_data(data_list: list) -> dict:
     result_dict = {}
     for data in data_list:
-        data_name, text, example, input_type = data
+        data_name, title, text, example, input_type = data
         result_dict[data_name] = {
             'data_name': data_name,
+            'title': title,
             'text': text + "\n\n" + "Пример: " + example,
             'input_type': input_type.split(",")}
     return result_dict

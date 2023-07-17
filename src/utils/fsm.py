@@ -139,13 +139,14 @@ class Social(StatesGroup):
     confirm = State()
     view_link = State()
 
+
 class PersonalData(StatesGroup):
     confirm = State()
 
 
 class ProfileEdit(StatesGroup):
     menu = State()
-    process = State()
+    confirm = State()
 
 
 class DialogInput(StatesGroup):

@@ -38,6 +38,7 @@ class PersonalDataTemplateHandler:
             try:
                 query = select(
                     PersonalDataTemplate.name_data,
+                    PersonalDataTemplate.title,
                     PersonalDataTemplate.text,
                     PersonalDataTemplate.example,
                     PersonalDataTemplate.input_type
