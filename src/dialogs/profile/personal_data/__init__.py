@@ -1,6 +1,6 @@
 from aiogram import Router
 
-from . import confirm, string, view
+from . import confirm, view
 
 router = Router()
 router.include_router(view.router)
