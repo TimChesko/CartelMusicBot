@@ -4,6 +4,7 @@ from aiogram.types import Message
 from sqlalchemy import select, and_, update
 from sqlalchemy.exc import SQLAlchemyError
 
+from src.data import config
 from src.database.process import DatabaseManager
 from src.models.tables import Employee
 
@@ -62,4 +63,18 @@ class EmployeeHandler:
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при добавлении нового пользователя: %s", e)
                 await session.rollback()
+                return False
+
+    async def get_privilege_by_filter(self, privilege: str | None = None):
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                if privilege in config.PRIVILEGES:
+                    query = select(Employee.tg_id, Employee.privilege).where(Employee.privilege == privilege)
+                else:
+                    query = select(Employee.tg_id, Employee.privilege)
+                result = await session.execute(query)
+                employee = result.all()
+                return employee
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False

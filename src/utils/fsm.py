@@ -29,6 +29,10 @@ class AdminDashboardPIN(StatesGroup):
 
 class AdminEmployee(StatesGroup):
     start = State()
+    employee = State()
+    on_fired = State()
+    finish = State()
+
 
 
 class AdminStatistic(StatesGroup):
