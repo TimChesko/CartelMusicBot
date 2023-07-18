@@ -22,7 +22,6 @@ async def cmd_start(msg: Message,
                     engine: AsyncEngine, database_logger: BoundLoggerFilteringAtDebug,
                     dialog_manager: DialogManager, bot: Bot):
     user = await UserHandler(engine, database_logger).check_user_by_tg_id(msg.from_user.id)
-    logging.info(user)
     listening_chat = config.CHATS_BACKUP[0]
     args = msg.text.split(' ')
     if not user:
@@ -43,5 +42,4 @@ async def cmd_start(msg: Message,
                                                                                                'msg_id': msg_id})
     elif user and user.nickname is not None:
         await msg.delete()
-        logging.info(msg.message_id)
-        await dialog_manager.start(StartMenu.start, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND)
+        await dialog_manager.start(StartMenu.start, mode=StartMode.RESET_STACK)

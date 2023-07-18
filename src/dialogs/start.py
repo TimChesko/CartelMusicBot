@@ -70,6 +70,5 @@ start_menu = Dialog(
         state=StartMenu.start,
         getter=get_data
     ),
-    on_start=on_start_copy_start_data,
-    launch_mode=LaunchMode.ROOT
+    on_start=on_start_copy_start_data
 )

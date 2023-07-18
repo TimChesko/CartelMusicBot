@@ -136,6 +136,8 @@ class Nickname(StatesGroup):
 
 class Social(StatesGroup):
     view_data = State()
+    confirm = State()
+    view_link = State()
 
 
 class PersonalData(StatesGroup):
@@ -144,7 +146,7 @@ class PersonalData(StatesGroup):
 
 class ProfileEdit(StatesGroup):
     menu = State()
-    process = State()
+    confirm = State()
 
 
 class DialogInput(StatesGroup):

@@ -37,11 +37,11 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
 
 
 async def edit_passport(_, __, manager: DialogManager):
-    await manager.start(state=ProfileEdit.menu, data={"type_data": "passport"})
+    await manager.start(state=ProfileEdit.menu, data={"header_data": "passport"})
 
 
 async def edit_bank(_, __, manager: DialogManager):
-    await manager.start(state=ProfileEdit.menu, data={"type_data": "bank"})
+    await manager.start(state=ProfileEdit.menu, data={"header_data": "bank"})
 
 
 async def edit_nickname(_, __, manager: DialogManager):

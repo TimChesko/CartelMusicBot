@@ -34,7 +34,7 @@ async def start_dialog_filling_profile(
     data['btn_stop'] = btn_status[0]
     data['btn_back_text'] = btn_status[1]
     data['btn_back_date'] = btn_status[2]
-    data['text'] = data['text'] if error is None else f"{error}\n\n{data['text']}"
+    data['created_text'] = data['text'] if error is None else f"{error}\n\n{data['text']}"
     if input_date:
         await manager.start(state=DialogInput.date, data=data)
     else:
@@ -44,7 +44,7 @@ async def start_dialog_filling_profile(
 async def get_data(dialog_manager: DialogManager, **_kwargs):
     start_data = dialog_manager.start_data
     return {
-        "text": start_data["text"],
+        "text": start_data["created_text"],
         "btn_stop": start_data["btn_stop"],
         "btn_back_text": start_data["btn_back_text"],
         "btn_back_date": start_data["btn_back_date"]
@@ -92,6 +92,7 @@ dialog_input = Dialog(
             on_click=on_stop,
             when="btn_stop"
         ),
+        disable_web_page_preview=True,
         state=DialogInput.text,
         getter=get_data
     ),
@@ -107,6 +108,7 @@ dialog_input = Dialog(
             on_click=on_back,
             when="btn_back_date"
         ),
+        disable_web_page_preview=True,
         state=DialogInput.date,
         getter=get_data
     )

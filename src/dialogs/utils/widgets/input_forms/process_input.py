@@ -53,11 +53,11 @@ class InputForm:
     @staticmethod
     async def validate_input(input_type: list[str], input_result: str) -> dict[Any, bool]:
         template_input = {
-            "int": [r"\d{1,9}", "число до 9 цифр"],
-            "big_int": [r"\d{1,20}", "число до 20 цифр"],
-            "text": ["a-zA-Zа-яА-Я", "буквы"],
-            "punctuation": [",.", "точки, запятые"],
-            "minus": ["-", "тире"],
+            "int": [r"\d{1,12}", "число до 12 цифр"],
+            "big_int": [r"\d{1,24}", "число до 24 цифр"],
+            "text": [r"a-zA-Zа-яА-Я", "буквы"],
+            "punctuation": [r",.", "точки, запятые"],
+            "minus": [r"-", "тире"],
             "space": [r"\s", "пробелы"],
             "any": [".*", "любые символы"],
             "date": [".*", "любые символы"],
@@ -68,7 +68,9 @@ class InputForm:
 
         if "any" in input_type:
             regex_pattern = rf'{input_pattern}$'
-        elif ("big_int" or "int") in input_type:
+        elif ("big_int" in input_type or "int" in input_type) and "minus" in input_type:
+            regex_pattern = rf'[{template_input["big_int"][0]}{template_input["minus"][0]}]+$'
+        elif "big_int" in input_type or "int" in input_type:
             regex_pattern = rf'^{input_pattern}$'
         else:
             regex_pattern = rf'^[{input_pattern}]+$'

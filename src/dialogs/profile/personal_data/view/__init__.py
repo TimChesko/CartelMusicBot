@@ -1,8 +1,9 @@
 from aiogram import Router
 
-from . import bank, passport, social
+from . import bank, passport, social, edit_data
 
 router = Router()
 router.include_router(bank.add_full_data)
 router.include_router(passport.add_full_data)
 router.include_router(social.dialog)
+router.include_router(edit_data.dialog)
