@@ -6,7 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from src.data import config
 from src.database.process import DatabaseManager
-from src.models.tables import Employee
+from src.models.tables import Employee, User
 
 
 class EmployeeHandler:
@@ -69,11 +69,41 @@ class EmployeeHandler:
         async with DatabaseManager.create_session(self.engine) as session:
             try:
                 if privilege in config.PRIVILEGES:
-                    query = select(Employee.tg_id, Employee.privilege).where(Employee.privilege == privilege)
+                    query = select(Employee.tg_id, User.tg_username, Employee.first_name, Employee.surname).join(
+                        User).where(Employee.privilege == privilege)
                 else:
-                    query = select(Employee.tg_id, Employee.privilege)
+                    query = select(Employee.tg_id, User.tg_username, Employee.first_name, Employee.surname).join(User)
                 result = await session.execute(query)
                 employee = result.all()
+                return employee
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при выполнении запроса: %s", e)
+                return False
+
+    async def get_dialog_info_by_tg_id(self, tg_id: int):
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                query = select(Employee.first_name,
+                               Employee.surname,
+                               Employee.middle_name,
+                               Employee.privilege,
+                               Employee.state,
+                               Employee.add_date,
+                               Employee.fired_date,
+                               Employee.recovery_date).where(Employee.tg_id == tg_id)
+                result = await session.execute(query)
+                employee = result.one()
+                return employee
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при выполнении запроса: %s", e)
+                return False
+
+    async def get_all_by_tg_id(self, tg_id: int):
+        async with DatabaseManager.create_session(self.engine) as session:
+            try:
+                query = select(Employee).where(Employee.tg_id == tg_id)
+                result = await session.execute(query)
+                employee = result.one()
                 return employee
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
