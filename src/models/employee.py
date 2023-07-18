@@ -71,6 +71,9 @@ class EmployeeHandler:
                 if privilege in config.PRIVILEGES:
                     query = select(Employee.tg_id, User.tg_username, Employee.first_name, Employee.surname).join(
                         User).where(Employee.privilege == privilege)
+                elif privilege == 'regs':
+                    query = select(Employee.tg_id, User.tg_username, Employee.first_name, Employee.surname).join(
+                        User).where(Employee.state == privilege)
                 else:
                     query = select(Employee.tg_id, User.tg_username, Employee.first_name, Employee.surname).join(User)
                 result = await session.execute(query)

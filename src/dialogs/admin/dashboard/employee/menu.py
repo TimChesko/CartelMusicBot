@@ -52,7 +52,6 @@ async def employee_list_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     dialog_data = dialog_manager.dialog_data
     privilege = dialog_data['filter']
-    # TODO Также добавить отдельный список для всех нереганных
     employees = await EmployeeHandler(data['engine'], data['database_logger']).get_privilege_by_filter(privilege)
     logging.info(employees)
     buttons = {
@@ -60,6 +59,7 @@ async def employee_list_getter(dialog_manager: DialogManager, **_kwargs):
         "manager": "Менеджер",
         "moderator": "Модератор",
         "curator": "Куратор",
+        'regs': "Нереги"
     }
     if "filter" in dialog_data and dialog_data["filter"] in buttons:
         text = buttons[dialog_data["filter"]]
@@ -84,6 +84,7 @@ admin_main = Dialog(
             SwitchTo(Format('{manager}'), id='manager', state=AdminEmployee.start, on_click=privilege_filter),
             SwitchTo(Format('{moderator}'), id='moderator', state=AdminEmployee.start, on_click=privilege_filter),
             SwitchTo(Format('{curator}'), id='curator', state=AdminEmployee.start, on_click=privilege_filter),
+            SwitchTo(Format('{regs}'), id='regs', state=AdminEmployee.start, on_click=privilege_filter),
             SwitchTo(Const('Сброс'), id='all', state=AdminEmployee.start, on_click=privilege_filter),
             width=3
         ),
