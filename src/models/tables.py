@@ -178,5 +178,6 @@ class Employee(Base):
     state = Column(Enum('regs', 'works', 'fired', name='employee_status'), default='regs')
     add_date = Column(DateTime, nullable=False)
     fired_date = Column(DateTime)
+    recovery_date = Column(DateTime)
 
     user = relationship("User", back_populates="employee")
