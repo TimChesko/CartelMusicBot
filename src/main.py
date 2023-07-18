@@ -53,9 +53,8 @@ async def setup_aiogram(dp: Dispatcher) -> None:
 
 
 async def set_database(dp: Dispatcher) -> None:
-    dp['engine'] = await DatabaseManager.connect(dp['config'])
+    dp['engine'] = await DatabaseManager.create_engine(dp['config'])
     dp['session_maker'] = await DatabaseManager.create_session_maker(dp['engine'])
-    await DatabaseManager.create_tables(dp['engine'])
 
 
 async def on_startup_polling(dispatcher: Dispatcher, bot: Bot) -> None:

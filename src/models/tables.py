@@ -180,3 +180,22 @@ class Employee(Base):
     recovery_date = Column(DateTime)
 
     user = relationship("User", back_populates="employee")
+
+
+class Test(Base):
+    """
+        regs - the moderator has not registered yet
+        works - the moderator has been registered
+        fired - the moderator has been fired (уволен)
+    """
+    __tablename__ = 'test'
+
+    tg_id = Column(BigInteger, ForeignKey('users.tg_id'), primary_key=True, nullable=False)
+
+    first_name = Column(String)
+    surname = Column(String)
+    middle_name = Column(String)
+
+    add_date = Column(DateTime, nullable=False)
+    fired_date = Column(DateTime)
+    recovery_date = Column(DateTime)
