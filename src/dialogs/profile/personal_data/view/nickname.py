@@ -1,7 +1,6 @@
 from aiogram_dialog import DialogManager
 
 from src.dialogs.utils.widgets.input_forms.process_input import InputForm
-from src.utils.fsm import DialogInput
 
 
 async def start_edit_nickname(manager: DialogManager):

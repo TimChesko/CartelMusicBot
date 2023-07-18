@@ -28,7 +28,7 @@ async def on_item_selected(callback: CallbackQuery, __, manager: DialogManager, 
 async def on_finish_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     track_id = dialog_manager.dialog_data['track_id']
-    title, file_id_audio = await TrackHandler(data['engine'], data['database_logger']).get_title_and_file_id_by_id(
+    title, file_id_audio = await TrackHandler(data['session_maker'], data['database_logger']).get_title_and_file_id_by_id(
         track_id)
     audio = MediaAttachment(ContentType.AUDIO, file_id=MediaId(file_id_audio))
     dialog_manager.dialog_data['track_title'] = title
@@ -49,14 +49,14 @@ async def on_finish_old_track(callback: CallbackQuery, _, manager: DialogManager
     data = manager.middleware_data
     track_id = manager.dialog_data['track_id']
     chat_id = config.CHATS_BACKUP[0]  # TODO нужный чат
-    nickname, tg_username = await UserHandler(data['engine'], data['database_logger']).get_nicknames_by_tg_id(
+    nickname, tg_username = await UserHandler(data['session_maker'], data['database_logger']).get_nicknames_by_tg_id(
         callback.from_user.id)
     user_name = callback.from_user.id if tg_username is None else f"@{callback.from_user.username}"
-    await TrackHandler(data['engine'], data['database_logger']).update_track_file_id_audio(
+    await TrackHandler(data['session_maker'], data['database_logger']).update_track_file_id_audio(
         track_id=track_id,
         file_id_audio=manager.dialog_data["track"]
     )
-    await TrackHandler(data['engine'], data['database_logger']).set_new_status_track(track_id, 'process')
+    await TrackHandler(data['session_maker'], data['database_logger']).set_new_status_track(track_id, 'process')
     msg_audio: Message = await data['bot'].send_audio(chat_id=chat_id,
                                                       audio=manager.dialog_data["track"],
                                                       caption=f"ПОВТОРНОЕ ПРОСЛУШИВАНИЕ \n"
@@ -64,7 +64,7 @@ async def on_finish_old_track(callback: CallbackQuery, _, manager: DialogManager
                                                               f"Title: {manager.dialog_data['track_title']}\n"
                                                               f"User: {user_name} / nickname: {nickname}",
                                                       reply_markup=markup_edit_listening(track_id))
-    await TrackHandler(data['engine'], data['database_logger']).set_task_msg_id_to_tracks(track_id,
+    await TrackHandler(data['session_maker'], data['database_logger']).set_task_msg_id_to_tracks(track_id,
                                                                                           msg_audio.message_id)
     await callback.message.edit_caption(
         caption=f'Трек "{manager.dialog_data["track_title"]}" повторно отправлен на модерацию')

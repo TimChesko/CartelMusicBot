@@ -22,9 +22,9 @@ async def employee_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     tg_id = dialog_manager.dialog_data['employee_id']
     logging.info(await EmployeeHandler(
-        data['engine'], data['database_logger']).get_dialog_info_by_tg_id(tg_id))
+        data['session_maker'], data['database_logger']).get_dialog_info_by_tg_id(tg_id))
     first_name, surname, middle_name, privilege, state, add_date, fired_date, recovery_date = await EmployeeHandler(
-        data['engine'], data['database_logger']).get_dialog_info_by_tg_id(tg_id)
+        data['session_maker'], data['database_logger']).get_dialog_info_by_tg_id(tg_id)
     priv = {
         "admin": "Админ",
         "manager": "Менеджер",
@@ -53,7 +53,7 @@ async def employee_list_getter(dialog_manager: DialogManager, **_kwargs):
     dialog_data = dialog_manager.dialog_data
     privilege = dialog_data['filter']
     # TODO Также добавить отдельный список для всех нереганных
-    employees = await EmployeeHandler(data['engine'], data['database_logger']).get_privilege_by_filter(privilege)
+    employees = await EmployeeHandler(data['session_maker'], data['database_logger']).get_privilege_by_filter(privilege)
     logging.info(employees)
     buttons = {
         "admin": "Админ",
@@ -119,7 +119,6 @@ admin_main = Dialog(
         Format('Дата восстановления {recovery_date}', when='regs'),
         SwitchTo(Const('Уволить'), id='delete_employee', state=AdminEmployee.on_fired),
         Back(),
-
         state=AdminEmployee.employee,
         getter=employee_getter
     ),

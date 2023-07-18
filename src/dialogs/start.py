@@ -1,4 +1,4 @@
-from aiogram_dialog import DialogManager, Dialog, Window, ShowMode, LaunchMode
+from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
 from aiogram_dialog.widgets.kbd import Start, Button
 from aiogram_dialog.widgets.text import Const
 
@@ -12,8 +12,8 @@ from src.utils.fsm import StartMenu, Listening, PublicTrack, Service, MyTracks, 
 async def get_data(dialog_manager: DialogManager, **kwargs):
     data = dialog_manager.middleware_data
     user_id = data['event_from_user'].id
-    library = await TrackHandler(data['engine'], data['database_logger']).has_tracks_by_tg_id(user_id)
-    tracks = await TrackHandler(data['engine'], data['database_logger']).check_chat_exists(user_id)
+    library = await TrackHandler(data['session_maker'], data['database_logger']).has_tracks_by_tg_id(user_id)
+    tracks = await TrackHandler(data['session_maker'], data['database_logger']).check_chat_exists(user_id)
     return {
         "library_check": library,
         'track_check': tracks,
@@ -28,7 +28,7 @@ async def start_listening(_, __, manager: DialogManager):
 async def start_profile(_, __, manager: DialogManager):
     data = manager.middleware_data
     user_id = data['event_from_user'].id
-    personal_data = await PersonalDataHandler(data['engine'], data['database_logger']).get_personal_data_confirm(
+    personal_data = await PersonalDataHandler(data['session_maker'], data['database_logger']).get_personal_data_confirm(
         user_id)
     if personal_data:
         await manager.start(state=Profile.menu)

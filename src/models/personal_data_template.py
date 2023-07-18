@@ -1,18 +1,17 @@
 from sqlalchemy import select, update
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.database.process import DatabaseManager
 from src.models.tables import PersonalDataTemplate
 
 
 class PersonalDataTemplateHandler:
 
-    def __init__(self, engine, logger):
-        self.engine = engine
+    def __init__(self, session_maker, logger):
+        self.session_maker = session_maker
         self.logger = logger
 
     async def get_template_by_id(self, template_id: int) -> PersonalDataTemplate:
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 query = select(PersonalDataTemplate).where(PersonalDataTemplate.id == template_id)
                 result = await session.execute(query)
@@ -23,7 +22,7 @@ class PersonalDataTemplateHandler:
                 return None
 
     async def get_all_templates(self) -> list[PersonalDataTemplate]:
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 query = select(PersonalDataTemplate)
                 result = await session.execute(query)
@@ -34,7 +33,7 @@ class PersonalDataTemplateHandler:
                 return None
 
     async def get_all_args_by_header_data(self, header_data: str) -> list[PersonalDataTemplate]:
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 query = select(
                     PersonalDataTemplate.name_data,
@@ -51,7 +50,7 @@ class PersonalDataTemplateHandler:
                 return None
 
     async def update_template(self, template_id: int, new_data: dict) -> bool:
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 await session.execute(
                     update(PersonalDataTemplate).where(PersonalDataTemplate.id == template_id).values(**new_data)
@@ -64,7 +63,7 @@ class PersonalDataTemplateHandler:
                 return False
 
     async def add_template(self, template: PersonalDataTemplate) -> bool:
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 session.add(template)
                 await session.commit()

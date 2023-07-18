@@ -14,7 +14,7 @@ from src.utils.fsm import Social
 async def get_data(dialog_manager: DialogManager, **_kwargs):
     middle = dialog_manager.middleware_data
     user_id = middle['event_from_user'].id
-    list = await PersonalDataHandler(middle['engine'], middle['database_logger']).get_social_data(user_id)
+    list = await PersonalDataHandler(middle['session_maker'], middle['database_logger']).get_social_data(user_id)
     return {
         "social_list": list
     }
@@ -31,7 +31,7 @@ async def get_info(dialog_manager: DialogManager, **_kwargs):
 async def on_click_edit(callback: CallbackQuery, _,
                         manager: DialogManager, *_kwargs):
     data = manager.middleware_data
-    info = await PersonalDataHandler(data['engine'], data['database_logger']).get_social_by_id(
+    info = await PersonalDataHandler(data['session_maker'], data['database_logger']).get_social_by_id(
         int(callback.data.split(":")[-1])
     )
     manager.dialog_data['social'] = info
@@ -47,7 +47,7 @@ async def add_new(_, __, manager: DialogManager):
 async def on_delete(_, __, manager: DialogManager):
     social_id = manager.dialog_data['social'][0]
     data = manager.middleware_data
-    await PersonalDataHandler(data['engine'], data['database_logger']).delete_social_data(social_id)
+    await PersonalDataHandler(data['session_maker'], data['database_logger']).delete_social_data(social_id)
     await manager.switch_to(Social.view_data)
 
 
@@ -55,7 +55,7 @@ async def on_finally(callback: CallbackQuery, _, manager: DialogManager):
     data = manager.middleware_data
     user_id = data['event_from_user'].id
     input_data = manager.dialog_data['save_input']
-    await PersonalDataHandler(data['engine'], data['database_logger']).add_social_data(
+    await PersonalDataHandler(data['session_maker'], data['database_logger']).add_social_data(
         user_id, input_data['title'], input_data['link']
     )
     await callback.message.answer(f"Вы успешно добавили соц сеть - {input_data['title']}!")

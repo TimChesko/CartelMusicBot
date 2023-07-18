@@ -9,7 +9,7 @@ from src.utils.fsm import PersonalData, Profile
 async def update_data(_, __, manager: DialogManager):
     data = manager.middleware_data
     user_id = data['event_from_user'].id
-    await PersonalDataHandler(data['engine'], data['database_logger']).confirm_personal_data(user_id)
+    await PersonalDataHandler(data['session_maker'], data['database_logger']).confirm_personal_data(user_id)
     await manager.mark_closed()
     await manager.start(state=Profile.menu)
 

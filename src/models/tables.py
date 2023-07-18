@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from aiogram.loggers import event
 from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger, Enum
 from sqlalchemy.orm import DeclarativeBase, relationship
 

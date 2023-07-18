@@ -14,7 +14,7 @@ from src.utils.fsm import ProfileEdit
 async def get_list_edit(manager: DialogManager) -> dict:
     middleware_data = manager.middleware_data
     user_id = middleware_data['event_from_user'].id
-    data = await PersonalDataHandler(middleware_data['engine'], middleware_data['database_logger']). \
+    data = await PersonalDataHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
         get_personal_data_by_header(user_id, manager.dialog_data['header_data'])
     return await convert_database_to_data(data)
 
@@ -44,7 +44,7 @@ async def create_form(callback: CallbackQuery, _, manager: DialogManager, *_kwar
 async def on_finally(callback: CallbackQuery, __, manager: DialogManager):
     middleware_data = manager.middleware_data
     user_id = middleware_data['event_from_user'].id
-    await PersonalDataHandler(middleware_data['engine'], middleware_data['database_logger']). \
+    await PersonalDataHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
         update_personal_data(user_id, manager.dialog_data['header_data'], manager.dialog_data['save_input'])
     await callback.message.answer("Вы успешно изменили данные !")
     manager.show_mode = ShowMode.SEND

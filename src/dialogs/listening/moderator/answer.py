@@ -51,9 +51,9 @@ async def on_finish_custom_reason(callback: CallbackQuery, _, manager: DialogMan
     chat_id = config.CHATS_BACKUP[0]  # TODO нужный чат
     track_id = int(manager.start_data['track_id'])
     msg_id = manager.start_data['msg_id']
-    user_id, title = await TrackHandler(data['engine'], data['database_logger']).get_custom_answer_info_by_id(
+    user_id, title = await TrackHandler(data['session_maker'], data['database_logger']).get_custom_answer_info_by_id(
         track_id)
-    nickname, username = await UserHandler(data['engine'], data['database_logger']).get_nicknames_by_tg_id(user_id)
+    nickname, username = await UserHandler(data['session_maker'], data['database_logger']).get_nicknames_by_tg_id(user_id)
     reason = manager.dialog_data['reason']
     if manager.start_data['state'] == 'new':
         await data['bot'].edit_message_caption(chat_id=chat_id,
@@ -74,7 +74,7 @@ async def on_finish_custom_reason(callback: CallbackQuery, _, manager: DialogMan
                                                        f'Трек: "{title}" \n'
                                                        f'Артист: {nickname} / @{username} \n'
                                                        f'Отклонил: {callback.from_user.id} / @{callback.from_user.username}')
-    await TrackHandler(data['engine'], data['database_logger']).set_new_status_track(track_id, 'reject',
+    await TrackHandler(data['session_maker'], data['database_logger']).set_new_status_track(track_id, 'reject',
                                                                                      callback.from_user.id)
     await data['bot'].send_message(user_id, f'Ваш трек "{title}" отклонен с комментарием: \n'
                                             f'{reason}')

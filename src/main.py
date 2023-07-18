@@ -54,6 +54,7 @@ async def setup_aiogram(dp: Dispatcher) -> None:
 
 async def set_database(dp: Dispatcher) -> None:
     dp['engine'] = await DatabaseManager.connect(dp['config'])
+    dp['session_maker'] = await DatabaseManager.create_session_maker(dp['engine'])
     await DatabaseManager.create_tables(dp['engine'])
 
 
@@ -66,7 +67,7 @@ async def on_startup_polling(dispatcher: Dispatcher, bot: Bot) -> None:
 
 
 async def on_shutdown_polling(dispatcher: Dispatcher, bot: Bot) -> None:
-    await dispatcher['engine'].close()
+    await dispatcher['session_maker'].close()
     await notify_admins(dispatcher, "Бот выключен")
     await bot.session.close()
     dispatcher["aiogram_logger"].info("Stopping polling")

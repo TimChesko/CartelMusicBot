@@ -13,9 +13,9 @@ from src.utils.fsm import Profile, Passport, Bank, ProfileEdit, Social
 async def get_data(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     user_id = data['event_from_user'].id
-    passport_id, bank_id = await PersonalDataHandler(data['engine'], data['database_logger']).get_all_data_status(
+    passport_id, bank_id = await PersonalDataHandler(data['session_maker'], data['database_logger']).get_all_data_status(
         user_id)
-    nickname = await UserHandler(data['engine'], data['database_logger']).get_user_nickname_by_tg_id(user_id)
+    nickname = await UserHandler(data['session_maker'], data['database_logger']).get_user_nickname_by_tg_id(user_id)
 
     status_dict = {
         1: "🟡 на проверке",
@@ -52,7 +52,7 @@ async def on_process(_, result: Any, manager: DialogManager):
     if result is not None and result[1] == "edit_nickname":
         data = manager.middleware_data
         user_id = data['event_from_user'].id
-        await UserHandler(data['engine'], data['database_logger']).update_nickname(user_id, result[0])
+        await UserHandler(data['session_maker'], data['database_logger']).update_nickname(user_id, result[0])
 
 
 menu = Dialog(

@@ -1,5 +1,3 @@
-from contextlib import asynccontextmanager
-
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
 from src.models.tables import Base
@@ -13,11 +11,8 @@ class DatabaseManager:
         return create_async_engine(uri, echo=False)
 
     @staticmethod
-    @asynccontextmanager
-    async def create_session(engine):
-        async_session = async_sessionmaker(bind=engine, expire_on_commit=False, class_=AsyncSession)
-        async with async_session() as session:
-            yield session
+    async def create_session_maker(engine):
+        return async_sessionmaker(bind=engine, expire_on_commit=False, class_=AsyncSession)
 
     @staticmethod
     async def create_tables(engine):
