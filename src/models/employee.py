@@ -1,22 +1,20 @@
 from datetime import datetime
 
-from aiogram.types import Message
-from sqlalchemy import select, and_, update
+from sqlalchemy import select, and_
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.data import config
-from src.database.process import DatabaseManager
 from src.models.tables import Employee, User
 
 
 class EmployeeHandler:
 
-    def __init__(self, engine, logger):
-        self.engine = engine
+    def __init__(self, session_maker, logger):
+        self.session_maker = session_maker
         self.logger = logger
 
     async def add_new_employee(self, user_id, privilege) -> bool:
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 new_user = Employee(tg_id=int(user_id), privilege=privilege, add_date=datetime.now())
                 session.add(new_user)
@@ -28,7 +26,7 @@ class EmployeeHandler:
                 return False
 
     async def check_employee_by_tg_id(self, tg_id: int):
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 query = select(Employee).where(and_(Employee.tg_id == tg_id))
                 result = await session.execute(query)
@@ -39,7 +37,7 @@ class EmployeeHandler:
                 return False
 
     async def get_privilege_by_tg_id(self, tg_id: int):
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 query = select(Employee.privilege).where(and_(Employee.tg_id == tg_id))
                 result = await session.execute(query)
@@ -50,7 +48,7 @@ class EmployeeHandler:
                 return False
 
     async def set_privilege(self, user_id: int, new_privilege: str) -> bool:
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 employee = await session.get(Employee, user_id)
                 if employee:
@@ -66,7 +64,7 @@ class EmployeeHandler:
                 return False
 
     async def get_privilege_by_filter(self, privilege: str | None = None):
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 if privilege in config.PRIVILEGES:
                     query = select(Employee.tg_id, User.tg_username, Employee.first_name, Employee.surname).join(
@@ -84,7 +82,7 @@ class EmployeeHandler:
                 return False
 
     async def get_dialog_info_by_tg_id(self, tg_id: int):
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 query = select(Employee.first_name,
                                Employee.surname,
@@ -102,7 +100,7 @@ class EmployeeHandler:
                 return False
 
     async def get_all_by_tg_id(self, tg_id: int):
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 query = select(Employee).where(Employee.tg_id == tg_id)
                 result = await session.execute(query)

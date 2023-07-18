@@ -20,7 +20,7 @@ async def on_finally_passport(callback: CallbackQuery, _, manager: DialogManager
     user_id = middleware_data['event_from_user'].id
     data = await convert_data_types(manager.dialog_data['save_input'])
 
-    await PersonalDataHandler(middleware_data['engine'], middleware_data['database_logger']). \
+    await PersonalDataHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
         update_all_personal_data(user_id, "passport", data)
 
     await callback.message.answer("Вы успешно внесли данные о паспорте !\n"

@@ -10,11 +10,11 @@ from src.utils.fsm import Listening, ListeningNewTrack, ListeningEditTrack
 
 async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    process = await TrackHandler(data['engine'], data['database_logger']).check_count_process_by_tg_id(
+    process = await TrackHandler(data['session_maker'], data['database_logger']).check_count_process_by_tg_id(
         data['event_from_user'].id)
-    rejects = await TrackHandler(data['engine'], data['database_logger']).has_reject_by_tg_id(
+    rejects = await TrackHandler(data['session_maker'], data['database_logger']).has_reject_by_tg_id(
         data['event_from_user'].id)
-    reject_tracks = await TrackHandler(data['engine'], data['database_logger']).get_rejected_by_tg_id(
+    reject_tracks = await TrackHandler(data['session_maker'], data['database_logger']).get_rejected_by_tg_id(
         data['event_from_user'].id)
     logging.info(rejects)
     logging.info(reject_tracks)

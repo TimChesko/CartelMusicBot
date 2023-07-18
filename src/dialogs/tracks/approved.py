@@ -3,8 +3,8 @@ from _operator import itemgetter
 
 from aiogram.enums import ContentType
 from aiogram.types import Message
-from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
-from aiogram_dialog.widgets.input import MessageInput, TextInput
+from aiogram_dialog import Dialog, Window, DialogManager
+from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Next, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
@@ -14,7 +14,7 @@ from src.utils.fsm import MyTracksApproved
 
 async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    approved = await TrackHandler(data['engine'], data['database_logger']).get_approved_by_tg_id(
+    approved = await TrackHandler(data['session_maker'], data['database_logger']).get_approved_by_tg_id(
         data['event_from_user'].id)
     return {
         'approved_tracks': approved
@@ -23,7 +23,7 @@ async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
 
 async def title_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    title = await TrackHandler(data['engine'], data['database_logger']).get_title_by_track_id(
+    title = await TrackHandler(data['session_maker'], data['database_logger']).get_title_by_track_id(
         dialog_manager.dialog_data['track_id'])
     return {
         'track_title': title

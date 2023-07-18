@@ -8,7 +8,7 @@ from src.models.personal_data_template import PersonalDataTemplateHandler
 
 async def get_data_from_db(header_data: str, manager: DialogManager):
     middleware_data = manager.middleware_data
-    data = await PersonalDataTemplateHandler(middleware_data['engine'], middleware_data['database_logger']). \
+    data = await PersonalDataTemplateHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
         get_all_args_by_header_data(header_data)
     return await convert_database_to_data(data)
 

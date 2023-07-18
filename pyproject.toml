@@ -18,6 +18,7 @@ structlog = "^23.1.0"
 aiogram = "^3.0.0b7"
 sqlalchemy = "^2.0.15"
 aiogram-dialog = "^2.0.0b20"
+alembic = "^1.11.1"
 
 [build-system]
 requires = ["poetry-core"]

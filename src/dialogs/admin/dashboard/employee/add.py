@@ -18,7 +18,7 @@ async def employee_id(
         message_input: MessageInput,
         manager: DialogManager):
     data = manager.middleware_data
-    # user = await UserHandler(data['engine'], data['database_logger']).get_privilege_by_tg_id(message.from_user.id)
+    # user = await UserHandler(data['session_maker'], data['database_logger']).get_privilege_by_tg_id(message.from_user.id)
     # TODO заменить на запрос из employee
     # if user in config.PRIVILEGES[1:]:
     #     await message.delete()
@@ -65,13 +65,13 @@ async def on_finish_getter(dialog_manager: DialogManager, **kwargs):
 async def on_finish_privilege(callback: CallbackQuery, _, manager: DialogManager):
     data = manager.middleware_data
     user_id = int(manager.dialog_data['employee_id'])
-    user = await UserHandler(data['engine'], data['database_logger']).check_user_by_tg_id(user_id)
+    user = await UserHandler(data['session_maker'], data['database_logger']).check_user_by_tg_id(user_id)
     if not user:
         await callback.answer('Ваш работник должен пройти первичную регистрацию по команде "/start",\n'
                               ' на данный момент пользователь не найден!')
     else:
         privilege = manager.dialog_data['privilege']
-        await EmployeeHandler(data['engine'], data['database_logger']).add_new_employee(user_id, privilege)
+        await EmployeeHandler(data['session_maker'], data['database_logger']).add_new_employee(user_id, privilege)
         await manager.done()
 
 

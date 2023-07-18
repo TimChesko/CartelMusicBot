@@ -1,6 +1,6 @@
 from aiogram import Router, Bot, F
 from aiogram.types import CallbackQuery
-from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlalchemy.ext.asyncio import async_sessionmaker
 from structlog._log_levels import BoundLoggerFilteringAtDebug
 
 from src.keyboards.inline.listening import markup_reject_patterns, markup_new_listening, markup_edit_listening, \
@@ -12,12 +12,12 @@ router = Router()
 
 
 @router.callback_query(F.data.startswith('listening_'))
-async def taking_task(callback: CallbackQuery, bot: Bot, engine: AsyncEngine,
+async def taking_task(callback: CallbackQuery, bot: Bot, session_maker: async_sessionmaker,
                       database_logger: BoundLoggerFilteringAtDebug):
     data = callback.data.split('_')
     track_id = int(callback.data.split('_')[2])
-    user_id, title = await TrackHandler(engine, database_logger).get_task_info_by_id(track_id)
-    nickname, username = await UserHandler(engine, database_logger).get_nicknames_by_tg_id(user_id)
+    user_id, title = await TrackHandler(session_maker, database_logger).get_task_info_by_id(track_id)
+    nickname, username = await UserHandler(session_maker, database_logger).get_nicknames_by_tg_id(user_id)
     # await bot.edit_message_caption(caption='Поменял текст', chat_id=config.CHATS_BACKUP[0], message_id=msg_id)
     match data:
         case _, 'approve', __:
@@ -27,7 +27,7 @@ async def taking_task(callback: CallbackQuery, bot: Bot, engine: AsyncEngine,
                                                         f'Артист: {nickname} / @{username} \n'
                                                         f'Одобрил: {callback.from_user.id} / @{callback.from_user.username}',
                                                 reply_markup=None)
-            await TrackHandler(engine, database_logger).set_new_status_track(track_id, 'approve', callback.from_user.id)
+            await TrackHandler(session_maker, database_logger).set_new_status_track(track_id, 'approve', callback.from_user.id)
             await bot.send_message(user_id, f'Ваш трек "{title}" одобрен! \n'
                                             f'Он добавлен в раздел "Треки" \n'
                                             f'Чтобы перейти в этот раздел пройдите'
@@ -40,7 +40,7 @@ async def taking_task(callback: CallbackQuery, bot: Bot, engine: AsyncEngine,
                                                         f'Артист: {nickname} / @{username} \n'
                                                         f'Одобрил: {callback.from_user.id} / @{callback.from_user.username}',
                                                 reply_markup=None)
-            await TrackHandler(engine, database_logger).set_new_status_track(track_id, 'approve',
+            await TrackHandler(session_maker, database_logger).set_new_status_track(track_id, 'approve',
                                                                              callback.from_user.id)
             await bot.send_message(user_id, f'Ваш трек "{title}" одобрен! \n'
                                             f'Он добавлен в раздел "Треки" \n'
@@ -53,7 +53,7 @@ async def taking_task(callback: CallbackQuery, bot: Bot, engine: AsyncEngine,
                                                         f'Артист: {nickname} / @{username} \n'
                                                         f'Одобрил: {callback.from_user.id} / @{callback.from_user.username}',
                                                 reply_markup=None)
-            await TrackHandler(engine, database_logger).set_new_status_track(track_id, 'approve_promo',
+            await TrackHandler(session_maker, database_logger).set_new_status_track(track_id, 'approve_promo',
                                                                              callback.from_user.id)
             await bot.send_message(user_id, f'Ваш трек "{title}" одобрен с доступом к промо! \n'
                                             f'Он добавлен в раздел "Треки" \n'
@@ -68,7 +68,7 @@ async def taking_task(callback: CallbackQuery, bot: Bot, engine: AsyncEngine,
                                                         f'Артист: {nickname} / @{username} \n'
                                                         f'Одобрил: {callback.from_user.id} / @{callback.from_user.username}',
                                                 reply_markup=None)
-            await TrackHandler(engine, database_logger).set_new_status_track(track_id, 'approve_promo',
+            await TrackHandler(session_maker, database_logger).set_new_status_track(track_id, 'approve_promo',
                                                                              callback.from_user.id)
             await bot.send_message(user_id, f'Ваш трек "{title}" одобрен с доступом к промо! \n'
                                             f'Он добавлен в раздел "Треки" \n'
@@ -88,7 +88,7 @@ async def taking_task(callback: CallbackQuery, bot: Bot, engine: AsyncEngine,
                                                         f'Отклонил: {callback.from_user.id} / @{callback.from_user.username}',
                                                 # TODO поменять @{callback.from_user.username} на запрос из бд с информацией о сотрудниках
                                                 reply_markup=None)
-            await TrackHandler(engine, database_logger).set_new_status_track(track_id, 'reject', callback.from_user.id)
+            await TrackHandler(session_maker, database_logger).set_new_status_track(track_id, 'reject', callback.from_user.id)
             await bot.send_message(user_id, f'Ваш трек "{title}" отклонен( \n'
                                             f'Ну реально, иди поспи, сынок, музыка - не твое \n'
                                             f'Но если ты из тех кто не сдается и даже не знает, что такое матерый,'
@@ -103,7 +103,7 @@ async def taking_task(callback: CallbackQuery, bot: Bot, engine: AsyncEngine,
                                                         f'Отклонил: {callback.from_user.id} / @{callback.from_user.username}',
                                                 # TODO поменять @{callback.from_user.username} на запрос из бд с информацией о сотрудниках
                                                 reply_markup=None)
-            await TrackHandler(engine, database_logger).set_new_status_track(track_id, 'reject', callback.from_user.id)
+            await TrackHandler(session_maker, database_logger).set_new_status_track(track_id, 'reject', callback.from_user.id)
             await bot.send_message(user_id, f'Ваш трек "{title}" отклонен( \n'
                                             f'Ну реально, иди поспи, сынок, музыка - не твое \n'
                                             f'Но если ты из тех кто не сдается и даже не знает, что такое матерый,'

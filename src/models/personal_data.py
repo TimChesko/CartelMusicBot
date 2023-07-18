@@ -1,14 +1,13 @@
 from sqlalchemy import select, and_, delete
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.database.process import DatabaseManager
 from src.models.tables import PersonalData, Social, PersonalDataTemplate
 
 
 class PersonalDataHandler:
 
-    def __init__(self, engine, logger):
-        self.engine = engine
+    def __init__(self, session_maker, logger):
+        self.session_maker = session_maker
         self.logger = logger
 
     async def get_all_data_status(self, tg_id: int) -> tuple[int, int]:
@@ -20,7 +19,7 @@ class PersonalDataHandler:
         :return: bool, bool - all_user_data, all_cash_data
         """
 
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 query = select(PersonalData).where(and_(PersonalData.tg_id == tg_id))
                 result = await session.execute(query)
@@ -35,7 +34,7 @@ class PersonalDataHandler:
                 return 0, 0
 
     async def get_personal_data_confirm(self, tg_id: int) -> bool:
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 query = select(PersonalData).where(and_(PersonalData.tg_id == tg_id))
                 result = await session.execute(query)
@@ -50,7 +49,7 @@ class PersonalDataHandler:
                 return False
 
     async def confirm_personal_data(self, tg_id: int) -> bool:
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 user = await session.get(PersonalData, tg_id)
                 if user:
@@ -66,7 +65,7 @@ class PersonalDataHandler:
                 return False
 
     async def create_row(self, tg_id: int) -> bool:
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 personal_data = PersonalData(tg_id=tg_id)
                 session.add(personal_data)
@@ -78,7 +77,7 @@ class PersonalDataHandler:
                 return False
 
     async def update_all_personal_data(self, tg_id: int, header_data: str, save_input: dict) -> bool:
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 existing_data = await session.execute(select(PersonalData).where(PersonalData.tg_id == tg_id))
                 existing_data = (existing_data.first())[0] if existing_data else None
@@ -105,7 +104,7 @@ class PersonalDataHandler:
                 return False
 
     async def get_social_data(self, tg_id: int):
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 query = select(Social).where(Social.personal_data_tg_id == tg_id)
                 result = await session.execute(query)
@@ -117,7 +116,7 @@ class PersonalDataHandler:
                 return []
 
     async def get_social_by_id(self, social_id: int):
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 query = select(Social).where(Social.id == social_id)
                 result = await session.execute(query)
@@ -131,7 +130,7 @@ class PersonalDataHandler:
                 return None
 
     async def add_social_data(self, tg_id: int, title: str, link: str) -> bool:
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 social_data = Social(personal_data_tg_id=tg_id, title=title, link=link)
                 session.add(social_data)
@@ -143,7 +142,7 @@ class PersonalDataHandler:
                 return False
 
     async def delete_social_data(self, social_id: int) -> bool:
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 await session.execute(
                     delete(Social).where(Social.id == social_id)
@@ -156,7 +155,7 @@ class PersonalDataHandler:
                 return False
 
     async def update_personal_data(self, tg_id: int, header_data: str, data: dict) -> bool:
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 personal_data_query = select(PersonalData).where(PersonalData.tg_id == tg_id)
                 personal_data_result = await session.execute(personal_data_query)
@@ -186,7 +185,7 @@ class PersonalDataHandler:
                 return False
 
     async def get_personal_data_by_header(self, tg_id: int, header_data: str):
-        async with DatabaseManager.create_session(self.engine) as session:
+        async with self.session_maker() as session:
             try:
                 # Fetch the personal data for the given tg_id
                 personal_data_query = select(PersonalData).where(PersonalData.tg_id == tg_id)

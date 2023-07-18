@@ -27,9 +27,9 @@ async def nickname_check(msg: Message, _, manager: DialogManager):
 async def on_finish(callback: CallbackQuery, _, manager: DialogManager):
     data = (await manager.load_data())['middleware_data']
     nickname = manager.dialog_data['nickname']
-    await UserHandler(data['engine'], data['database_logger']).set_user_nickname(
+    await UserHandler(data['session_maker'], data['database_logger']).set_user_nickname(
         callback.from_user.id, nickname)
-    await PersonalDataHandler(data['engine'], data['database_logger']).create_row(callback.from_user.id)
+    await PersonalDataHandler(data['session_maker'], data['database_logger']).create_row(callback.from_user.id)
     await callback.message.answer("Спасибо за регистрацию ❤️")
     await manager.start(StartMenu.start, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND)
 
