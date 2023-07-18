@@ -77,7 +77,7 @@ async def main() -> None:
     storage = RedisStorage(
         redis=Redis(
             host=config.FSM_HOST,
-            password=config.PG_PASSWORD,
+            password=config.FSM_PASSWORD,
             port=config.FSM_PORT,
             db=0,
         ),
