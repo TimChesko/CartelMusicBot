@@ -19,7 +19,7 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
         'track_check': tracks,
         'data': data
     }
-40217210300013628341
+
 
 async def start_listening(_, __, manager: DialogManager):
     manager.show_mode = ShowMode.EDIT
