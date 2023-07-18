@@ -5,15 +5,17 @@ from aiogram_dialog.widgets.text import Const
 from src.data import config
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.user import UserHandler
-from src.utils.fsm import AdminMenu, AdminListening, AdminDashboardPIN, AdminDashboard, AdminAddEmployee, AdminStatistic
+from src.utils.fsm import AdminMenu, AdminListening, AdminDashboardPIN, AdminDashboard, AdminAddEmployee, \
+    AdminStatistic, AdminEmployee
 
 dashboard = Dialog(
     Window(
         Const('АДМИН ПАНЕЛЬ'),
-        # TODO Добавить список работников
-        Start(Const('Добавить работника'),
+        Start(Const('Сотрудники'),
               id='add_employee',
-              state=AdminAddEmployee.start),
+              state=AdminEmployee.start,
+              data={'filter': '',
+                    'title': 'Сотрудники'}),
         Start(Const('Статистика'),
               id='admin_stats',
               state=AdminStatistic.start),

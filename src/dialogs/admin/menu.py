@@ -15,9 +15,13 @@ async def privilege_getter(dialog_manager: DialogManager, **kwargs):
     data = dialog_manager.middleware_data
     user_id = data['event_from_user'].id
     privilege = await EmployeeHandler(data['engine'], data['database_logger']).get_privilege_by_tg_id(user_id)
+    if user_id in config.DEVELOPERS:
+        return {
+            privilege: True for privilege in config.PRIVILEGES[2:]
+        }
+    user_privilege_index = config.PRIVILEGES[2:].index(privilege)
     return {
-        'user_id': user_id,
-
+        privilege: user_privilege_index >= config.PRIVILEGES[2:].index(privilege) for privilege in config.PRIVILEGES[2:]
     }
 
 
@@ -33,5 +37,6 @@ admin_main = Dialog(
               state=AdminDashboardPIN.start,
               when='admin'),
         state=AdminMenu.start,
+        getter=privilege_getter
     ),
 )

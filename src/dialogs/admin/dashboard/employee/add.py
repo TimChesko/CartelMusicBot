@@ -8,6 +8,7 @@ from aiogram_dialog.widgets.kbd import Cancel, Button, Row, Back
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.data import config
+from src.models.employee import EmployeeHandler
 from src.models.user import UserHandler
 from src.utils.fsm import AdminAddEmployee
 
@@ -70,7 +71,7 @@ async def on_finish_privilege(callback: CallbackQuery, _, manager: DialogManager
                               ' на данный момент пользователь не найден!')
     else:
         privilege = manager.dialog_data['privilege']
-        await UserHandler(data['engine'], data['database_logger']).set_privilege(user_id, privilege)
+        await EmployeeHandler(data['engine'], data['database_logger']).add_new_employee(user_id, privilege)
         await manager.done()
 
 
