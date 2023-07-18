@@ -3,27 +3,26 @@ from aiogram_dialog import Dialog, DialogManager, ShowMode, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel, Back
 from aiogram_dialog.widgets.text import Const
 
-from src.dialogs.profile.personal_data import string
-from src.dialogs.profile.personal_data.process.process import save_task_list_and_start, process_result
-from src.dialogs.utils.widgets.input_forms.utils import convert_data_types
+from src.dialogs.utils.widgets.input_forms.process_input import process_input_result, InputForm
+from src.dialogs.utils.widgets.input_forms.utils import convert_data_types, get_data_from_db
 from src.models.personal_data import PersonalDataHandler
 from src.utils.fsm import Bank
 
 
-async def create_task_list(_, __, manager: DialogManager):
-    all_data = string.personal_data['bank']
-    tasks = []
-    for i in all_data:
-        tasks.append(i)
-    await save_task_list_and_start('bank', tasks, manager)
+async def create_form(_, __, manager: DialogManager):
+    buttons = [False, True, False]
+    task_list = await get_data_from_db("bank", manager)
+    await InputForm(manager).start_dialog(buttons, task_list)
 
 
 async def on_finally_bank(callback: CallbackQuery, _, manager: DialogManager):
     middleware_data = manager.middleware_data
     user_id = middleware_data['event_from_user'].id
     data = await convert_data_types(manager.dialog_data['save_input'])
+
     await PersonalDataHandler(middleware_data['engine'], middleware_data['database_logger']). \
         update_all_personal_data(user_id, "bank", data)
+
     await callback.message.answer("Вы успешно внесли данные о банке !\n"
                                   "Чтобы обезопасить себя, нажмите на 3 точки в правом углу, "
                                   "затем clear history/очистить историю. Чтобы удалить все внесенные данные из чата.")
@@ -37,7 +36,7 @@ add_full_data = Dialog(
         Button(
             Const("Продолжить"),
             id="bank_start",
-            on_click=create_task_list
+            on_click=create_form
         ),
         Cancel(Const("Вернуться в профиль")),
         state=Bank.add_data
@@ -50,5 +49,5 @@ add_full_data = Dialog(
         Back(Const("Назад")),
         state=Bank.confirm
     ),
-    on_process_result=process_result,
+    on_process_result=process_input_result,
 )

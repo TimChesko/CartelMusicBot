@@ -38,10 +38,12 @@ class PersonalDataTemplateHandler:
             try:
                 query = select(
                     PersonalDataTemplate.name_data,
+                    PersonalDataTemplate.title,
                     PersonalDataTemplate.text,
                     PersonalDataTemplate.example,
                     PersonalDataTemplate.input_type
-                ).where(PersonalDataTemplate.header_data == header_data)
+                ).where(PersonalDataTemplate.header_data == header_data) \
+                    .order_by(PersonalDataTemplate.id)
                 result = await session.execute(query)
                 return result
             except SQLAlchemyError as e:
