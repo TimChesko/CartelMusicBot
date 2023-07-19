@@ -1,15 +1,20 @@
+import re
 from datetime import datetime
 
 from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger, Enum
-from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy.orm import DeclarativeBase, relationship, declared_attr, as_declarative
 
 
-class Base(DeclarativeBase):
-    pass
+@as_declarative()
+class Base:
+    @classmethod
+    @declared_attr
+    def __tablename__(cls) -> str:
+        name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', cls.__name__)
+        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
 
 
 class User(Base):
-    __tablename__ = "users"
 
     tg_id = Column(BigInteger, primary_key=True, nullable=False)
     tg_username = Column(String)
@@ -30,8 +35,8 @@ class User(Base):
 
 
 class PersonalData(Base):
-    __tablename__ = 'personal_data'
-    tg_id = Column(BigInteger, ForeignKey('users.tg_id'), primary_key=True, nullable=False)
+
+    tg_id = Column(BigInteger, ForeignKey(User.tg_id), primary_key=True, nullable=False)
     confirm_use_personal_data = Column(Boolean, default=False)
 
     # ФИО
@@ -67,10 +72,9 @@ class PersonalData(Base):
 
 
 class Social(Base):
-    __tablename__ = 'social'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    personal_data_tg_id = Column(Integer, ForeignKey('personal_data.tg_id'), nullable=False)
+    personal_data_tg_id = Column(Integer, ForeignKey(PersonalData.tg_id), nullable=False)
     title = Column(String)
     link = Column(String)
 
@@ -78,7 +82,6 @@ class Social(Base):
 
 
 class PersonalDataTemplate(Base):
-    __tablename__ = 'personal_data_template'
 
     id = Column(Integer, primary_key=True)
     header_data = Column(String)
@@ -89,13 +92,28 @@ class PersonalDataTemplate(Base):
     input_type = Column(String)
 
 
-class Track(Base):
-    __tablename__ = "tracks"
+class Album(Base):
+
+    # todo не забыть добавить колонки для промо
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(BigInteger, ForeignKey('users.tg_id'), nullable=False)  # Ссылка на таблицу users
+    user_id = Column(BigInteger, ForeignKey(User.tg_id))
+    album_cover = Column(String)  # Обложка
+
+    signed_license = Column(String)  # Подписанное ЛС на проверку
+    unsigned_license = Column(String)  # Неподписанное ЛС на проверку
+    mail_track_photo = Column(String)  # трек номер отправленного письма с ЛС
+
+    tracks = relationship('Track', back_populates='album')  # новое отношение с треками
+    user = relationship("User", back_populates="albums")
+
+
+class Track(Base):
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(BigInteger, ForeignKey(User.tg_id), nullable=False)  # Ссылка на таблицу users
     listening_chat_id = Column(BigInteger)
-    album_id = Column(Integer, ForeignKey('albums.id'))  # новая ссылка на альбом
+    album_id = Column(Integer, ForeignKey(Album.id))  # новая ссылка на альбом
 
     track_title = Column(String)
     file_id_audio = Column(String)
@@ -116,11 +134,10 @@ class Track(Base):
 
 
 class TrackInfo(Base):
-    __tablename__ = 'tracks_info'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
 
-    track_id = Column(Integer, ForeignKey('tracks.id'))  # Ссылка на таблицу tracks
+    track_id = Column(Integer, ForeignKey(Track.id))  # Ссылка на таблицу tracks
     title = Column(String)
     text_file_id = Column(String)
     tiktok_time = Column(String)
@@ -142,32 +159,14 @@ class TrackInfo(Base):
     track = relationship('Track', back_populates='track_info', uselist=False)
 
 
-class Album(Base):
-    __tablename__ = 'albums'
-
-    # todo не забыть добавить колонки для промо
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(BigInteger, ForeignKey('users.tg_id'))
-    album_cover = Column(String)  # Обложка
-
-    signed_license = Column(String)  # Подписанное ЛС на проверку
-    unsigned_license = Column(String)  # Неподписанное ЛС на проверку
-    mail_track_photo = Column(String)  # трек номер отправленного письма с ЛС
-
-    tracks = relationship('Track', back_populates='album')  # новое отношение с треками
-    user = relationship("User", back_populates="albums")
-
-
 class Employee(Base):
     """
         regs - the moderator has not registered yet
         works - the moderator has been registered
         fired - the moderator has been fired (уволен)
     """
-    __tablename__ = 'employees'
 
-    tg_id = Column(BigInteger, ForeignKey('users.tg_id'), primary_key=True, nullable=False)
+    tg_id = Column(BigInteger, ForeignKey(User.tg_id), primary_key=True, nullable=False)
 
     first_name = Column(String)
     surname = Column(String)
