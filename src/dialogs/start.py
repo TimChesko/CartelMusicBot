@@ -6,7 +6,7 @@ from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.personal_data import PersonalDataHandler
 from src.models.tracks import TrackHandler
 from src.utils.fsm import StartMenu, Listening, PublicTrack, Service, MyTracks, Profile, \
-    PersonalData
+    PersonalData, MyStudio
 
 
 async def get_data(dialog_manager: DialogManager, **kwargs):
@@ -50,6 +50,11 @@ start_menu = Dialog(
             id='library',
             state=MyTracks.start,
             when='library_check'
+        ),
+        Start(
+            Const("Мои студия"),
+            id='my_studio',
+            state=MyStudio.menu
         ),
         Start(
             Const("Выпустить трек в продакшн"),

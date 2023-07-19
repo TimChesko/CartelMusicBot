@@ -7,7 +7,7 @@ from src.utils.fsm import MyStudio, ViewStatus
 
 
 async def selection_window(_, dialog_manager: DialogManager):
-    # menu если есть public иначе my_tracks
+    # TODO menu если есть public иначе my_tracks
     pass
 
 
@@ -19,7 +19,7 @@ async def view_status(callback: CallbackQuery, _, manager: DialogManager):
 dialog = Dialog(
     Window(
         Const("Выберете категорию"),
-        SwitchTo(Const("Статус публикаций"), id="studio_status_public"),
+        SwitchTo(Const("Статус публикаций"), id="studio_status_public", state=MyStudio.public),
         SwitchTo(Const("Список треков"), id="studio_my_tracks", state=MyStudio.my_tracks),
         state=MyStudio.menu
     ),

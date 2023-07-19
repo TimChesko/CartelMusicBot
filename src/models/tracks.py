@@ -2,6 +2,7 @@ import datetime
 
 from sqlalchemy import select, update, or_
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.sql.operators import and_
 
 from src.models.tables import Track
 
@@ -189,4 +190,14 @@ class TrackHandler:
                 return True
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при установке трека в состояние: {e}")
+                return False
+
+    async def get_tracks_by_status(self, user_id: int, status: str):
+        async with self.session_maker as session:
+            try:
+                query = select(Track).where(and_(Track.user_id == user_id, Track.status == status))
+                result = await session.execute(query)
+                return [row._mapping for row in result]
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при получения треков в статусу: {e}")
                 return False

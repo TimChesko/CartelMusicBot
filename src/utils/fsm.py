@@ -157,6 +157,8 @@ class DialogInput(StatesGroup):
     date = State()
 
 
+# MY STUDIO
+
 class MyStudio(StatesGroup):
     menu = State()
 
