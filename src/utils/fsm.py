@@ -161,10 +161,9 @@ class DialogInput(StatesGroup):
 
 class MyStudio(StatesGroup):
     menu = State()
-
     my_tracks = State()
-    public = State()
 
 
 class ViewStatus(StatesGroup):
     menu = State()
+    track = State()

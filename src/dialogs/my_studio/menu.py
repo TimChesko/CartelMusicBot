@@ -3,23 +3,23 @@ from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.kbd import SwitchTo, Button
 from aiogram_dialog.widgets.text import Const
 
-from src.utils.fsm import MyStudio, ViewStatus
+from src.utils.fsm import ViewStatus, MyStudio
 
 
 async def selection_window(_, dialog_manager: DialogManager):
-    # TODO menu если есть public иначе my_tracks
+    # TODO menu if public else my_tracks
     pass
 
 
 async def view_status(callback: CallbackQuery, _, manager: DialogManager):
-    data = {"status": callback.data.split("_"[-1])}
+    data = {"status": callback.data.split("_")[-1]}
     await manager.start(state=ViewStatus.menu, data=data)
 
 
 dialog = Dialog(
     Window(
         Const("Выберете категорию"),
-        SwitchTo(Const("Статус публикаций"), id="studio_status_public", state=MyStudio.public),
+        Button(Const("Статус публикаций"), id="studio_status_public"),
         SwitchTo(Const("Список треков"), id="studio_my_tracks", state=MyStudio.my_tracks),
         state=MyStudio.menu
     ),

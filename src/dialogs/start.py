@@ -5,7 +5,7 @@ from aiogram_dialog.widgets.text import Const
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.personal_data import PersonalDataHandler
 from src.models.tracks import TrackHandler
-from src.utils.fsm import StartMenu, Listening, PublicTrack, Service, MyTracks, Profile, \
+from src.utils.fsm import StartMenu, Listening, PublicTrack, Profile, \
     PersonalData, MyStudio
 
 
@@ -46,12 +46,6 @@ start_menu = Dialog(
             on_click=start_listening
         ),
         Start(
-            Const("Мои треки"),
-            id='library',
-            state=MyTracks.start,
-            when='library_check'
-        ),
-        Start(
             Const("Мои студия"),
             id='my_studio',
             state=MyStudio.menu
@@ -66,11 +60,6 @@ start_menu = Dialog(
             Const("Профиль"),
             id='profile',
             on_click=start_profile
-        ),
-        Start(
-            Const("Услуги"),
-            id='services',
-            state=Service.menu,
         ),
         state=StartMenu.start,
         getter=get_data

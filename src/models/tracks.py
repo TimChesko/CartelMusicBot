@@ -84,16 +84,6 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def get_task_info_by_id(self, track_id: int):
-        async with self.session_maker() as session:
-            try:
-                result = await session.execute(select(Track.user_id, Track.track_title).where(Track.id == track_id))
-                track_info = result.first()
-                return track_info
-            except SQLAlchemyError as e:
-                self.logger.error(f"Ошибка при выполнении запроса: {e}")
-                return False
-
     async def get_custom_answer_info_by_id(self, track_id: int):
         async with self.session_maker() as session:
             try:
@@ -193,11 +183,21 @@ class TrackHandler:
                 return False
 
     async def get_tracks_by_status(self, user_id: int, status: str):
-        async with self.session_maker as session:
+        async with self.session_maker() as session:
             try:
                 query = select(Track).where(and_(Track.user_id == user_id, Track.status == status))
                 result = await session.execute(query)
-                return [row._mapping for row in result]
+                return result.scalars().all()
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при получения треков в статусу: {e}")
+                return False
+
+    async def get_track_by_id(self, track_id: int):
+        async with self.session_maker() as session:
+            try:
+                query = select(Track).where(Track.id == track_id)
+                result = await session.execute(query)
+                return result.scalar()
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
