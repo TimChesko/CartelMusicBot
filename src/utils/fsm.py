@@ -34,7 +34,6 @@ class AdminEmployee(StatesGroup):
     finish = State()
 
 
-
 class AdminStatistic(StatesGroup):
     start = State()
 
@@ -106,7 +105,7 @@ class MyTracksRejected(StatesGroup):
     finish = State()
 
 
-# Public tracks states
+# Public my_tracks states
 class PublicTrack(StatesGroup):
     list = State()
 
@@ -156,3 +155,14 @@ class ProfileEdit(StatesGroup):
 class DialogInput(StatesGroup):
     text = State()
     date = State()
+
+
+class MyStudio(StatesGroup):
+    menu = State()
+
+    my_tracks = State()
+    public = State()
+
+
+class ViewStatus(StatesGroup):
+    menu = State()
