@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 
 from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger, Enum
-from sqlalchemy.orm import DeclarativeBase, relationship, declared_attr, as_declarative
+from sqlalchemy.orm import relationship, declared_attr, as_declarative
 
 
 @as_declarative()
