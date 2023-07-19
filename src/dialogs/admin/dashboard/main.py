@@ -4,6 +4,19 @@ from aiogram_dialog.widgets.text import Const
 
 from src.utils.fsm import AdminDashboard, AdminStatistic, AdminEmployee
 
+
+def translate_privilege(privilege):
+    translations = {
+        "user": "Юзер",
+        "tester": "Тестер",
+        "manager": "Менеджер",
+        "moderator": "Модератор",
+        "curator": "Куратор",
+        "admin": "Админ",
+    }
+    return translations[privilege]
+
+
 dashboard = Dialog(
     Window(
         Const('АДМИН ПАНЕЛЬ'),

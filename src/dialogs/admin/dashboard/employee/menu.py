@@ -53,8 +53,9 @@ async def employee_list_getter(dialog_manager: DialogManager, **_kwargs):
     dialog_data = dialog_manager.dialog_data
     privilege = dialog_data['filter']
     # TODO Также добавить отдельный список для всех нереганных
+    emp = await EmployeeHandler(data['session_maker'], data['database_logger']).get_privileges_by_filter(privilege)
     employees = await EmployeeHandler(data['session_maker'], data['database_logger']).get_privilege_by_filter(privilege)
-    logging.info(employees)
+    logging.info([i for i in emp])
     buttons = {
         "admin": "Админ",
         "manager": "Менеджер",

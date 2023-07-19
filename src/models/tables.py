@@ -15,7 +15,6 @@ class Base:
 
 
 class User(Base):
-
     tg_id = Column(BigInteger, primary_key=True, nullable=False)
     tg_username = Column(String)
     tg_first_name = Column(String)
@@ -35,7 +34,6 @@ class User(Base):
 
 
 class PersonalData(Base):
-
     tg_id = Column(BigInteger, ForeignKey(User.tg_id), primary_key=True, nullable=False)
     confirm_use_personal_data = Column(Boolean, default=False)
 
@@ -72,7 +70,6 @@ class PersonalData(Base):
 
 
 class Social(Base):
-
     id = Column(Integer, primary_key=True, autoincrement=True)
     personal_data_tg_id = Column(Integer, ForeignKey(PersonalData.tg_id), nullable=False)
     title = Column(String)
@@ -82,7 +79,6 @@ class Social(Base):
 
 
 class PersonalDataTemplate(Base):
-
     id = Column(Integer, primary_key=True)
     header_data = Column(String)
     name_data = Column(String)
@@ -93,7 +89,6 @@ class PersonalDataTemplate(Base):
 
 
 class Album(Base):
-
     # todo не забыть добавить колонки для промо
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -109,7 +104,6 @@ class Album(Base):
 
 
 class Track(Base):
-
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey(User.tg_id), nullable=False)  # Ссылка на таблицу users
     listening_chat_id = Column(BigInteger)
@@ -134,7 +128,6 @@ class Track(Base):
 
 
 class TrackInfo(Base):
-
     id = Column(Integer, primary_key=True, autoincrement=True)
 
     track_id = Column(Integer, ForeignKey(Track.id))  # Ссылка на таблицу tracks
