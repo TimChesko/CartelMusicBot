@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, update
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.data import config
@@ -129,4 +129,28 @@ class EmployeeHandler:
                 return employee
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
+                return False
+
+    async def update_employee_state_fired(self, employee_id: int) -> bool:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(
+                    update(Employee).where(Employee.tg_id == employee_id).values(state='fired',
+                                                                                 fired_date=datetime.now()))
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
+                return False
+
+    async def update_employee_state_works(self, employee_id: int) -> bool:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(
+                    update(Employee).where(Employee.tg_id == employee_id).values(state='works',
+                                                                                 recovery_date=datetime.now()))
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False

@@ -1,14 +1,10 @@
-from _operator import itemgetter
-
-from aiogram import F
 from aiogram.types import CallbackQuery
-from aiogram_dialog import Window, Dialog, DialogManager
-from aiogram_dialog.widgets.kbd import Start, Cancel, ScrollingGroup, Select, Group, SwitchTo, Back
+from aiogram_dialog import Window, DialogManager
+from aiogram_dialog.widgets.kbd import SwitchTo, Back, Button
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.data import config
 from src.models.employee import EmployeeHandler
-from src.utils.fsm import AdminEmployee, AdminAddEmployee
+from src.utils.fsm import AdminEmployee
 
 
 async def employee_getter(dialog_manager: DialogManager, **_kwargs):
@@ -28,27 +24,47 @@ async def employee_getter(dialog_manager: DialogManager, **_kwargs):
         'fired': "Уволен!"
     }
     return {
-        'name': f'{first_name} {surname} {middle_name}',
+        'name': f'{first_name} {surname} {middle_name}' \
+            if first_name or surname or middle_name is not None else f'@{dialog_manager.dialog_data["username"]}',
         'privilege': f'{priv[privilege]}',
         'state': f'{status[state]}',
-        'add_date': f'{add_date.strftime("%H:%M %Y-%m-%d") if add_date is not None else ""}',
-        'fired_date': f'{fired_date.strftime("%H:%M %Y-%m-%d") if fired_date is not None else ""}',
-        'recovery_date': f'{recovery_date.strftime("%H:%M %Y-%m-%d") if recovery_date is not None else ""}',
+        'add_date': f'{add_date.strftime("%d.%m.%Y %H:%M") if add_date is not None else ""}',
+        'fired_date': f'{fired_date.strftime("%d.%m.%Y %H:%M") if fired_date is not None else ""}',
+        'recovery_date': f'{recovery_date.strftime("%d.%m.%Y %H:%M") if recovery_date is not None else ""}',
         'regs': state != 'regs',
+        'fired': state == 'fired',
+        'not fired': state != 'fired',
 
     }
 
 
+async def reinstatement_employee(callback: CallbackQuery, __, manager: DialogManager):
+    data = manager.middleware_data
+    tg_id = manager.dialog_data['employee_id']
+    await EmployeeHandler(data['session_maker'], data['database_logger']).update_employee_state_works(tg_id)
+    await callback.answer('Сотрудник успешно восстановлен!')
+
+
 info_window = Window(
     Const('ИНФОРМАЦИЯ:\n'),
-    Format('ФИО: {name}', when='regs'),
     Format('Должность: {privilege}\n'),
+    Format('ФИО: {name}'),
     Format('Статус: {state}\n'),
     Format('Дата добавления: {add_date}\n'),
-    Format('Дата увольнения {fired_date}\n', when='regs'),
-    Format('Дата восстановления {recovery_date}', when='regs'),
-    SwitchTo(Const('Уволить'), id='delete_employee', state=AdminEmployee.on_fired),
-    Back(),
-    state=AdminEmployee.employee,
+    Format('Дата увольнения {fired_date}\n',
+           when='regs'),
+    Format('Дата восстановления {recovery_date}',
+           when='regs'),
+    SwitchTo(Const('Уволить'),
+             id='delete_employee',
+             state=AdminEmployee.layoff,
+             when='not fired'),
+    SwitchTo(Const('Восстановить'),
+             id='reinstatement_employee',
+             state=AdminEmployee.info,
+             on_click=reinstatement_employee,
+             when='fired'),
+    Back(Const("Назад")),
+    state=AdminEmployee.info,
     getter=employee_getter
 )

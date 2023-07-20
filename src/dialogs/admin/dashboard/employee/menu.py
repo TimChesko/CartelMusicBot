@@ -1,3 +1,5 @@
+import logging
+import re
 from _operator import itemgetter
 
 from aiogram import F
@@ -5,8 +7,10 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog import Window, Dialog, DialogManager
 from aiogram_dialog.widgets.kbd import Start, Cancel, ScrollingGroup, Select, Group, SwitchTo, Back
 from aiogram_dialog.widgets.text import Const, Format
+from pip._internal.utils.misc import enum
 
 from src.data import config
+from src.dialogs.admin.dashboard.employee.delete import layoff_window
 from src.dialogs.admin.dashboard.employee.info import info_window
 from src.models.employee import EmployeeHandler
 from src.utils.fsm import AdminEmployee, AdminAddEmployee
@@ -26,6 +30,7 @@ async def employee_list_getter(dialog_manager: DialogManager, **_kwargs):
     dialog_data = dialog_manager.dialog_data
     privilege = dialog_data['filter']
     employees = await EmployeeHandler(data['session_maker'], data['database_logger']).get_privilege_by_filter(privilege)
+    # dialog_manager.dialog_data['username'] =
     buttons = {
         "admin": "Админ",
         "manager": "Менеджер",
@@ -38,7 +43,7 @@ async def employee_list_getter(dialog_manager: DialogManager, **_kwargs):
         text = buttons[dialog_data["filter"]]
         buttons[dialog_data["filter"]] = f"🔘 {text}"
     return {
-        'privilege': [(tg_id, firstname if firstname else tg_username, surname if surname else '') for
+        'privilege': [(tg_id, firstname if firstname else tg_username, surname if surname else '', tg_username) for
                       tg_id, tg_username, firstname, surname in employees],
         'developer': data['event_from_user'].id in config.DEVELOPERS,
         **buttons
@@ -46,11 +51,13 @@ async def employee_list_getter(dialog_manager: DialogManager, **_kwargs):
 
 
 async def on_item_selected(_, __, manager: DialogManager, selected_item: str):
-    manager.dialog_data["employee_id"] = int(selected_item)
+    items = eval(selected_item)
+    manager.dialog_data["employee_id"] = int(items[0])
+    manager.dialog_data["username"] = items[1]
     await manager.next()
 
 
-admin_main = Dialog(
+employees = Dialog(
     Window(
         Const("Сотрудники"),
         Group(
@@ -69,7 +76,7 @@ admin_main = Dialog(
                 Format("{item[2]} {item[1]}"),
                 id="ms",
                 items="privilege",
-                item_id_getter=itemgetter(0),
+                item_id_getter=itemgetter(0, 3),
                 on_click=on_item_selected
             ),
             width=1,
@@ -87,5 +94,6 @@ admin_main = Dialog(
         getter=employee_list_getter
     ),
     info_window,
+    layoff_window,
     on_start=on_start
 )
