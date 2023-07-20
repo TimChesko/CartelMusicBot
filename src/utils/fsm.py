@@ -15,6 +15,13 @@ class StartMenu(StatesGroup):
     start = State()
 
 
+class AdminRegistration(StatesGroup):
+    first_name = State()
+    surname = State()
+    middle_name = State()
+    confirm = State()
+
+
 class AdminMenu(StatesGroup):
     start = State()
 
@@ -31,6 +38,7 @@ class AdminEmployee(StatesGroup):
     start = State()
     info = State()
     layoff = State()
+    change_privilege = State()
 
 
 class AdminStatistic(StatesGroup):

@@ -10,10 +10,10 @@ from src.utils.fsm import AdminEmployee
 async def delete_employee(_, __, manager: DialogManager):
     data = manager.middleware_data
     tg_id = manager.dialog_data['employee_id']
-    await EmployeeHandler(data['session_maker'], data['database_logger']).update_employee_state_fired(tg_id)
+    await EmployeeHandler(data['session_maker'], data['database_logger']).update_state_to_fired(tg_id)
 
 
-layoff_window = Window(
+delete_window = Window(
     Format('Подтвердите увольнение сотрудника {name}'),
     Row(
         Back(Const("Подтверждаю"), on_click=delete_employee, id="fire_employee"),

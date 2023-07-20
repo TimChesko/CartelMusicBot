@@ -1,17 +1,13 @@
-import logging
-import re
 from _operator import itemgetter
 
-from aiogram import F
-from aiogram.types import CallbackQuery
 from aiogram_dialog import Window, Dialog, DialogManager
-from aiogram_dialog.widgets.kbd import Start, Cancel, ScrollingGroup, Select, Group, SwitchTo, Back
+from aiogram_dialog.widgets.kbd import Start, Cancel, ScrollingGroup, Select, Group, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
-from pip._internal.utils.misc import enum
 
 from src.data import config
-from src.dialogs.admin.dashboard.employee.delete import layoff_window
+from src.dialogs.admin.dashboard.employee.delete import delete_window
 from src.dialogs.admin.dashboard.employee.info import info_window
+from src.dialogs.admin.dashboard.employee.privilege import privilege_window
 from src.models.employee import EmployeeHandler
 from src.utils.fsm import AdminEmployee, AdminAddEmployee
 
@@ -67,7 +63,7 @@ employees = Dialog(
             SwitchTo(Format('{curator}'), id='curator', state=AdminEmployee.start, on_click=privilege_filter),
             SwitchTo(Format('{regs}'), id='regs', state=AdminEmployee.start, on_click=privilege_filter),
             SwitchTo(Const('Сброс'), id='all', state=AdminEmployee.start, on_click=privilege_filter),
-            SwitchTo(Format('{fired}'), id='fired', state=AdminEmployee.start, on_click=privilege_filter,
+            SwitchTo(Format('🔻{fired}🔻'), id='fired', state=AdminEmployee.start, on_click=privilege_filter,
                      when="developer"),
             width=3
         ),
@@ -87,13 +83,14 @@ employees = Dialog(
             Start(Const('Добавить'),
                   id='employee_add',
                   state=AdminAddEmployee.start),
-            Cancel(),
+            Cancel(Const('Назад')),
             width=2
         ),
         state=AdminEmployee.start,
         getter=employee_list_getter
     ),
     info_window,
-    layoff_window,
+    delete_window,
+    privilege_window,
     on_start=on_start
 )

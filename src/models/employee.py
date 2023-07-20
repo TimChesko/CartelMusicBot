@@ -49,22 +49,6 @@ class EmployeeHandler:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
 
-    async def set_privilege(self, user_id: int, new_privilege: str) -> bool:
-        async with self.session_maker() as session:
-            try:
-                employee = await session.get(Employee, user_id)
-                if employee:
-                    employee.privilege = new_privilege
-                    await session.commit()
-                    return True
-                else:
-                    self.logger.error(f"Пользователь с tg_id {user_id} не найден, set_privilege")
-                    return False
-            except SQLAlchemyError as e:
-                self.logger.error("Ошибка при добавлении нового пользователя: %s", e)
-                await session.rollback()
-                return False
-
     async def get_privilege_by_filter(self, privilege: str | None = None):
         async with self.session_maker() as session:
             try:
@@ -131,7 +115,7 @@ class EmployeeHandler:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
 
-    async def update_employee_state_fired(self, employee_id: int) -> bool:
+    async def update_state_to_fired(self, employee_id: int) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(
@@ -143,12 +127,36 @@ class EmployeeHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def update_employee_state_works(self, employee_id: int) -> bool:
+    async def update_state_to_works(self, employee_id: int) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(
                     update(Employee).where(Employee.tg_id == employee_id).values(state='works',
                                                                                  recovery_date=datetime.now()))
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
+                return False
+
+    async def update_privilege(self, employee_id: int, privilege: str) -> bool:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(
+                    update(Employee).where(Employee.tg_id == employee_id).values(privilege=privilege))
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
+                return False
+
+    async def set_fullname(self, employee_id: int, first_name, surname, middle_name) -> bool:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(
+                    update(Employee).where(Employee.tg_id == employee_id).values(first_name=first_name,
+                                                                                 surname=surname,
+                                                                                 middle_name=middle_name))
                 await session.commit()
                 return True
             except SQLAlchemyError as e:
