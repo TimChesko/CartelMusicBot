@@ -68,7 +68,7 @@ async def on_finish_new_track(callback: CallbackQuery, _, manager: DialogManager
                                                                                           msg_audio.message_id)
     await callback.message.edit_caption(caption=f'Трек "{manager.dialog_data["track_title"]}" отправлен на модерацию')
     manager.show_mode = ShowMode.SEND
-    await manager.done()
+    await manager.done([True])
 
 
 async def other_type_handler_audio(msg: Message, _, __):
@@ -100,7 +100,7 @@ new_track = Dialog(
             Button(Const("Подтверждаю"), on_click=on_finish_new_track, id="approve_track"),
             Back(Const("Изменить"), id="edit_track"),
         ),
-        Cancel(Const("Вернуться в главное меню")),
+        Cancel(Const("Назад")),
         state=ListeningNewTrack.finish,
         getter=on_finish_getter
     ),

@@ -167,3 +167,9 @@ class MyStudio(StatesGroup):
 class ViewStatus(StatesGroup):
     menu = State()
     track = State()
+    accept = State()
+
+
+class TrackApprove(StatesGroup):
+    name = State()
+    text = State()

@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import select, update, or_
+from sqlalchemy import select, update, or_, delete
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.operators import and_
 
@@ -200,4 +200,14 @@ class TrackHandler:
                 return result.scalar()
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
+    async def delete_track_by_id(self, track_id: int) -> bool:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(delete(Track).where(Track.id == track_id))
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при удалении трека: {e}")
                 return False

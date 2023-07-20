@@ -1,17 +1,20 @@
 from operator import itemgetter
+from typing import Any
 
 from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.api.entities import MediaId, MediaAttachment
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Button, Back
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Button, Back, SwitchTo, Start
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.tracks import TrackHandler
-from src.utils.fsm import ViewStatus
+from src.utils.fsm import ViewStatus, ListeningNewTrack
 
+
+# LIST MENU
 
 async def get_data_list(dialog_manager: DialogManager, **_kwargs) -> dict:
     middleware_data = dialog_manager.middleware_data
@@ -21,7 +24,7 @@ async def get_data_list(dialog_manager: DialogManager, **_kwargs) -> dict:
         get_tracks_by_status(user_id, dialog_data['status'])
     buttons = [[track.id, track.track_title] for track in tracks]
     return {
-        "status": dialog_data['status'],
+        "status": dialog_data['status_text'],
         "status_list": buttons
     }
 
@@ -31,8 +34,7 @@ async def on_click(callback: CallbackQuery, _, manager: DialogManager, __) -> No
     await manager.switch_to(state=ViewStatus.track)
 
 
-async def create_text(track) -> str:
-    return track.track_title
+# TRACK INFO
 
 
 async def get_data_track(dialog_manager: DialogManager, **_kwargs):
@@ -40,15 +42,48 @@ async def get_data_track(dialog_manager: DialogManager, **_kwargs):
     dialog_data = dialog_manager.dialog_data
     track = await TrackHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
         get_track_by_id(int(dialog_data['track_id']))
-    text = await create_text(track)
+    text = await create_text(track, dialog_data['status_text'])
     return {
         "text": text,
-        "audio": MediaAttachment(ContentType.AUDIO, file_id=MediaId(track.file_id_audio))
+        "audio": MediaAttachment(ContentType.AUDIO, file_id=MediaId(track.file_id_audio)),
+        track.status: True,
+        "delete": True if track.status == "process" or track.status == "reject" else False
     }
 
 
-async def delete_track():
-    pass
+async def create_text(track, status_text: str) -> str:
+    text = f"Трек: {track.track_title}\nСтатус: {status_text}"
+    if track.status == "reject":
+        text += f"\n\nКомментарий: {track.reject_reason}"
+    return text
+
+
+async def delete_track(_, __, manager: DialogManager):
+    middleware_data = manager.middleware_data
+    track_id = manager.dialog_data['track_id']
+    await TrackHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
+        delete_track_by_id(int(track_id))
+    await manager.switch_to(ViewStatus.menu)
+
+
+async def start_form(_, __, manager: DialogManager):
+    data = {'track_id': manager.dialog_data['track_id'], }
+    await manager.start(state=..., data=data)
+
+
+# UTILS
+
+async def on_process(_, result: Any, manager: DialogManager):
+    middleware_data = manager.middleware_data
+    dialog_data = manager.dialog_data
+    user_id = middleware_data['event_from_user'].id
+    if result[0] is True:
+        await TrackHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
+            delete_track_by_id(int(manager.dialog_data['track_id']))
+    elif len(await TrackHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
+            get_tracks_by_status(user_id, dialog_data['status'])) == 0:
+        return await manager.done()
+    return await manager.switch_to(ViewStatus.menu)
 
 
 dialog = Dialog(
@@ -75,32 +110,33 @@ dialog = Dialog(
         Format("{text}"),
         DynamicMedia('audio'),
         Button(
+            Const("Заполнить данные"),
+            id="my_studio_status_approve",
+            on_click=start_form,
+            when="approve"
+        ),
+        Start(
+            Const("Отправить новый трек"),
+            id="my_studio_status_reject",
+            state=ListeningNewTrack.start,
+            when="reject"
+        ),
+        SwitchTo(
             Const("Удалить трек"),
             id="my_studio_status_process_delete",
-            on_click=delete_track,
-            when=...
-        ),
-        Button(
-            Const("Заполнить данные"),
-            id="my_studio_status_approve_write",
-            on_click=...,
-            when=...
-        ),
-        Button(
-            Const("Заполнить данные"),
-            id="my_studio_status_approve",
-            on_click=...,
-            when=...
-        ),
-        Button(
-            Const("Отправить новый трек"),
-            id="my_studio_status_approve",
-            on_click=...,
-            when=...
+            state=ViewStatus.accept,
+            when="delete"
         ),
         Back(Const("< Назад")),
         getter=get_data_track,
         state=ViewStatus.track
     ),
+    Window(
+        Const("Подтвердите действие"),
+        Button(Const("Подтвердить"), id="my_studio_accept", on_click=delete_track),
+        SwitchTo(Const("Отменить"), id="my_studio_cancel", state=ViewStatus.menu),
+        state=ViewStatus.accept
+    ),
+    on_process_result=on_process,
     on_start=on_start_copy_start_data
 )
