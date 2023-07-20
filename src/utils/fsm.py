@@ -173,3 +173,13 @@ class ViewStatus(StatesGroup):
 class TrackApprove(StatesGroup):
     name = State()
     text = State()
+    author_music = State()
+    author_text = State()
+    time_track = State()
+    profanity = State()
+    feat = State()
+
+
+class TrackAuthor(StatesGroup):
+    type_agreement = State()
+    percentage = State()

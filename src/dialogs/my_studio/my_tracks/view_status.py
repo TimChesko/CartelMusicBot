@@ -11,7 +11,7 @@ from aiogram_dialog.widgets.text import Format, Const
 
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.tracks import TrackHandler
-from src.utils.fsm import ViewStatus, ListeningNewTrack
+from src.utils.fsm import ViewStatus, ListeningNewTrack, TrackApprove
 
 
 # LIST MENU
@@ -68,7 +68,7 @@ async def delete_track(_, __, manager: DialogManager):
 
 async def start_form(_, __, manager: DialogManager):
     data = {'track_id': manager.dialog_data['track_id'], }
-    await manager.start(state=..., data=data)
+    await manager.start(state=TrackApprove.name, data=data)
 
 
 # UTILS
