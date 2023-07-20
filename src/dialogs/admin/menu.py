@@ -2,7 +2,9 @@ from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.kbd import Start
 from aiogram_dialog.widgets.text import Const
 
+
 from src.data import config
+from src.dialogs.admin.common import privilege_level
 from src.models.employee import EmployeeHandler
 from src.utils.fsm import AdminMenu, AdminListening, AdminDashboardPIN
 
@@ -11,14 +13,7 @@ async def privilege_getter(dialog_manager: DialogManager, **kwargs):
     data = dialog_manager.middleware_data
     user_id = data['event_from_user'].id
     privilege = await EmployeeHandler(data['session_maker'], data['database_logger']).get_privilege_by_tg_id(user_id)
-    if user_id in config.DEVELOPERS:
-        return {
-            privilege: True for privilege in config.PRIVILEGES[2:]
-        }
-    user_privilege_index = config.PRIVILEGES[2:].index(privilege)
-    return {
-        privilege: user_privilege_index >= config.PRIVILEGES[2:].index(privilege) for privilege in config.PRIVILEGES[2:]
-    }
+    return privilege_level(user_id, privilege)
 
 
 admin_main = Dialog(

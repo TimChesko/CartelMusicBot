@@ -28,7 +28,7 @@ class EmployeeHandler:
     async def check_employee_by_tg_id(self, tg_id: int):
         async with self.session_maker() as session:
             try:
-                query = select(Employee).where(and_(Employee.tg_id == tg_id))
+                query = select(Employee).where(and_(Employee.tg_id == tg_id, Employee.state != 'fired'))
                 result = await session.execute(query)
                 user = result.scalar_one_or_none()
                 return user
@@ -68,12 +68,13 @@ class EmployeeHandler:
             try:
                 if privilege in config.PRIVILEGES:
                     query = select(Employee.tg_id, User.tg_username, Employee.first_name, Employee.surname).join(
-                        User).where(Employee.privilege == privilege)
-                elif privilege == 'regs':
+                        User).where(and_(Employee.privilege == privilege, Employee.state != 'fired'))
+                elif privilege == 'regs' or privilege == 'fired':
                     query = select(Employee.tg_id, User.tg_username, Employee.first_name, Employee.surname).join(
                         User).where(Employee.state == privilege)
                 else:
-                    query = select(Employee.tg_id, User.tg_username, Employee.first_name, Employee.surname).join(User)
+                    query = select(Employee.tg_id, User.tg_username, Employee.first_name, Employee.surname).join(
+                        User).where(Employee.state != 'fired')
                 result = await session.execute(query)
                 employee = result.all()
                 return employee
