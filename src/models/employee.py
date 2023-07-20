@@ -39,6 +39,8 @@ class EmployeeHandler:
     async def get_privilege_by_tg_id(self, tg_id: int):
         async with self.session_maker() as session:
             try:
+                if tg_id in config.DEVELOPERS:
+                    return None
                 query = select(Employee.privilege).where(and_(Employee.tg_id == tg_id))
                 result = await session.execute(query)
                 user = result.scalar_one_or_none()

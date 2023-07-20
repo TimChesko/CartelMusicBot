@@ -13,7 +13,7 @@ async def privilege_getter(dialog_manager: DialogManager, **kwargs):
     data = dialog_manager.middleware_data
     user_id = data['event_from_user'].id
     privilege = await EmployeeHandler(data['session_maker'], data['database_logger']).get_privilege_by_tg_id(user_id)
-    return privilege_level(user_id, privilege)
+    return privilege_level(privilege)
 
 
 admin_main = Dialog(

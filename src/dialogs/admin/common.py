@@ -13,14 +13,12 @@ def translate_privilege(privilege: str) -> str:
     return translations[privilege]
 
 
-def privilege_level(user_id: int, privilege: str) -> dict:
+def privilege_level(privilege: str | bool) -> dict:
     """
-
-    :param user_id: user's tg id
     :param privilege: privilege from DB, for privilege levels list check .env PRIVILEGES
     :return: dict for aiogram_dialog's Window getter, when=privilege level you need
     """
-    if user_id in config.DEVELOPERS:
+    if privilege is None:
         return {
             privilege: True for privilege in config.PRIVILEGES
         }
