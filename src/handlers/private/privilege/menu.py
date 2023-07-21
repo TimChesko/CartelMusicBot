@@ -18,7 +18,7 @@ async def cmd_start(msg: Message,
                     session_maker: async_sessionmaker, database_logger: BoundLoggerFilteringAtDebug,
                     dialog_manager: DialogManager):
     await msg.delete()
-    user: User = await UserHandler(session_maker, database_logger).check_user_by_tg_id(msg.from_user.id)
+    user: User = await UserHandler(session_maker, database_logger).get_user_by_tg_id(msg.from_user.id)
     if not user:
         await UserHandler(session_maker, database_logger).add_new_user(msg)
     employee: Employee = await EmployeeHandler(session_maker, database_logger).check_employee_by_tg_id(msg.from_user.id)

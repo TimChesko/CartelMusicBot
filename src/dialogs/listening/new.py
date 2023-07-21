@@ -26,7 +26,7 @@ async def set_music_title(msg: Message, _, manager: DialogManager):
     await manager.next()
 
 
-async def on_finish_getter(dialog_manager: DialogManager, **kwargs):
+async def on_finish_getter(dialog_manager: DialogManager, **_kwargs):
     audio_id = dialog_manager.dialog_data['track']
     audio = MediaAttachment(ContentType.AUDIO, file_id=MediaId(audio_id))
     return {
@@ -35,12 +35,12 @@ async def on_finish_getter(dialog_manager: DialogManager, **kwargs):
     }
 
 
-async def nickname_getter(dialog_manager: DialogManager, **kwargs):
+async def nickname_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    user_nickname = await UserHandler(data['session_maker'], data['database_logger']) \
-        .get_user_nickname_by_tg_id(data['event_from_user'].id)
+    user = await UserHandler(data['session_maker'], data['database_logger']) \
+        .get_user_by_tg_id(data['event_from_user'].id)
     return {
-        "nickname": user_nickname,
+        "nickname": user.nickname,
     }
 
 

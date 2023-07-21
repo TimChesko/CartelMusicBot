@@ -144,7 +144,6 @@ class TrackHandler:
                 return False
 
     async def get_process_tracks(self):
-    async def get_process_tracks(self):
         async with self.session_maker() as session:
             try:
                 query = select(Track.id, Track.track_title).where(
