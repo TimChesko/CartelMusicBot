@@ -205,3 +205,25 @@ class PersonalDataHandler:
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при получении данных из таблицы PersonalData: %s", e)
                 return []
+
+    async def get_docs_passport(self) -> list | None:
+        async with self.session_maker() as session:
+            try:
+                query = select(PersonalData).where(PersonalData.all_passport_data == 1)
+                result = await session.execute(query)
+                return result.scalars().all()
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return None
+
+    async def get_data_by_tg(self, tg_id: int):
+        async with self.session_maker() as session:
+            try:
+                query = select(PersonalData).where(PersonalData.tg_id == tg_id)
+                result = await session.execute(query)
+                return result.scalar()
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return None
+
+

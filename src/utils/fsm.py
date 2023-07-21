@@ -214,3 +214,12 @@ class StudioEdit(StatesGroup):
     author_beat_percent = State()
     feat_percent = State()
     confirm = State()
+
+
+class AdminViewTypeDocs(StatesGroup):
+    menu = State()
+
+
+class AdminCheckPassport(StatesGroup):
+    menu = State()
+    view = State()
