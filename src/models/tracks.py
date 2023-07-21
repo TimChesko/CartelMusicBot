@@ -1,10 +1,9 @@
 import datetime
 
-from sqlalchemy import select, update, or_, delete
+from sqlalchemy import select, update, or_, asc, and_
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.sql.operators import and_
 
-from src.models.tables import Track
+from src.models.tables import Track, User
 
 
 class TrackHandler:
@@ -45,11 +44,11 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def add_track_to_tracks(self, user_id: int, track_title: str, file_id_audio: str) -> bool:
+    async def add_new_track(self, user_id: int, track_title: str, file_id_audio: str) -> bool:
         async with self.session_maker() as session:
             try:
                 new_track = Track(user_id=user_id, track_title=track_title, file_id_audio=file_id_audio,
-                                  datetime=datetime.datetime.now())
+                                  add_datetime=datetime.datetime.now(), sort_datetime=datetime.datetime.now())
                 session.add(new_track)
                 await session.commit()
                 return True
@@ -58,28 +57,12 @@ class TrackHandler:
                 await session.rollback()
                 return False
 
-    async def set_task_msg_id_to_tracks(self, track_id: int, task_msg_id: int) -> bool:
+    async def get_task_info_by_id(self, track_id: int):
         async with self.session_maker() as session:
             try:
-                track = await session.get(Track, track_id)
-                if track:
-                    track.task_msg_id = task_msg_id
-                    await session.commit()
-                    return True
-                else:
-                    self.logger.error(f"Трек с id {track_id} не найден, set_task_msg_id")
-                    return False
-            except SQLAlchemyError as e:
-                self.logger.error(f"Ошибка при добавлении нового трека: {e}")
-                await session.rollback()
-                return False
-
-    async def get_id_by_file_id_audio(self, file_id_audio: int) -> int | bool:
-        async with self.session_maker() as session:
-            try:
-                result = await session.execute(select(Track.id).where(Track.file_id_audio == file_id_audio))
-                track_id = result.scalar_one_or_none()
-                return track_id
+                result = await session.execute(select(Track.user_id, Track.track_title).where(Track.id == track_id))
+                track_info = result.first()
+                return track_info
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
@@ -149,65 +132,50 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def get_title_and_file_id_by_id(self, track_id: int):
+    async def get_title(self, track_id: int):
         async with self.session_maker() as session:
             try:
                 result = await session.execute(
-                    select(Track.track_title, Track.file_id_audio).where(Track.id == track_id))
+                    select(Track.track_title).where(Track.id == track_id))
                 row = result.first()
                 return row
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def update_track_file_id_audio(self, track_id: int, file_id_audio: int) -> bool:
+    async def get_process_tracks(self):
+        async with self.session_maker() as session:
+            try:
+                query = select(Track.id, Track.track_title).where(
+                    and_(Track.status == 'process', Track.checker is None)).order_by(asc(Track.sort_datetime))
+                result = await session.execute(query)
+                tracks = result.all()
+                return tracks
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
+    async def update_edited_track(self, track_id: int, file_id_audio: int) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(
-                    update(Track).where(Track.id == track_id).values(file_id_audio=file_id_audio))
+                    update(Track).where(Track.id == track_id).values(file_id_audio=file_id_audio,
+                                                                     sort_datetime=datetime.datetime.now(),
+                                                                     status='process')
+                )
                 await session.commit()
                 return True
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def set_new_status_track(self, track_id: int, status: str, admin_id=None) -> bool:
+    async def get_listening_info(self, track_id: int):
         async with self.session_maker() as session:
             try:
-                await session.execute(update(Track).where(Track.id == track_id).values(status=status,
-                                                                                       id_who_approve=admin_id))
-                await session.commit()
-                return True
-            except SQLAlchemyError as e:
-                self.logger.error(f"Ошибка при установке трека в состояние: {e}")
-                return False
-
-    async def get_tracks_by_status(self, user_id: int, status: str):
-        async with self.session_maker() as session:
-            try:
-                query = select(Track).where(and_(Track.user_id == user_id, Track.status == status))
+                query = select(Track).join(User).where(Track.id == track_id)
                 result = await session.execute(query)
-                return result.scalars().all()
-            except SQLAlchemyError as e:
-                self.logger.error(f"Ошибка при получения треков в статусу: {e}")
-                return False
-
-    async def get_track_by_id(self, track_id: int):
-        async with self.session_maker() as session:
-            try:
-                query = select(Track).where(Track.id == track_id)
-                result = await session.execute(query)
-                return result.scalar()
+                tracks = result.scalars().all()
+                return tracks
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
-                return False
-
-    async def delete_track_by_id(self, track_id: int) -> bool:
-        async with self.session_maker() as session:
-            try:
-                await session.execute(delete(Track).where(Track.id == track_id))
-                await session.commit()
-                return True
-            except SQLAlchemyError as e:
-                self.logger.error(f"Ошибка при удалении трека: {e}")
                 return False

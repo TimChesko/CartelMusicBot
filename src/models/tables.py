@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 
 from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger, Enum
-from sqlalchemy.orm import relationship, declared_attr, as_declarative
+from sqlalchemy.orm import DeclarativeBase, relationship, declared_attr, as_declarative
 
 
 @as_declarative()
@@ -15,7 +15,6 @@ class Base:
 
 
 class User(Base):
-
     tg_id = Column(BigInteger, primary_key=True, nullable=False)
     tg_username = Column(String)
     tg_first_name = Column(String)
@@ -35,7 +34,6 @@ class User(Base):
 
 
 class PersonalData(Base):
-
     tg_id = Column(BigInteger, ForeignKey(User.tg_id), primary_key=True, nullable=False)
     confirm_use_personal_data = Column(Boolean, default=False)
 
@@ -72,7 +70,6 @@ class PersonalData(Base):
 
 
 class Social(Base):
-
     id = Column(Integer, primary_key=True, autoincrement=True)
     personal_data_tg_id = Column(Integer, ForeignKey(PersonalData.tg_id), nullable=False)
     title = Column(String)
@@ -82,7 +79,6 @@ class Social(Base):
 
 
 class PersonalDataTemplate(Base):
-
     id = Column(Integer, primary_key=True)
     header_data = Column(String)
     name_data = Column(String)
@@ -93,7 +89,6 @@ class PersonalDataTemplate(Base):
 
 
 class Album(Base):
-
     # todo не забыть добавить колонки для промо
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -109,19 +104,17 @@ class Album(Base):
 
 
 class Track(Base):
-
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey(User.tg_id), nullable=False)  # Ссылка на таблицу users
-    listening_chat_id = Column(BigInteger)
     album_id = Column(Integer, ForeignKey(Album.id))  # новая ссылка на альбом
 
     track_title = Column(String)
     file_id_audio = Column(String)
-    task_msg_id = Column(Integer)
-    id_who_approve = Column(BigInteger)
-    reject_reason = Column(String)
+    checker = Column(BigInteger)
+    #  if False - task is free (no one works with it), True - task was taken by someone
 
-    datetime = Column(DateTime, nullable=False)  # дату доставать из msg
+    add_datetime = Column(DateTime, nullable=False)
+    sort_datetime = Column(DateTime, nullable=False)
 
     status = Column(Enum('process', 'reject', 'approve',
                          'approve_promo', 'aggregating',
@@ -131,10 +124,11 @@ class Track(Base):
     track_info = relationship("TrackInfo", uselist=False, back_populates="track")
     album = relationship('Album', back_populates='tracks')  # новое отношение с альбомом
     user = relationship("User", back_populates="tracks")
+    track_rejection = relationship("TrackRejection", back_populates='track')
+    track_approval = relationship("TrackApproval", back_populates='track')
 
 
 class TrackInfo(Base):
-
     id = Column(Integer, primary_key=True, autoincrement=True)
 
     track_id = Column(Integer, ForeignKey(Track.id))  # Ссылка на таблицу tracks
@@ -179,3 +173,26 @@ class Employee(Base):
     recovery_date = Column(DateTime)
 
     user = relationship("User", back_populates="employee")
+    track_rejection = relationship("TrackRejection", back_populates='employee')
+    track_approval = relationship("TrackApproval", back_populates='employee')
+
+
+class TrackRejection(Base):
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    track_id = Column(Integer, ForeignKey(Track.id), nullable=False)
+    admin_id = Column(Integer, ForeignKey(Employee.tg_id), nullable=False)
+    rejection_datetime = Column(DateTime, nullable=False)
+    reason = Column(String)
+
+    track = relationship('Track', back_populates='track_rejection')
+    employee = relationship('Employee', back_populates='track_rejection')
+
+
+class TrackApproval(Base):
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    track_id = Column(Integer, ForeignKey(Track.id), nullable=False)
+    admin_id = Column(Integer, ForeignKey(Employee.tg_id), nullable=False)
+    approval_datetime = Column(DateTime, nullable=False)
+
+    track = relationship('Track', back_populates='track_approval')
+    employee = relationship('Employee', back_populates='track_approval')
