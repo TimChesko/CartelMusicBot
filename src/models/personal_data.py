@@ -12,16 +12,9 @@ class PersonalDataHandler:
 
     async def get_all_data_status(self, tg_id: int) -> tuple[int, int]:
 
-        """
-        Проверяет, что значения all_user_data и all_cash_data у пользователя с указанным tg_id равны True.
-
-        :param tg_id: ID пользователя в Telegram.
-        :return: bool, bool - all_user_data, all_cash_data
-        """
-
         async with self.session_maker() as session:
             try:
-                query = select(PersonalData).where(and_(PersonalData.tg_id == tg_id))
+                query = select(PersonalData).where(PersonalData.tg_id == tg_id)
                 result = await session.execute(query)
                 user = result.scalar_one_or_none()
                 if user:
@@ -36,7 +29,7 @@ class PersonalDataHandler:
     async def get_personal_data_confirm(self, tg_id: int) -> bool:
         async with self.session_maker() as session:
             try:
-                query = select(PersonalData).where(and_(PersonalData.tg_id == tg_id))
+                query = select(PersonalData).where(PersonalData.tg_id == tg_id)
                 result = await session.execute(query)
                 user = result.scalar_one_or_none()
                 if user:

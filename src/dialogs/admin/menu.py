@@ -7,7 +7,7 @@ from src.models.employee import EmployeeHandler
 from src.utils.fsm import AdminMenu, AdminListening, AdminDashboardPIN
 
 
-async def privilege_getter(dialog_manager: DialogManager, **kwargs):
+async def privilege_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     user_id = data['event_from_user'].id
     privilege = await EmployeeHandler(data['session_maker'], data['database_logger']).get_privilege_by_tg_id(user_id)
