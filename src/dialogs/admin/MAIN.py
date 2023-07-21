@@ -2,11 +2,9 @@ from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.kbd import Start
 from aiogram_dialog.widgets.text import Const
 
-
-from src.data import config
 from src.dialogs.admin.common import privilege_level
 from src.models.employee import EmployeeHandler
-from src.utils.fsm import AdminMenu, AdminListening, AdminDashboardPIN
+from src.utils.fsm import AdminMenu, AdminListening, AdminDashboard
 
 
 async def privilege_getter(dialog_manager: DialogManager, **kwargs):
@@ -16,7 +14,7 @@ async def privilege_getter(dialog_manager: DialogManager, **kwargs):
     return privilege_level(privilege)
 
 
-admin_main = Dialog(
+menu = Dialog(
     Window(
         Const('ГЛАВНОЕ МЕНЮ'),
         Start(Const('Прослушивание'),
@@ -25,7 +23,7 @@ admin_main = Dialog(
               when='manager'),
         Start(Const('Админ панель'),
               id='admin_panel',
-              state=AdminDashboardPIN.start,
+              state=AdminDashboard.start,
               when='admin'),
         state=AdminMenu.start,
         getter=privilege_getter

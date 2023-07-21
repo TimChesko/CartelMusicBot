@@ -7,8 +7,6 @@ from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
-from src.data import config
-from src.keyboards.inline.listening import markup_new_listening
 from src.models.tracks import TrackHandler
 from src.models.user import UserHandler
 from src.utils.fsm import ListeningNewTrack
@@ -48,24 +46,11 @@ async def nickname_getter(dialog_manager: DialogManager, **kwargs):
 
 async def on_finish_new_track(callback: CallbackQuery, _, manager: DialogManager):
     data = manager.middleware_data
-    chat_id = config.CHATS_BACKUP[0]  # TODO нужный чат
-    nickname, tg_username = await UserHandler(data['session_maker'], data['database_logger']).get_nicknames_by_tg_id(
-        callback.from_user.id)
-    user_name = callback.from_user.id if tg_username is None else f"@{callback.from_user.username}"
-    await TrackHandler(data['session_maker'], data['database_logger']).add_track_to_tracks(
+    await TrackHandler(data['session_maker'], data['database_logger']).add_new_track(
         user_id=callback.from_user.id,
         track_title=manager.dialog_data["track_title"],
         file_id_audio=manager.dialog_data["track"]
     )
-    track_id = await TrackHandler(data['session_maker'], data['database_logger']).get_id_by_file_id_audio(
-        manager.dialog_data["track"])
-    msg_audio: Message = await data['bot'].send_audio(chat_id=chat_id,
-                                                      audio=manager.dialog_data["track"],
-                                                      caption=f"Title: {manager.dialog_data['track_title']}\n" \
-                                                              f"User: {user_name} / nickname: {nickname}",
-                                                      reply_markup=markup_new_listening(track_id))
-    await TrackHandler(data['session_maker'], data['database_logger']).set_task_msg_id_to_tracks(track_id,
-                                                                                          msg_audio.message_id)
     await callback.message.edit_caption(caption=f'Трек "{manager.dialog_data["track_title"]}" отправлен на модерацию')
     manager.show_mode = ShowMode.SEND
     await manager.done()
@@ -85,7 +70,8 @@ new_track = Dialog(
         Cancel(Const("Назад")),
         MessageInput(set_music_file, content_types=[ContentType.AUDIO]),
         MessageInput(other_type_handler_audio),
-        state=ListeningNewTrack.start
+        state=ListeningNewTrack.start,
+        getter=nickname_getter
     ),
     Window(
         Const("Дайте название вашему треку"),
@@ -104,5 +90,4 @@ new_track = Dialog(
         state=ListeningNewTrack.finish,
         getter=on_finish_getter
     ),
-    getter=nickname_getter
 )

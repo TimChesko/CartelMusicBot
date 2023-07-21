@@ -6,7 +6,6 @@ from aiogram_dialog.widgets.kbd import Cancel, Row, Button, Back
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.data import config
-from src.keyboards.inline.listening import markup_new_listening, markup_edit_listening
 from src.models.tracks import TrackHandler
 from src.models.user import UserHandler
 from src.utils.fsm import RejectAnswer

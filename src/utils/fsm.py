@@ -30,10 +30,6 @@ class AdminListening(StatesGroup):
     start = State()
 
 
-class AdminDashboardPIN(StatesGroup):
-    start = State()
-
-
 class AdminEmployee(StatesGroup):
     start = State()
     info = State()

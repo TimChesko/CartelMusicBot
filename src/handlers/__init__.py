@@ -5,6 +5,5 @@ from ..middlewares.chat_actions import ChatActions
 
 router = Router()
 router.message.middleware(ChatActions())
-router.include_router(group.router)
 router.include_router(private.router)
 

@@ -1,5 +1,3 @@
-import logging
-
 from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.kbd import Cancel, Start
 from aiogram_dialog.widgets.text import Const
@@ -16,8 +14,6 @@ async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
         data['event_from_user'].id)
     reject_tracks = await TrackHandler(data['session_maker'], data['database_logger']).get_rejected_by_tg_id(
         data['event_from_user'].id)
-    logging.info(rejects)
-    logging.info(reject_tracks)
     return {
         "rejects_check": rejects,
         'reject_tracks': reject_tracks,

@@ -10,12 +10,9 @@ from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back, ScrollingGroup
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
-from src.data import config
 from src.dialogs.listening.menu import tracks_getter
 from src.dialogs.listening.new import other_type_handler_audio
-from src.keyboards.inline.listening import markup_edit_listening
 from src.models.tracks import TrackHandler
-from src.models.user import UserHandler
 from src.utils.fsm import ListeningEditTrack
 
 
@@ -28,9 +25,13 @@ async def on_item_selected(callback: CallbackQuery, __, manager: DialogManager, 
 async def on_finish_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     track_id = dialog_manager.dialog_data['track_id']
-    title, file_id_audio = await TrackHandler(data['session_maker'], data['database_logger']).get_title_and_file_id_by_id(
+    file_id = dialog_manager.dialog_data['track'] if 'track' in dialog_manager.dialog_data else None
+    title, file_id_audio = await TrackHandler(data['session_maker'],
+                                              data['database_logger']).get_title_and_file_id_by_id(
         track_id)
     audio = MediaAttachment(ContentType.AUDIO, file_id=MediaId(file_id_audio))
+    logging.info(file_id)
+    logging.info(audio)
     dialog_manager.dialog_data['track_title'] = title
     return {
         'title': title,
@@ -48,26 +49,12 @@ async def set_music_file_for_edit(msg: Message, _, manager: DialogManager):
 async def on_finish_old_track(callback: CallbackQuery, _, manager: DialogManager):
     data = manager.middleware_data
     track_id = manager.dialog_data['track_id']
-    chat_id = config.CHATS_BACKUP[0]  # TODO нужный чат
-    nickname, tg_username = await UserHandler(data['session_maker'], data['database_logger']).get_nicknames_by_tg_id(
-        callback.from_user.id)
-    user_name = callback.from_user.id if tg_username is None else f"@{callback.from_user.username}"
-    await TrackHandler(data['session_maker'], data['database_logger']).update_track_file_id_audio(
+    await TrackHandler(data['session_maker'], data['database_logger']).update_edited_track(
         track_id=track_id,
         file_id_audio=manager.dialog_data["track"]
     )
-    await TrackHandler(data['session_maker'], data['database_logger']).set_new_status_track(track_id, 'process')
-    msg_audio: Message = await data['bot'].send_audio(chat_id=chat_id,
-                                                      audio=manager.dialog_data["track"],
-                                                      caption=f"ПОВТОРНОЕ ПРОСЛУШИВАНИЕ \n"
-                                                              f"Серийный номер: #{track_id}"
-                                                              f"Title: {manager.dialog_data['track_title']}\n"
-                                                              f"User: {user_name} / nickname: {nickname}",
-                                                      reply_markup=markup_edit_listening(track_id))
-    await TrackHandler(data['session_maker'], data['database_logger']).set_task_msg_id_to_tracks(track_id,
-                                                                                          msg_audio.message_id)
-    await callback.message.edit_caption(
-        caption=f'Трек "{manager.dialog_data["track_title"]}" повторно отправлен на модерацию')
+    # await callback.message.edit_caption(
+    #     caption=f'Трек "{manager.dialog_data["track_title"]}" повторно отправлен на модерацию')
     manager.show_mode = ShowMode.SEND
     await manager.done()
 
@@ -92,12 +79,11 @@ edit_track = Dialog(
         state=ListeningEditTrack.start,
     ),
     Window(
-        Format("Скиньте новый файл трека {title}"),
+        Format("Скиньте новый файл трека"),
         Cancel(Const("Назад")),
         MessageInput(set_music_file_for_edit, content_types=[ContentType.AUDIO]),
         MessageInput(other_type_handler_audio),
-        state=ListeningEditTrack.select_track,
-        getter=on_finish_getter
+        state=ListeningEditTrack.select_track
     ),
     Window(
         Format('Подтверждение отправки трека "{title}"'),
