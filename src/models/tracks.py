@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import select, update, or_, asc, and_
+from sqlalchemy import select, update, or_, asc, and_, Null
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.models.tables import Track, User
@@ -147,7 +147,7 @@ class TrackHandler:
         async with self.session_maker() as session:
             try:
                 query = select(Track.id, Track.track_title).where(
-                    and_(Track.status == 'process', Track.checker is None)).order_by(asc(Track.sort_datetime))
+                    and_(Track.status == 'process', Track.checker == None)).order_by(asc(Track.sort_datetime))
                 result = await session.execute(query)
                 tracks = result.all()
                 return tracks
@@ -172,10 +172,22 @@ class TrackHandler:
     async def get_listening_info(self, track_id: int):
         async with self.session_maker() as session:
             try:
-                query = select(Track).join(User).where(Track.id == track_id)
+                query = select(Track.checker, Track.file_id_audio, User).join(User).where(Track.id == track_id)
                 result = await session.execute(query)
-                tracks = result.scalars().all()
+                tracks = result.first()
                 return tracks
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
+    async def update_checker(self, track_id, employee_id=None) -> bool:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(
+                    update(Track).where(Track.id == track_id).values(checker=employee_id)
+                )
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
