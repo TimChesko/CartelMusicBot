@@ -132,11 +132,11 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def get_title_and_file_id_by_id(self, track_id: int):
+    async def get_title(self, track_id: int):
         async with self.session_maker() as session:
             try:
                 result = await session.execute(
-                    select(Track.track_title, Track.file_id_audio).where(Track.id == track_id))
+                    select(Track.track_title).where(Track.id == track_id))
                 row = result.first()
                 return row
             except SQLAlchemyError as e:
