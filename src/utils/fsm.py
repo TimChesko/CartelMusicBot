@@ -28,6 +28,8 @@ class AdminMenu(StatesGroup):
 
 class AdminListening(StatesGroup):
     start = State()
+    info = State()
+    reason = State()
 
 
 class AdminEmployee(StatesGroup):

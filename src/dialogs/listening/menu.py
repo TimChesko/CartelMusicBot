@@ -1,3 +1,5 @@
+import logging
+
 from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.kbd import Cancel, Start
 from aiogram_dialog.widgets.text import Const

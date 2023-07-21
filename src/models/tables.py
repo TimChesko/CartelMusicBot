@@ -110,7 +110,7 @@ class Track(Base):
 
     track_title = Column(String)
     file_id_audio = Column(String)
-    task_state = Column(Boolean, default=False)
+    checker = Column(BigInteger)
     #  if False - task is free (no one works with it), True - task was taken by someone
 
     add_datetime = Column(DateTime, nullable=False)
