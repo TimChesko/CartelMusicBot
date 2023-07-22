@@ -19,7 +19,7 @@ async def cmd_start(msg: Message,
                     dialog_manager: DialogManager):
     user = await UserHandler(session_maker, database_logger).get_user_by_tg_id(msg.from_user.id)
     args = msg.text.split(" ")
-    if len(args) > 0:
+    if len(args) > 1:
         arg = decode_payload(args[1]).split("_")
         match arg:
             case "track", "feat", track_id_info:
