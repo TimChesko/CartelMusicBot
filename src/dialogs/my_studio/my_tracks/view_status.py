@@ -68,7 +68,7 @@ async def delete_track(_, __, manager: DialogManager):
 
 async def start_form(_, __, manager: DialogManager):
     data = {'track_id': manager.dialog_data['track_id'], }
-    await manager.start(state=TrackApprove.name, data=data)
+    await manager.start(state=TrackApprove.title, data=data)
 
 
 # UTILS
@@ -77,11 +77,10 @@ async def on_process(_, result: Any, manager: DialogManager):
     middleware_data = manager.middleware_data
     dialog_data = manager.dialog_data
     user_id = middleware_data['event_from_user'].id
-    if result[0] is True:
-        await TrackHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
-            delete_track_by_id(int(manager.dialog_data['track_id']))
-    elif len(await TrackHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
-            get_tracks_by_status(user_id, dialog_data['status'])) == 0:
+    track_handler = TrackHandler(middleware_data['session_maker'], middleware_data['database_logger'])
+    if result is not None and result[0] is True:
+        await track_handler.delete_track_by_id(int(manager.dialog_data['track_id']))
+    elif len(await track_handler.get_tracks_by_status(user_id, dialog_data['status'])) == 0:
         return await manager.done()
     return await manager.switch_to(ViewStatus.menu)
 

@@ -1,18 +1,12 @@
-import logging
 from _operator import itemgetter
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Window, Dialog, DialogManager
-from aiogram_dialog.widgets.kbd import Start, Cancel, ScrollingGroup, Select, Group, SwitchTo
+from aiogram_dialog.widgets.kbd import Cancel, ScrollingGroup, Select
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.data import config
-from src.dialogs.admin.dashboard.employee.delete import delete_window
-from src.dialogs.admin.dashboard.employee.info import info_window
-from src.dialogs.admin.dashboard.employee.privilege import privilege_window
-from src.models.employee import EmployeeHandler
 from src.models.tracks import TrackHandler
-from src.utils.fsm import AdminEmployee, AdminAddEmployee, AdminListening
+from src.utils.fsm import AdminListening
 
 
 async def on_item_selected(callback: CallbackQuery, __, manager: DialogManager, selected_item: str):

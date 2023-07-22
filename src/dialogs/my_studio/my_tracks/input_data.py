@@ -7,7 +7,7 @@ from aiogram_dialog.widgets.text import Const, Progress
 from src.utils.fsm import TrackAuthor
 
 async def save_data_message(msg: Message, _, manager: DialogManager):
-
+    pass
 
 
 dialog = Dialog(

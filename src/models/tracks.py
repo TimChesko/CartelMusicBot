@@ -1,9 +1,9 @@
 import datetime
 
-from sqlalchemy import select, update, or_, asc, and_
+from sqlalchemy import select, update, or_, asc, and_, delete
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.tables import Track, User
+from src.models.tables import Track, User, TrackInfo
 
 
 class TrackHandler:
@@ -178,4 +178,47 @@ class TrackHandler:
                 return tracks
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
+
+    async def get_tracks_by_status(self, user_id: int, status: str):
+        async with self.session_maker() as session:
+            try:
+                query = select(Track).where(and_(Track.user_id == user_id, Track.status == status))
+                result = await session.execute(query)
+                return result.scalars().all()
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при получения треков в статусу: {e}")
+                return False
+
+    async def get_track_by_id(self, track_id: int):
+        async with self.session_maker() as session:
+            try:
+                query = select(Track).where(Track.id == track_id)
+                result = await session.execute(query)
+                return result.scalar()
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
+    async def delete_track_by_id(self, track_id: int) -> bool:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(delete(Track).where(Track.id == track_id))
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при удалении трека: {e}")
+                return False
+
+    async def add_track_info(self, data: dict) -> bool:
+        async with self.session_maker() as session:
+            try:
+                new_track_info = TrackInfo(**data)
+                session.add(new_track_info)
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при добавлении нового трека: {e}")
+                await session.rollback()
                 return False
