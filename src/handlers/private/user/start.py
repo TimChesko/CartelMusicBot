@@ -20,26 +20,13 @@ router = Router()
 @router.message(CommandStart(), flags={'chat_action': 'typing'})
 async def cmd_start(msg: Message,
                     session_maker: async_sessionmaker, database_logger: BoundLoggerFilteringAtDebug,
-                    dialog_manager: DialogManager, bot: Bot):
-    user = await UserHandler(session_maker, database_logger).check_user_by_tg_id(msg.from_user.id)
-    listening_chat = config.CHATS_BACKUP[0]
-    args = msg.text.split(' ')
+                    dialog_manager: DialogManager):
+    user = await UserHandler(session_maker, database_logger).get_user_by_tg_id(msg.from_user.id)
     if not user:
         await UserHandler(session_maker, database_logger).add_new_user(msg)
-        user = await UserHandler(session_maker, database_logger).check_user_by_tg_id(msg.from_user.id)
+        user = await UserHandler(session_maker, database_logger).get_user_by_tg_id(msg.from_user.id)
     if user.nickname is None:
         await dialog_manager.start(RegNickname.nickname, mode=StartMode.RESET_STACK)
-    if len(args) == 2:
-        logging.info(args[1])
-        decode = decode_payload(args[1]).split('_')
-        logging.info(decode)
-        msg_id = await TrackHandler(session_maker, database_logger).get_task_msg_id_by_track_id(int(decode[1]))
-        await bot.edit_message_reply_markup(listening_chat, msg_id,
-                                            reply_markup=markup_answerer_name(msg.from_user.username))
-        await dialog_manager.start(state=RejectAnswer.start, mode=StartMode.RESET_STACK, data={'track_id': decode[1],
-                                                                                               'state': decode[0],
-                                                                                               'admin_id': msg.from_user.id,
-                                                                                               'msg_id': msg_id})
     elif user and user.nickname is not None:
         await msg.delete()
         await dialog_manager.start(StartMenu.start, mode=StartMode.RESET_STACK)

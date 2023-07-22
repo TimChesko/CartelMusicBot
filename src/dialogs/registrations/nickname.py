@@ -11,7 +11,7 @@ from src.models.user import UserHandler
 from src.utils.fsm import RegNickname, StartMenu
 
 
-async def get_data(dialog_manager: DialogManager, **kwargs):
+async def get_data(dialog_manager: DialogManager, **_kwargs):
     return {
         "nickname": dialog_manager.dialog_data['nickname']
     }
@@ -27,8 +27,7 @@ async def nickname_check(msg: Message, _, manager: DialogManager):
 async def on_finish(callback: CallbackQuery, _, manager: DialogManager):
     data = (await manager.load_data())['middleware_data']
     nickname = manager.dialog_data['nickname']
-    await UserHandler(data['session_maker'], data['database_logger']).set_user_nickname(
-        callback.from_user.id, nickname)
+    await UserHandler(data['session_maker'], data['database_logger']).update_nickname(callback.from_user.id, nickname)
     await PersonalDataHandler(data['session_maker'], data['database_logger']).create_row(callback.from_user.id)
     await callback.message.answer("Спасибо за регистрацию ❤️")
     await manager.start(StartMenu.start, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND)

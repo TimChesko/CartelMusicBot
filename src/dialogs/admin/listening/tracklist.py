@@ -1,6 +1,5 @@
 from _operator import itemgetter
 
-from aiogram.types import CallbackQuery
 from aiogram_dialog import Window, Dialog, DialogManager
 from aiogram_dialog.widgets.kbd import Cancel, ScrollingGroup, Select
 from aiogram_dialog.widgets.text import Const, Format
@@ -9,9 +8,8 @@ from src.models.tracks import TrackHandler
 from src.utils.fsm import AdminListening
 
 
-async def on_item_selected(callback: CallbackQuery, __, manager: DialogManager, selected_item: str):
+async def on_item_selected(_, __, manager: DialogManager, selected_item: str):
     items = eval(selected_item)
-    track_id = items[0]
     manager.dialog_data['title'] = items[1]
     # await manager.next()
 
