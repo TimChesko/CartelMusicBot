@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime
 from typing import Any
 
@@ -8,7 +7,7 @@ from aiogram.utils.deep_linking import create_deep_link
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import MessageInput, TextInput
 from aiogram_dialog.widgets.kbd import Button, Back, Row, Start, Cancel
-from aiogram_dialog.widgets.text import Const
+from aiogram_dialog.widgets.text import Const, Format
 
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.tracks import TrackHandler
@@ -44,7 +43,6 @@ async def add_author_music(_, __, manager: DialogManager):
 async def on_process(_, result: Any, manager: DialogManager):
     if result is not None:
         manager.dialog_data['track'].update(result)
-        logging.debug(manager.dialog_data['track'])
         await manager.next()
 
 
@@ -72,7 +70,6 @@ async def save_time_track(msg: Message, _, manager: DialogManager, __):
 async def save_data_callback(callback: CallbackQuery, _, manager: DialogManager):
     answer = callback.data.split("_")[-1]
     manager.dialog_data['track'].update({"explicit_lyrics": bool(answer)})
-    logging.debug(manager.dialog_data['track'])
     await manager.next()
 
 
@@ -101,14 +98,23 @@ async def finish(callback: CallbackQuery, __, manager: DialogManager):
     await manager.done()
 
 
+async def get_title(dialog_manager: DialogManager, **_kwargs):
+    middleware_data = dialog_manager.middleware_data
+    track_id = dialog_manager.dialog_data['track_id']
+    track = await TrackHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
+        get_track_by_id(int(track_id))
+    return {"title": track.track_title}
+
+
 dialog = Dialog(
     Window(
-        Const("Подтвердите название трека\n{title}"),
+        Format("Подтвердите название трека\n\n{title}"),
         Start(Const("Изменить"), id="studio_edit_title", state=StudioEdit.title),
         Row(
             Cancel(Const("Назад")),
             Button(Const("Подтвердить"), id="studio_title", on_click=add_title),
         ),
+        getter=get_title,
         state=TrackApprove.title
     ),
     Window(
