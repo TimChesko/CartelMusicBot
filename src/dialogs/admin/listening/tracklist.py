@@ -5,7 +5,7 @@ from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Window, Dialog, DialogManager
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
-from aiogram_dialog.widgets.kbd import Start, Cancel, ScrollingGroup, Select, Group, SwitchTo, Back
+from aiogram_dialog.widgets.kbd import Start, Cancel, ScrollingGroup, Select, Group, SwitchTo, Back, Next
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format
 
@@ -13,6 +13,7 @@ from src.data import config
 from src.dialogs.admin.dashboard.employee.delete import delete_window
 from src.dialogs.admin.dashboard.employee.info import info_window
 from src.dialogs.admin.dashboard.employee.privilege import privilege_window
+from src.models.approval import ApprovalHandler
 from src.models.employee import EmployeeHandler
 from src.models.tables import Track
 from src.models.tracks import TrackHandler
@@ -50,6 +51,39 @@ async def track_list_getter(dialog_manager: DialogManager, **_kwargs):
     }
 
 
+tracklist = Window(
+    Const('Список треков на прослушивание'),
+    ScrollingGroup(
+        Select(
+            Format("{item[0]}) {item[1]}"),
+            id="emp_track_list",
+            items="tracks",
+            item_id_getter=itemgetter(0, 1),
+            on_click=on_item_selected
+        ),
+        width=1,
+        height=5,
+        id='scroll_tracks_with_pager',
+    ),
+    Cancel(),
+    state=AdminListening.start,
+    getter=track_list_getter
+)
+
+
+async def cancel_task(_, __, manager: DialogManager):
+    data = manager.middleware_data
+    track_id = manager.dialog_data['getter_info']['track_id']
+    await TrackHandler(data['session_maker'], data['database_logger']).update_checker(track_id, None)
+
+
+async def approve(callback: CallbackQuery, btn: Back, manager: DialogManager):
+    data = manager.middleware_data
+    track_id = manager.dialog_data['getter_info']['track_id']
+    await ApprovalHandler(data['session_maker'], data['database_logger']).add_new_approval(callback.from_user.id,
+                                                                                           track_id)
+
+
 async def info_getter(dialog_manager: DialogManager, **_kwargs):
     audio = MediaAttachment(ContentType.AUDIO, file_id=MediaId(dialog_manager.dialog_data['file']))
     return {
@@ -58,38 +92,31 @@ async def info_getter(dialog_manager: DialogManager, **_kwargs):
     }
 
 
-async def cancel_task(callback: CallbackQuery, _, manager: DialogManager):
-    data = manager.middleware_data
-    track_id = manager.dialog_data['getter_info']['track_id']
-    await TrackHandler(data['session_maker'], data['database_logger']).update_checker(track_id, None)
-
+info = Window(
+    Format('Уникальный номер: {track_id}'),
+    Format('Название: {title}'),
+    Format('Артист: {nickname} | {username}'),
+    DynamicMedia('audio'),
+    Back(Const('Одобрить'),
+         on_click=approve,
+         id='approve'),
+    Back(Const('Одобрить промо'),
+         on_click=approve,
+         id='approve_promo'),
+    Next(Const('Отклонить шаблоны'),
+         on_click=approve,
+         id='reject'),
+    SwitchTo(Const('Свой ответ'),
+             on_click=approve,
+             id='custom_reject',
+             state=AdminListening.custom),
+    Back(Const('Назад'),
+         on_click=cancel_task),
+    state=AdminListening.info,
+    getter=info_getter
+)
 
 tracks = Dialog(
-    Window(
-        Const('Список треков на прослушивание'),
-        ScrollingGroup(
-            Select(
-                Format("{item[0]}) {item[1]}"),
-                id="emp_track_list",
-                items="tracks",
-                item_id_getter=itemgetter(0, 1),
-                on_click=on_item_selected
-            ),
-            width=1,
-            height=5,
-            id='scroll_tracks_with_pager',
-        ),
-        Cancel(),
-        state=AdminListening.start,
-        getter=track_list_getter
-    ),
-    Window(
-        Format('Уникальный номер: {track_id}'),
-        Format('Название: {title}'),
-        Format('Артист: {nickname} | {username}'),
-        DynamicMedia('audio'),
-        Back(Const('Назад'), on_click=cancel_task),
-        state=AdminListening.info,
-        getter=info_getter
-    )
+    tracklist,
+    info
 )

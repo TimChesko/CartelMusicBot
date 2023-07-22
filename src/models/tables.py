@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 
 from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger, Enum
-from sqlalchemy.orm import DeclarativeBase, relationship, declared_attr, as_declarative
+from sqlalchemy.orm import relationship, declared_attr, as_declarative
 
 
 @as_declarative()
@@ -103,15 +103,39 @@ class Album(Base):
     user = relationship("User", back_populates="albums")
 
 
+class Employee(Base):
+    """
+        regs - the moderator has not registered yet
+        works - the moderator has been registered
+        fired - the moderator has been fired (уволен)
+    """
+
+    tg_id = Column(BigInteger, ForeignKey(User.tg_id), primary_key=True, nullable=False)
+    first_name = Column(String)
+    surname = Column(String)
+    middle_name = Column(String)
+
+    privilege = Column(Enum('manager', 'moderator', 'curator', 'admin', name='privilege_status'), default="user")
+    state = Column(Enum('regs', 'works', 'fired', name='employee_status'), default='regs')
+    add_date = Column(DateTime, nullable=False)
+    fired_date = Column(DateTime)
+    recovery_date = Column(DateTime)
+
+    track = relationship("Track", back_populates='employee', uselist=True)
+    user = relationship("User", back_populates="employee")
+    track_approvement = relationship('TrackApprovement', back_populates='employee')
+
+
 class Track(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey(User.tg_id), nullable=False)  # Ссылка на таблицу users
     album_id = Column(Integer, ForeignKey(Album.id))  # новая ссылка на альбом
 
-    track_title = Column(String)
-    file_id_audio = Column(String)
+    track_title = Column(String, nullable=False)
+    file_id_audio = Column(String, nullable=False)
     checker = Column(BigInteger)
     #  if False - task is free (no one works with it), True - task was taken by someone
+    id_who_approve = Column(BigInteger, ForeignKey(Employee.tg_id))
 
     add_datetime = Column(DateTime, nullable=False)
     sort_datetime = Column(DateTime, nullable=False)
@@ -121,11 +145,11 @@ class Track(Base):
                          'aggregated', name='track_status'), default='process')
 
     # Определение связи с TrackInfo
+    employee = relationship("Employee",back_populates='track')
     track_info = relationship("TrackInfo", uselist=False, back_populates="track")
     album = relationship('Album', back_populates='tracks')  # новое отношение с альбомом
     user = relationship("User", back_populates="tracks")
-    track_rejection = relationship("TrackRejection", back_populates='track')
-    track_approval = relationship("TrackApproval", back_populates='track')
+    track_approvement = relationship('TrackApprovement', back_populates='track')
 
 
 class TrackInfo(Base):
@@ -153,46 +177,23 @@ class TrackInfo(Base):
     track = relationship('Track', back_populates='track_info', uselist=False)
 
 
-class Employee(Base):
-    """
-        regs - the moderator has not registered yet
-        works - the moderator has been registered
-        fired - the moderator has been fired (уволен)
-    """
+class ListeningTemplates(Base):
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    type = Column(Enum('reject', 'approve', 'approve_promo', name='template_type'), nullable=False)
+    name = Column(String, nullable=False)
+    content = Column(String, nullable=False)
 
-    tg_id = Column(BigInteger, ForeignKey(User.tg_id), primary_key=True, nullable=False)
-
-    first_name = Column(String)
-    surname = Column(String)
-    middle_name = Column(String)
-
-    privilege = Column(Enum('manager', 'moderator', 'curator', 'admin', name='privilege_status'), default="user")
-    state = Column(Enum('regs', 'works', 'fired', name='employee_status'), default='regs')
-    add_date = Column(DateTime, nullable=False)
-    fired_date = Column(DateTime)
-    recovery_date = Column(DateTime)
-
-    user = relationship("User", back_populates="employee")
-    track_rejection = relationship("TrackRejection", back_populates='employee')
-    track_approval = relationship("TrackApproval", back_populates='employee')
+    track_approvement = relationship('TrackApprovement', back_populates='template', uselist=False)
 
 
-class TrackRejection(Base):
+class TrackApprovement(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     track_id = Column(Integer, ForeignKey(Track.id), nullable=False)
-    admin_id = Column(Integer, ForeignKey(Employee.tg_id), nullable=False)
-    rejection_datetime = Column(DateTime, nullable=False)
+    employee_id = Column(BigInteger, ForeignKey(Employee.tg_id), nullable=False)
+    datetime = Column(DateTime, nullable=False)
+    template_id = Column(Integer, ForeignKey(ListeningTemplates.id))
     reason = Column(String)
 
-    track = relationship('Track', back_populates='track_rejection')
-    employee = relationship('Employee', back_populates='track_rejection')
-
-
-class TrackApproval(Base):
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    track_id = Column(Integer, ForeignKey(Track.id), nullable=False)
-    admin_id = Column(Integer, ForeignKey(Employee.tg_id), nullable=False)
-    approval_datetime = Column(DateTime, nullable=False)
-
-    track = relationship('Track', back_populates='track_approval')
-    employee = relationship('Employee', back_populates='track_approval')
+    track = relationship('Track', back_populates='track_approvement')
+    employee = relationship('Employee', back_populates='track_approvement')
+    template = relationship('ListeningTemplates', back_populates='track_approvement', uselist=False)
