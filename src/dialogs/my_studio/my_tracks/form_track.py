@@ -4,6 +4,7 @@ from typing import Any
 
 from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message
+from aiogram.utils.deep_linking import create_deep_link
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import MessageInput, TextInput
 from aiogram_dialog.widgets.kbd import Button, Back, Row, Start, Cancel
@@ -84,18 +85,20 @@ async def save_data_feat(callback: CallbackQuery, _, manager: DialogManager):
 async def finish(callback: CallbackQuery, __, manager: DialogManager):
     data = manager.dialog_data['track']
     middleware_data = manager.middleware_data
-    await TrackHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
+    track_id_info = await TrackHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
         add_track_info(data)
     if manager.dialog_data['feat']:
-        await callback.message.answer("Данные занесены в базу данных. Чтобы отправить их на модерацию, "
-                                      "пригласите по данным ссылкам участников трека:\n"
-                                      "Автор текста: link\n"
-                                      "Автор бита: link\n"
-                                      "С кем фит: link")
+        link = create_deep_link("DurakTonBot",
+                                link_type="start",
+                                payload=f"track_feat_{track_id_info}",
+                                encode=True)
+        await callback.message.answer("Данные занесены в базу данных. Чтобы они отправились на модерацию, "
+                                      "пригласите по данной ссылке участника фита.\n"
+                                      f"Ссылка: {link}")
     else:
         await callback.message.answer("Данные отправлены на модерацию")
-    # manager.show_mode=ShowMode.SEND
-    # await manager.done()
+    manager.show_mode = ShowMode.SEND
+    await manager.done()
 
 
 dialog = Dialog(
@@ -161,9 +164,6 @@ dialog = Dialog(
         Back(Const("Назад")),
         state=TrackApprove.finish
     ),
-    # TODO заполнение промо
-    # TODO если фит скинуть ссылку для юзера с уточнением, что тот должен пройти регистрацию
-    # TODO отправить на модерацию, с ожиданием прихода автора фита
     on_process_result=on_process,
     on_start=on_start
 )

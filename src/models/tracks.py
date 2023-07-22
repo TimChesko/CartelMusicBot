@@ -158,11 +158,10 @@ class TrackHandler:
     async def update_edited_track(self, track_id: int, file_id_audio: int) -> bool:
         async with self.session_maker() as session:
             try:
-                await session.execute(
-                    update(Track).where(Track.id == track_id).values(file_id_audio=file_id_audio,
-                                                                     sort_datetime=datetime.datetime.now(),
-                                                                     status='process')
-                )
+                query = update(Track).where(Track.id == track_id).values(file_id_audio=file_id_audio,
+                                                                         sort_datetime=datetime.datetime.now(),
+                                                                         status='process')
+                await session.execute(query)
                 await session.commit()
                 return True
             except SQLAlchemyError as e:
@@ -179,7 +178,6 @@ class TrackHandler:
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
-
 
     async def get_tracks_by_status(self, user_id: int, status: str):
         async with self.session_maker() as session:
@@ -211,14 +209,33 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при удалении трека: {e}")
                 return False
 
-    async def add_track_info(self, data: dict) -> bool:
+    async def add_track_info(self, data: dict):
         async with self.session_maker() as session:
             try:
                 new_track_info = TrackInfo(**data)
                 session.add(new_track_info)
                 await session.commit()
-                return True
+                return new_track_info.id
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при добавлении нового трека: {e}")
+                await session.rollback()
+                return False
+
+    async def update_track_info_feat(self, track_id: int, user_id: int) -> bool:
+        async with self.session_maker() as session:
+            try:
+                # Обновляем только те строки, где feat_tg_id is None
+                query = (
+                    update(TrackInfo)
+                    .where(TrackInfo.id == track_id, TrackInfo.feat_tg_id.is_(None))
+                    .values(feat_tg_id=str(user_id))
+                )
+                result = await session.execute(query)
+                await session.commit()
+
+                # Если была обновлена хотя бы одна строка, возвращаем True
+                return result.rowcount > 0
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при обновлении информации о треке: {e}")
                 await session.rollback()
                 return False
