@@ -1,5 +1,5 @@
 from aiogram.types import Message
-from sqlalchemy import update
+from sqlalchemy import update, select
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.models.tables import User
@@ -14,7 +14,8 @@ class UserHandler:
     async def get_user_by_tg_id(self, tg_id: int):
         async with self.session_maker() as session:
             try:
-                user = await session.get(User, tg_id)
+                query = select(User).where(User.tg_id == tg_id)
+                user = await session.execute(query)
                 return user.scalar_one_or_none()
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
