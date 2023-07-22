@@ -6,9 +6,10 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.utils.deep_linking import create_deep_link
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import MessageInput, TextInput
-from aiogram_dialog.widgets.kbd import Button, Back, Row, Start, Cancel
+from aiogram_dialog.widgets.kbd import Button, Row, Start
 from aiogram_dialog.widgets.text import Const, Format
 
+from src.dialogs.utils.buttons import BTN_BACK, BTN_CANCEL_BACK
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.tracks import TrackHandler
 from src.utils.fsm import TrackApprove, StudioEdit
@@ -81,6 +82,10 @@ async def save_data_feat(callback: CallbackQuery, _, manager: DialogManager):
 
 async def finish(callback: CallbackQuery, __, manager: DialogManager):
     data = manager.dialog_data['track']
+    if manager.dialog_data['feat']:
+        data.update({"status": "wait_feat"})
+    else:
+        data.update({"status": "process"})
     middleware_data = manager.middleware_data
     track_id_info = await TrackHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
         add_track_info(data)
@@ -111,7 +116,7 @@ dialog = Dialog(
         Format("Подтвердите название трека\n\n{title}"),
         Start(Const("Изменить"), id="studio_edit_title", state=StudioEdit.title),
         Row(
-            Cancel(Const("Назад")),
+            BTN_CANCEL_BACK,
             Button(Const("Подтвердить"), id="studio_title", on_click=add_title),
         ),
         getter=get_title,
@@ -123,7 +128,7 @@ dialog = Dialog(
             func=save_document,
             content_types=ContentType.DOCUMENT
         ),
-        Back(Const("Назад")),
+        BTN_BACK,
         state=TrackApprove.text
     ),
     Window(
@@ -132,7 +137,7 @@ dialog = Dialog(
             Start(Const("Другой человек"), id="studio_text_other", state=StudioEdit.author_text),
             Button(Const("Я и есть автор"), id="studio_text_author", on_click=add_author_text),
         ),
-        Back(Const("Назад")),
+        BTN_BACK,
         state=TrackApprove.author_text
     ),
     Window(
@@ -141,13 +146,16 @@ dialog = Dialog(
             Start(Const("Другой человек"), id="studio_music_other", state=StudioEdit.author_beat),
             Button(Const("Я и есть автор"), id="studio_music_author", on_click=add_author_music),
         ),
-        Back(Const("Назад")),
+        BTN_BACK,
         state=TrackApprove.author_music
     ),
     Window(
         Const("Тип трека - фит ?"),
-        Button(Const("Да"), id="track_feat_true", on_click=save_data_feat),
-        Button(Const("Это не фит"), id="track_feat_false", on_click=save_data_feat),
+        Row(
+            Start(Const("Да"), id="track_feat_true", state=StudioEdit.feat_percent),
+            Button(Const("Это не фит"), id="track_feat_false", on_click=save_data_feat),
+        ),
+        BTN_BACK,
         state=TrackApprove.feat
     ),
     Window(
@@ -156,18 +164,22 @@ dialog = Dialog(
             id="track_time",
             on_success=save_time_track,
         ),
+        BTN_BACK,
         state=TrackApprove.time_track
     ),
     Window(
         Const("Наличие нецензурной лексики"),
-        Button(Const("Не имеется"), id="track_profanity_false", on_click=save_data_callback),
-        Button(Const("Имеется"), id="track_profanity_true", on_click=save_data_callback),
+        Row(
+            Button(Const("Не имеется"), id="track_profanity_false", on_click=save_data_callback),
+            Button(Const("Имеется"), id="track_profanity_true", on_click=save_data_callback),
+        ),
+        BTN_BACK,
         state=TrackApprove.profanity
     ),
     Window(
         Const("Отправить на модерацию ?"),
         Button(Const("Да"), id="track_finish_true", on_click=finish),
-        Back(Const("Назад")),
+        BTN_BACK,
         state=TrackApprove.finish
     ),
     on_process_result=on_process,

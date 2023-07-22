@@ -195,4 +195,5 @@ class StudioEdit(StatesGroup):
     author_text_percent = State()
     author_beat = State()
     author_beat_percent = State()
+    feat_percent = State()
     confirm = State()

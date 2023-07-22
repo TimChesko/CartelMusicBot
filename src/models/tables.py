@@ -154,6 +154,10 @@ class TrackInfo(Base):
     tiktok_time = Column(String)
     explicit_lyrics = Column(Boolean)
 
+    status = Column(Enum("wait_feat", "wait_docs_feat", "process", "approve", "reject",
+                         name='track_info_status'))
+
+    id_who_check = Column(String)
     # Определение связи с Track
     track = relationship('Track', back_populates='track_info', uselist=False)
 

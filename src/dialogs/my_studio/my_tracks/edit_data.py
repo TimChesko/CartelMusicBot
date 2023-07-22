@@ -44,6 +44,11 @@ async def save_percentage_beat(msg: Message, _, manager: DialogManager, __):
     await manager.done(manager.dialog_data['result'])
 
 
+async def save_percentage_feat(msg: Message, _, manager: DialogManager, __):
+    manager.dialog_data['result'].update({"feat_percent": int(msg.text)})
+    await manager.done(manager.dialog_data['result'])
+
+
 dialog = Dialog(
     Window(
         Const("Пришлите новое название для трека"),
@@ -84,12 +89,22 @@ dialog = Dialog(
     Window(
         Const("Какой процент от трека берет автор бита ?\nЦелое значение"),
         TextInput(
-            id="input_edit_percentage",
+            id="input_edit_percentage_beat",
             type_factory=int,
             on_success=save_percentage_beat
         ),
         Back(Const("Назад")),
         state=StudioEdit.author_beat_percent
+    ),
+    Window(
+        Const("Какой процент от трека берет участник фита ?\nЦелое значение"),
+        TextInput(
+            id="input_edit_percentage_feat",
+            type_factory=int,
+            on_success=save_percentage_feat
+        ),
+        Back(Const("Назад")),
+        state=StudioEdit.feat_percent
     ),
     Window(
         Const("Подтвердить внесенные изменения ?"),
