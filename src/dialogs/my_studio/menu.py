@@ -1,6 +1,6 @@
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager
-from aiogram_dialog.widgets.kbd import SwitchTo, Button, Back
+from aiogram_dialog.widgets.kbd import SwitchTo, Button
 from aiogram_dialog.widgets.text import Const
 
 from src.dialogs.utils.buttons import BTN_BACK, BTN_CANCEL_BACK
