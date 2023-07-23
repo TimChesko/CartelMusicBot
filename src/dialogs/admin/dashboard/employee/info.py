@@ -1,6 +1,6 @@
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Window, DialogManager
-from aiogram_dialog.widgets.kbd import SwitchTo, Back, Button, Url
+from aiogram_dialog.widgets.kbd import SwitchTo, Back, Url
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.models.employee import EmployeeHandler

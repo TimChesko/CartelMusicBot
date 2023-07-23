@@ -26,10 +26,26 @@ class AdminMenu(StatesGroup):
     start = State()
 
 
+class AdminTemplates(StatesGroup):
+    start = State()
+
+
+class TemplatesListening(StatesGroup):
+    start = State()
+    info = State()
+    content = State()
+    reject = State()
+    confirm = State()
+    name = State()
+    confirm_reject = State()
+
+
 class AdminListening(StatesGroup):
     start = State()
     info = State()
-    reason = State()
+    templates = State()
+    custom = State()
+    confirm = State()
 
 
 class AdminEmployee(StatesGroup):

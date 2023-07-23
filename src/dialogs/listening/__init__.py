@@ -1,6 +1,6 @@
 from aiogram import Router
 
-from src.dialogs.listening import edit, new, menu, moderator
+from src.dialogs.listening import edit, new, menu
 
 router = Router()
 

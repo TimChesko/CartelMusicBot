@@ -155,24 +155,33 @@ class Track(Base):
 class TrackInfo(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
 
-    track_id = Column(Integer, ForeignKey(Track.id))  # Ссылка на таблицу tracks
+    track_id = Column(Integer, ForeignKey(Track.id))
     title = Column(String)
+
+    # Text
     text_file_id = Column(String)
+    words_status = Column(Boolean, default=False)
+    words_alienation = Column(String)
+    words_author_percent = Column(Integer)
+
+    # Beat
+    beat_status = Column(Boolean, default=False)
+    beat_alienation = Column(String)
+    beatmaker_percent = Column(Integer)
+
+    # Feat
+    feat_status = Column(Boolean, default=False)
+    feat_tg_id = Column(String)
+    feat_percent = Column(Integer)
+
+    # Utils
     tiktok_time = Column(String)
     explicit_lyrics = Column(Boolean)
 
-    beat_alienation = Column(String)  # Отчуждение на бит
-    words_alienation = Column(String)  # Отчуждение на слова
+    status = Column(Enum("wait_feat", "wait_docs_feat", "process", "approve", "reject",
+                         name='track_info_status'))
 
-    beatmaker_percent = Column(Integer)
-    words_author_percent = Column(Integer)
-    feat_percent = Column(Integer)
-
-    # if False - artist author of beat/words and without feat
-    beat_status = Column(Boolean, default=False)
-    words_status = Column(Boolean, default=False)
-    feat_status = Column(Boolean, default=False)
-
+    id_who_check = Column(String)
     # Определение связи с Track
     track = relationship('Track', back_populates='track_info', uselist=False)
 

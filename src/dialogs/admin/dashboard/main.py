@@ -2,7 +2,7 @@ from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.kbd import Start, Cancel
 from aiogram_dialog.widgets.text import Const
 
-from src.utils.fsm import AdminDashboard, AdminStatistic, AdminEmployee
+from src.utils.fsm import AdminDashboard, AdminStatistic, AdminEmployee, AdminTemplates
 
 dashboard = Dialog(
     Window(
@@ -15,6 +15,9 @@ dashboard = Dialog(
         Start(Const('Статистика'),
               id='admin_stats',
               state=AdminStatistic.start),
+        Start(Const('Шаблоны'),
+              id='admin_templates',
+              state=AdminTemplates.start),
         Cancel(Const('Главное меню')),
         state=AdminDashboard.start
     ),

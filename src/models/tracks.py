@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import select, update, or_, asc, and_, Null
+from sqlalchemy import select, update, or_, asc, and_
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.models.tables import Track, User
@@ -188,6 +188,22 @@ class TrackHandler:
                 )
                 await session.commit()
                 return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
+                return False
+
+    async def update_approve(self, track_id, employee_id) -> bool:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(
+                    update(Track).where(Track.id == track_id).values(id_who_approve=employee_id,
+                                                                     status='approve')
+                )
+                query = select(Track.user_id).where(Track.id == track_id)
+                result = await session.execute(query)
+                user_id = result.scalar_one_or_none()
+                await session.commit()
+                return user_id
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
