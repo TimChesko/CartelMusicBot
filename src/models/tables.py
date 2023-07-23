@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 
 from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger, Enum
-from sqlalchemy.orm import relationship, declared_attr, as_declarative
+from sqlalchemy.orm import relationship, declared_attr, as_declarative, column_property
 
 
 @as_declarative()
@@ -26,7 +26,8 @@ class User(Base):
     last_active = Column(DateTime, default=datetime.now())
 
     # uselist for one-to-one, one user have only one personal data
-    personal_data = relationship("PersonalData", uselist=False, back_populates="user")
+    personal_data = relationship("PersonalData", backref="user", uselist=False)
+
     # chats show how to realize one-to-many
     tracks = relationship("Track", back_populates="user")  # Добавить связь с Track
     albums = relationship("Album", back_populates="user")
@@ -51,7 +52,9 @@ class PersonalData(Base):
     date_of_birth = Column(DateTime)  # дата рождения
     place_of_birth = Column(String)  # место рождения
     registration_address = Column(String)  # адрес регистрации
-    all_passport_data = Column(Integer, default=0)  # 0 - нет, 1 - в обработке, 2 - отклонены, 3 - проверены
+    photo_id_first = Column(String)  # фотография первой страницы паспорта
+    photo_id_second = Column(String)  # фотография второй страницы паспорта
+    all_passport_data = Column(Enum("process", "reject", "approve", name="passport_status"))
 
     # Банковские данные
     recipient = Column(String)  # Получатель
@@ -61,12 +64,25 @@ class PersonalData(Base):
     correct_code = Column(String)  # Корр. Счет
     inn_code = Column(String)  # ИНН
     kpp_code = Column(String)  # КПП
-    all_bank_data = Column(Integer, default=0)  # 0 - нет, 1 - в обработке, 2 - отклонены, 3 - проверены
+    all_bank_data = Column(Enum("process", "reject", "approve", name="bank_status"))
+    moderated = Column(Boolean, default=False)
 
     social = relationship("Social", back_populates="personal_data", uselist=False)
+    comments = relationship("PersonalDataComments", back_populates="personal_data", uselist=False)
 
-    moderated = Column(Boolean, default=False)
-    user = relationship("User", back_populates="personal_data")
+    @property
+    def check_comments(self):
+        return len(self.comments) > 0
+
+
+class PersonalDataComments(Base):
+    id = Column(Integer, primary_key=True)
+    tg_id = Column(BigInteger, ForeignKey(PersonalData.tg_id), nullable=False)
+    column_name = Column(String, nullable=False)
+    comment = Column(String, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+    personal_data = relationship("PersonalData", back_populates="comments")
 
 
 class Social(Base):
@@ -145,7 +161,7 @@ class Track(Base):
                          'aggregated', name='track_status'), default='process')
 
     # Определение связи с TrackInfo
-    employee = relationship("Employee",back_populates='track')
+    employee = relationship("Employee", back_populates='track')
     track_info = relationship("TrackInfo", uselist=False, back_populates="track")
     album = relationship('Album', back_populates='tracks')  # новое отношение с альбомом
     user = relationship("User", back_populates="tracks")

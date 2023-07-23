@@ -2,7 +2,7 @@ import datetime
 from operator import itemgetter
 
 from aiogram_dialog import Dialog, Window, DialogManager
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Row, Button
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Row, Button, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK
@@ -28,6 +28,8 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
 
 
 async def on_item_selected(_, __, manager: DialogManager, selected_item: str):
+    data = manager.middleware_data
+    answer = await PersonalDataHandler(data['session_maker'], data['database_logger']).passport_take_task()
     manager.dialog_data['selected_item'] = selected_item
     await manager.switch_to(AdminCheckPassport.view)
 
@@ -53,7 +55,7 @@ async def get_passport(dialog_manager: DialogManager, **_kwargs):
 
 dialog = Dialog(
     Window(
-        Const("Список документов на проверку"),
+        Const("Список паспортных данных на проверку"),
         ScrollingGroup(
             Select(
                 Format("{item[1]}"),
@@ -74,17 +76,11 @@ dialog = Dialog(
     Window(
         Format("{text}"),
         Row(
-            Button(Const("Отклонить"), id="passport_data_reject", on_click=...),
+            # SwitchTo(Const("Отклонить")),
             Button(Const("Принять"), id="passport_data_approve", on_click=...)
         ),
         BTN_BACK,
         getter=get_passport,
         state=AdminCheckPassport.view
     ),
-    Window(
-        Format("{text}\n\nВыберите тип отклонения:"),
-        Row(
-            Button("")
-        )
-    )
 )

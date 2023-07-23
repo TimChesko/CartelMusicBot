@@ -143,7 +143,8 @@ class Profile(StatesGroup):
 class Passport(StatesGroup):
     add_data = State()
     edit_data = State()
-
+    passport_first_img = State()
+    passport_second_img = State()
     confirm = State()
 
 

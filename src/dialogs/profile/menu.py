@@ -13,26 +13,26 @@ from src.utils.fsm import Profile, Passport, Bank, ProfileEdit, Social
 async def get_data(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     user_id = data['event_from_user'].id
-    passport_id, bank_id = await PersonalDataHandler(data['session_maker'], data['database_logger']).\
+    passport_status, bank_status = await PersonalDataHandler(data['session_maker'], data['database_logger']).\
         get_all_data_status(user_id)
     user = await UserHandler(data['session_maker'], data['database_logger']).get_user_by_tg_id(user_id)
 
     status_dict = {
-        1: "🟡 на проверке",
-        2: "⛔️ отклонены",
-        3: "✅ проверены",
+        "process": "🟡 на проверке",
+        "reject": "⛔️ отклонены",
+        "approve": "✅ проверены",
     }
-    passport = status_dict.get(passport_id, "не имеются")
-    bank = status_dict.get(bank_id, "не имеются")
+    passport = status_dict.get(passport_status, "не имеются")
+    bank = status_dict.get(bank_status, "не имеются")
 
     return {
         "nickname": user.nickname,
         "status_passport": passport,
         "status_bank": bank,
-        "edit_passport": passport_id == 2,
-        "add_passport": passport_id == 0,
-        "edit_bank": bank_id == 2,
-        "add_bank": bank_id == 0
+        "edit_passport": passport_status == "reject",
+        "add_passport": passport_status is None,
+        "edit_bank": bank_status == "reject",
+        "add_bank": bank_status is None
     }
 
 

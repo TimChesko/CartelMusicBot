@@ -1,5 +1,7 @@
-from aiogram.types import CallbackQuery
+from aiogram.enums import ContentType
+from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Dialog, DialogManager, ShowMode, Window
+from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, Cancel, Back
 from aiogram_dialog.widgets.text import Const
 
@@ -15,14 +17,22 @@ async def create_form(_, __, manager: DialogManager):
     await InputForm(manager).start_dialog(buttons, task_list)
 
 
+async def save_first_img(msg: Message, _, manager: DialogManager):
+    manager.dialog_data['save_input']['photo_id_first'] = msg.chat
+    await manager.next()
+
+
+async def save_second_img(msg: Message, _, manager: DialogManager):
+    manager.dialog_data['save_input']['photo_id_second'] = msg.chat
+    await manager.next()
+
+
 async def on_finally_passport(callback: CallbackQuery, _, manager: DialogManager):
     middleware_data = manager.middleware_data
     user_id = middleware_data['event_from_user'].id
     data = await convert_data_types(manager.dialog_data['save_input'])
-
     await PersonalDataHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
         update_all_personal_data(user_id, "passport", data)
-
     await callback.message.answer("Вы успешно внесли данные о паспорте !\n"
                                   "Чтобы обезопасить себя, нажмите на 3 точки в правом углу, "
                                   "затем clear history/очистить историю. Чтобы удалить все внесенные данные из чата.")
@@ -43,6 +53,22 @@ add_full_data = Dialog(
         ),
         Cancel(Const("Вернуться в профиль")),
         state=Passport.add_data
+    ),
+    Window(
+        Const("Пришлите фотографию 1 страницы паспорта"),
+        MessageInput(
+            func=save_first_img,
+            content_types=ContentType.PHOTO
+        ),
+        state=Passport.passport_first_img
+    ),
+    Window(
+        Const("Пришлите фотографию 2 страницы паспорта"),
+        MessageInput(
+            func=save_second_img,
+            content_types=ContentType.PHOTO
+        ),
+        state=Passport.passport_second_img
     ),
     Window(
         Const("Проверьте и подтвердите правильность всех данных."
