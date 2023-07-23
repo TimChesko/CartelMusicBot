@@ -15,8 +15,7 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
     user_id = data['event_from_user'].id
     passport_id, bank_id = await PersonalDataHandler(data['session_maker'], data['database_logger']).\
         get_all_data_status(user_id)
-    nickname = await UserHandler(data['session_maker'], data['database_logger']).\
-        get_user_nickname_by_tg_id(user_id)
+    user = await UserHandler(data['session_maker'], data['database_logger']).get_user_by_tg_id(user_id)
 
     status_dict = {
         1: "🟡 на проверке",
@@ -27,7 +26,7 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
     bank = status_dict.get(bank_id, "не имеются")
 
     return {
-        "nickname": nickname,
+        "nickname": user.nickname,
         "status_passport": passport,
         "status_bank": bank,
         "edit_passport": passport_id == 2,

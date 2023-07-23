@@ -180,10 +180,37 @@ class DialogInput(StatesGroup):
 
 class MyStudio(StatesGroup):
     menu = State()
-
     my_tracks = State()
-    public = State()
 
 
 class ViewStatus(StatesGroup):
     menu = State()
+    track = State()
+    accept = State()
+
+
+class TrackApprove(StatesGroup):
+    title = State()
+    text = State()
+    author_music = State()
+    author_text = State()
+    time_track = State()
+    profanity = State()
+    feat = State()
+    finish = State()
+
+
+class TrackAuthor(StatesGroup):
+    type_agreement = State()
+    percentage = State()
+
+
+class StudioEdit(StatesGroup):
+    title = State()
+    text = State()
+    author_text = State()
+    author_text_percent = State()
+    author_beat = State()
+    author_beat_percent = State()
+    feat_percent = State()
+    confirm = State()

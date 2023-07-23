@@ -66,7 +66,6 @@ async def on_startup_polling(dispatcher: Dispatcher, bot: Bot) -> None:
 
 
 async def on_shutdown_polling(dispatcher: Dispatcher, bot: Bot) -> None:
-    await dispatcher['session_maker'].close()
     await notify_admins(dispatcher, "Бот выключен")
     await bot.session.close()
     dispatcher["aiogram_logger"].info("Stopping polling")

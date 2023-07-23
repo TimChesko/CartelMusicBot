@@ -14,9 +14,9 @@ from src.utils.fsm import Social
 async def get_data(dialog_manager: DialogManager, **_kwargs):
     middle = dialog_manager.middleware_data
     user_id = middle['event_from_user'].id
-    list = await PersonalDataHandler(middle['session_maker'], middle['database_logger']).get_social_data(user_id)
+    social_list = await PersonalDataHandler(middle['session_maker'], middle['database_logger']).get_social_data(user_id)
     return {
-        "social_list": list
+        "social_list": social_list
     }
 
 

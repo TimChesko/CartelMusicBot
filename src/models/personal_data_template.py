@@ -10,7 +10,7 @@ class PersonalDataTemplateHandler:
         self.session_maker = session_maker
         self.logger = logger
 
-    async def get_template_by_id(self, template_id: int) -> PersonalDataTemplate:
+    async def get_template_by_id(self, template_id: int) -> PersonalDataTemplate | None:
         async with self.session_maker() as session:
             try:
                 query = select(PersonalDataTemplate).where(PersonalDataTemplate.id == template_id)
@@ -21,7 +21,7 @@ class PersonalDataTemplateHandler:
                 self.logger.error(f"Error occurred during query execution: {e}")
                 return None
 
-    async def get_all_templates(self) -> list[PersonalDataTemplate]:
+    async def get_all_templates(self) -> list[PersonalDataTemplate] | None:
         async with self.session_maker() as session:
             try:
                 query = select(PersonalDataTemplate)
@@ -32,7 +32,7 @@ class PersonalDataTemplateHandler:
                 self.logger.error(f"Error occurred during query execution: {e}")
                 return None
 
-    async def get_all_args_by_header_data(self, header_data: str) -> list[PersonalDataTemplate]:
+    async def get_all_args_by_header_data(self, header_data: str) -> list[PersonalDataTemplate] | None:
         async with self.session_maker() as session:
             try:
                 query = select(
