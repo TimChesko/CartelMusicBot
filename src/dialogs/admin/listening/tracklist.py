@@ -5,7 +5,7 @@ from aiogram_dialog import Window, Dialog, DialogManager
 from aiogram_dialog.widgets.kbd import Cancel, ScrollingGroup, Select
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.dialogs.admin.listening.on_track import info_window
+from src.dialogs.admin.listening.on_track import info_window, reject_templates
 from src.models.tracks import TrackHandler
 from src.utils.fsm import AdminListening
 
@@ -24,6 +24,7 @@ async def on_item_selected(callback: CallbackQuery, __, manager: DialogManager, 
         local['getter_info'] = {
             'track_id': track_id,
             'title': items[1],
+            'user_id': user.tg_id,
             'nickname': user.nickname,
             'username': '@' + user.tg_username if user.tg_username is not None else user.tg_id
         }
@@ -61,5 +62,6 @@ tracks = Dialog(
         state=AdminListening.start,
         getter=track_list_getter
     ),
-    info_window
+    info_window,
+    reject_templates
 )

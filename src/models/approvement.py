@@ -15,13 +15,25 @@ class ApprovementHandler:
     async def add_approve(self, employee_id: int, track_id: int, status: str = 'approve') -> bool:
         async with self.session_maker() as session:
             try:
-                new_approval = TrackApprovement(track_id=track_id,
-                                                employee_id=employee_id,
-                                                datetime=datetime.datetime.now())
-                session.add(new_approval)
                 await session.execute(
-                    update(Track).where(Track.id == track_id).values(status=status)
+                    update(Track).where(Track.id == track_id).values(status=status,
+                                                                     id_who_approve=employee_id)
                 )
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при добавлении нового пользователя: %s", e)
+                await session.rollback()
+                return False
+
+    async def add_reject(self, employee_id: int, track_id: int, template_id: int) -> bool:
+        async with self.session_maker() as session:
+            try:
+                new_rejection = TrackApprovement(track_id=track_id,
+                                                 employee_id=employee_id,
+                                                 datetime=datetime.datetime.now(),
+                                                 template_id=template_id)
+                session.add(new_rejection)
                 await session.commit()
                 return True
             except SQLAlchemyError as e:

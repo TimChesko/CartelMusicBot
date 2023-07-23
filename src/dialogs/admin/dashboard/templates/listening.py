@@ -12,6 +12,38 @@ from src.models.listening_templates import ListeningTemplatesHandler
 from src.utils.fsm import TemplatesListening
 
 
+async def add_content(message: Message, _, manager: DialogManager):
+    data = manager.middleware_data
+    await ListeningTemplatesHandler(data['session_maker'], data['database_logger']).add_reject(
+        manager.dialog_data['new_name'],
+        message.text)
+    await message.delete()
+    await message.answer(f'Шаблон "{manager.dialog_data["new_name"]}" успешно добавлен!')
+    await manager.switch_to(TemplatesListening.reject)
+
+
+add_new_content = Window(
+    Const('Введите текст для шаблона'),
+    MessageInput(add_content, content_types=[ContentType.TEXT]),
+    SwitchTo(Const('Назад'), id='bck_to_menu', state=TemplatesListening.start),
+    state=TemplatesListening.add_content
+)
+
+
+async def add_name(message: Message, _, manager: DialogManager):
+    manager.dialog_data['new_name'] = message.text
+    await message.delete()
+    await manager.switch_to(TemplatesListening.add_content)
+
+
+add_new_name = Window(
+    Const('Введите название для шаблона'),
+    MessageInput(add_name, content_types=[ContentType.TEXT]),
+    SwitchTo(Const('Назад'), id='bck_to_menu', state=TemplatesListening.start),
+    state=TemplatesListening.add_name
+)
+
+
 async def update_content(message: Message, _, manager: DialogManager):
     data = manager.middleware_data
     await ListeningTemplatesHandler(data['session_maker'], data['database_logger']).update_content(
@@ -33,7 +65,7 @@ async def update_name(message: Message, _, manager: DialogManager):
 
 
 name_input = Window(
-    Const('Введите новый название для шаблона'),
+    Const('Введите новое название для шаблона'),
     MessageInput(update_name, content_types=[ContentType.TEXT]),
     SwitchTo(Const('Назад'), id='bck_to_menu', state=TemplatesListening.start),
     state=TemplatesListening.name
@@ -65,7 +97,7 @@ rejects_list = Window(
     Const('Список треков на прослушивание'),
     ScrollingGroup(
         Select(
-            Format("{item[1]}"),
+            Format('"{item[1]}"'),
             id="temp_rej_list",
             items="rejects",
             item_id_getter=itemgetter(0),
@@ -76,6 +108,7 @@ rejects_list = Window(
         id='scroll_rejects_with_pager',
         hide_on_single_page=True
     ),
+    SwitchTo(Const('Добавить'), id='add', state=TemplatesListening.add_name),
     SwitchTo(Const('Назад'), id='bck_to_menu', state=TemplatesListening.start),
     state=TemplatesListening.reject,
     getter=reject_list_getter
@@ -143,5 +176,7 @@ choice = Dialog(
     info,
     content_input,
     name_input,
-    rejects_list
+    rejects_list,
+    add_new_name,
+    add_new_content
 )

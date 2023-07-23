@@ -12,6 +12,18 @@ class ListeningTemplatesHandler:
         self.session_maker = session_maker
         self.logger = logger
 
+    async def add_reject(self, name, content) -> bool:
+        async with self.session_maker() as session:
+            try:
+                new_user = ListeningTemplates(type='reject', name=name, content=content)
+                session.add(new_user)
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при добавлении нового пользователя: %s", e)
+                await session.rollback()
+                return False
+
     async def delete_template(self, id: int) -> bool:
         async with self.session_maker() as session:
             try:

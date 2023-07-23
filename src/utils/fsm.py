@@ -35,9 +35,9 @@ class TemplatesListening(StatesGroup):
     info = State()
     content = State()
     reject = State()
-    confirm = State()
     name = State()
-    confirm_reject = State()
+    add_name = State()
+    add_content = State()
 
 
 class AdminListening(StatesGroup):

@@ -132,6 +132,16 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
+    async def get_user_id_by_track_id(self, track_id: int):
+        async with self.session_maker() as session:
+            try:
+                result = await session.execute(select(Track.user_id).where(Track.id == track_id))
+                user_id = result.scalar_one_or_none()
+                return user_id
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
     async def get_title(self, track_id: int):
         async with self.session_maker() as session:
             try:
