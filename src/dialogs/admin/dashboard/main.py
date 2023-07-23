@@ -15,7 +15,7 @@ dashboard = Dialog(
         Start(Const('Статистика'),
               id='admin_stats',
               state=AdminStatistic.start),
-        Cancel(),
+        Cancel(Const('Главное меню')),
         state=AdminDashboard.start
     ),
 )

@@ -6,4 +6,4 @@ router = Router()
 router.message.filter(
     F.chat.type == "private"
 )
-router.include_routers(user.router)
+router.include_routers(user.router, privilege.router)

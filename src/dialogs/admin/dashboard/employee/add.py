@@ -8,6 +8,7 @@ from aiogram_dialog.widgets.kbd import Cancel, Button, Row, Back
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.data import config
+from src.dialogs.admin.common import translate_privilege
 from src.models.employee import EmployeeHandler
 from src.models.user import UserHandler
 from src.utils.fsm import AdminAddEmployee
@@ -54,7 +55,7 @@ async def developer_getter(dialog_manager: DialogManager, **_kwargs):
 async def on_finish_getter(dialog_manager: DialogManager, **_kwargs):
     return {
         'employee_id': dialog_manager.dialog_data['employee_id'],
-        'privilege': dialog_manager.dialog_data['privilege']
+        'privilege': translate_privilege(dialog_manager.dialog_data['privilege'])
     }
 
 

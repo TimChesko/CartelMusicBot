@@ -15,6 +15,13 @@ class StartMenu(StatesGroup):
     start = State()
 
 
+class AdminRegistration(StatesGroup):
+    first_name = State()
+    surname = State()
+    middle_name = State()
+    confirm = State()
+
+
 class AdminMenu(StatesGroup):
     start = State()
 
@@ -25,15 +32,11 @@ class AdminListening(StatesGroup):
     reason = State()
 
 
-class AdminDashboardPIN(StatesGroup):
-    start = State()
-
-
 class AdminEmployee(StatesGroup):
     start = State()
-    employee = State()
-    on_fired = State()
-    finish = State()
+    info = State()
+    layoff = State()
+    change_privilege = State()
 
 
 class AdminStatistic(StatesGroup):
@@ -158,8 +161,6 @@ class DialogInput(StatesGroup):
     text = State()
     date = State()
 
-
-# MY STUDIO
 
 class MyStudio(StatesGroup):
     menu = State()
