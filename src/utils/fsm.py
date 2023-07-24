@@ -224,3 +224,9 @@ class AdminViewTypeDocs(StatesGroup):
 class AdminCheckPassport(StatesGroup):
     menu = State()
     view = State()
+
+
+class PersonalDataCheck(StatesGroup):
+    img = State()
+    text = State()
+    reject_template = State()

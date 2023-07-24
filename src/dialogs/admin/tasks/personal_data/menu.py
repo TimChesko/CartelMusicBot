@@ -2,9 +2,10 @@ import datetime
 from operator import itemgetter
 
 from aiogram_dialog import Dialog, Window, DialogManager
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Row, Button, SwitchTo
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Row, Button
 from aiogram_dialog.widgets.text import Const, Format
 
+from src.dialogs.admin.tasks.personal_data.factory.process import start_view_personal_data
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK
 from src.models.personal_data import PersonalDataHandler
 from src.utils.fsm import AdminCheckPassport
@@ -23,34 +24,12 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
     docs = await PersonalDataHandler(data['session_maker'], data['database_logger']).get_docs_passport()
     docs = await formatting_docs(docs)
     return {
-        "documents": docs
+        "tasks": docs
     }
 
 
 async def on_item_selected(_, __, manager: DialogManager, selected_item: str):
-    data = manager.middleware_data
-    answer = await PersonalDataHandler(data['session_maker'], data['database_logger']).passport_take_task()
-    manager.dialog_data['selected_item'] = selected_item
-    await manager.switch_to(AdminCheckPassport.view)
-
-
-async def get_passport(dialog_manager: DialogManager, **_kwargs):
-    data = dialog_manager.middleware_data
-    selected_item = dialog_manager.dialog_data['selected_item']
-    info = await PersonalDataHandler(data['session_maker'], data['database_logger']).get_all_by_tg(int(selected_item))
-    text = f"Имя: {info.first_name}\n" \
-           f"Фамилия: {info.surname}\n" \
-           f"Отчество: {info.middle_name}\n\n" \
-           f"Серия паспорта: {info.passport_series}\n" \
-           f"Номер паспорта: {info.passport_number}\n" \
-           f"Кем выдан: {info.who_issued_it}\n" \
-           f"Когда выдан: {datetime.datetime.strftime(info.date_of_issue, '%d/%m/%Y')}\n" \
-           f"Код подразделения: {info.unit_code}\n\n" \
-           f"Дата рождения: {datetime.datetime.strftime(info.date_of_birth, '%d/%m/%Y')}\n" \
-           f"Место рождения: {info.place_of_birth}\n" \
-           f"Адрес регистрации: {info.registration_address}"
-    dialog_manager.dialog_data['text'] = text
-    return {"text": text}
+    await start_view_personal_data(manager, int(selected_item))
 
 
 dialog = Dialog(
@@ -60,7 +39,7 @@ dialog = Dialog(
             Select(
                 Format("{item[1]}"),
                 id="emp_document_list",
-                items="documents",
+                items="tasks",
                 item_id_getter=itemgetter(0),
                 on_click=on_item_selected
             ),

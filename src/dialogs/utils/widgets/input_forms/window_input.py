@@ -1,4 +1,3 @@
-import logging
 from datetime import date
 
 from aiogram.types import Message

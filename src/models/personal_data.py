@@ -10,6 +10,16 @@ class PersonalDataHandler:
         self.session_maker = session_maker
         self.logger = logger
 
+    async def get_all_personal_data(self, tg_id: int):
+        async with self.session_maker() as session:
+            try:
+                query = select(PersonalData).where(PersonalData.tg_id == tg_id)
+                result = await session.execute(query)
+                return result.scalar()
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при получении данных из таблицы PersonalData: %s", e)
+                return None
+
     async def confirm_personal_data(self, tg_id: int) -> bool:
         async with self.session_maker() as session:
             try:
