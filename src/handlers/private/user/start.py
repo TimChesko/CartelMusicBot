@@ -27,7 +27,6 @@ async def cmd_start(msg: Message,
             case "track", "feat", int(track_id_info):
                 await TrackInfoHandler(session_maker, database_logger). \
                     update_track_info_feat(int(track_id_info), msg.from_user.id)
-    logging.debug(user)
     if not user:
         await UserHandler(session_maker, database_logger).add_new_user(msg)
         user = await UserHandler(session_maker, database_logger).get_user_by_tg_id(msg.from_user.id)

@@ -44,7 +44,7 @@ class PersonalDataTemplateHandler:
                 ).where(PersonalDataTemplate.header_data == header_data) \
                     .order_by(PersonalDataTemplate.id)
                 result = await session.execute(query)
-                return result
+                return result.mappings().all()
             except SQLAlchemyError as e:
                 self.logger.error(f"Error occurred during query execution: {e}")
                 return None

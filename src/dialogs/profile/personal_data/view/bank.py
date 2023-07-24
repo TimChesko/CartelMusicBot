@@ -10,7 +10,7 @@ from src.utils.fsm import Bank
 
 
 async def create_form(_, __, manager: DialogManager):
-    buttons = [False, True, False]
+    buttons = [False, True, True]
     task_list = await get_data_from_db("bank", manager)
     await InputForm(manager).start_dialog(buttons, task_list)
 

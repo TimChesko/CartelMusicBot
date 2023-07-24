@@ -37,7 +37,7 @@ async def on_item_selected(_, __, manager: DialogManager, selected_item: str):
 async def get_passport(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     selected_item = dialog_manager.dialog_data['selected_item']
-    info = await PersonalDataHandler(data['session_maker'], data['database_logger']).get_data_by_tg(int(selected_item))
+    info = await PersonalDataHandler(data['session_maker'], data['database_logger']).get_all_by_tg(int(selected_item))
     text = f"Имя: {info.first_name}\n" \
            f"Фамилия: {info.surname}\n" \
            f"Отчество: {info.middle_name}\n\n" \

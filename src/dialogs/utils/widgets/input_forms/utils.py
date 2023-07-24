@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import Any
 
@@ -16,12 +17,14 @@ async def get_data_from_db(header_data: str, manager: DialogManager):
 async def convert_database_to_data(data_list: list) -> dict:
     result_dict = {}
     for data in data_list:
-        data_name, title, text, example, input_type = data
-        result_dict[data_name] = {
-            'data_name': data_name,
-            'title': title,
-            'text': text + "\n\n" + "Пример: " + example,
-            'input_type': input_type.split(",")}
+        logging.debug(data)
+        comment = data.get('comment', None)
+        result_dict[data["name_data"]] = {
+            'data_name': data["name_data"],
+            'title': data["title"],
+            'text': data["text"] + "\n\n" + "Пример: " + data["example"],
+            'input_type': data["input_type"].split(","),
+            'comment': comment}
     return result_dict
 
 

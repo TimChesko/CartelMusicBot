@@ -5,6 +5,7 @@ from aiogram_dialog.widgets.kbd import Start, Cancel, Button
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.dialogs.profile.personal_data.view.nickname import start_edit_nickname
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK
 from src.models.personal_data import PersonalDataHandler
 from src.models.user import UserHandler
 from src.utils.fsm import Profile, Passport, Bank, ProfileEdit, Social
@@ -13,8 +14,8 @@ from src.utils.fsm import Profile, Passport, Bank, ProfileEdit, Social
 async def get_data(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     user_id = data['event_from_user'].id
-    passport_status, bank_status = await PersonalDataHandler(data['session_maker'], data['database_logger']).\
-        get_all_data_status(user_id)
+    personal_data = await PersonalDataHandler(data['session_maker'], data['database_logger']).\
+        get_all_by_tg(user_id)
     user = await UserHandler(data['session_maker'], data['database_logger']).get_user_by_tg_id(user_id)
 
     status_dict = {
@@ -22,17 +23,17 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
         "reject": "⛔️ отклонены",
         "approve": "✅ проверены",
     }
-    passport = status_dict.get(passport_status, "не имеются")
-    bank = status_dict.get(bank_status, "не имеются")
+    passport = status_dict.get(personal_data.all_passport_data, "не имеются")
+    bank = status_dict.get(personal_data.all_bank_data, "не имеются")
 
     return {
         "nickname": user.nickname,
         "status_passport": passport,
         "status_bank": bank,
-        "edit_passport": passport_status == "reject",
-        "add_passport": passport_status is None,
-        "edit_bank": bank_status == "reject",
-        "add_bank": bank_status is None
+        "edit_passport": personal_data.all_passport_data == "reject",
+        "add_passport": personal_data.all_passport_data is None,
+        "edit_bank": personal_data.all_bank_data == "reject",
+        "add_bank": personal_data.all_bank_data is None
     }
 
 
@@ -82,7 +83,7 @@ menu = Dialog(
         Start(Const("Cоциальные сети"),
               id="profile_social",
               state=Social.view_data),
-        Cancel(Const("Назад")),
+        BTN_CANCEL_BACK,
         state=Profile.menu,
         getter=get_data
     ),

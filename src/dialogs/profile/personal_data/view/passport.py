@@ -1,3 +1,5 @@
+import logging
+
 from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Dialog, DialogManager, ShowMode, Window
@@ -12,18 +14,18 @@ from src.utils.fsm import Passport
 
 
 async def create_form(_, __, manager: DialogManager):
-    buttons = [False, True, False]
+    buttons = [False, True, True]
     task_list = await get_data_from_db("passport", manager)
     await InputForm(manager).start_dialog(buttons, task_list)
 
 
 async def save_first_img(msg: Message, _, manager: DialogManager):
-    manager.dialog_data['save_input']['photo_id_first'] = msg.chat
+    manager.dialog_data['save_input']['photo_id_first'] = msg.photo[0].file_id
     await manager.next()
 
 
 async def save_second_img(msg: Message, _, manager: DialogManager):
-    manager.dialog_data['save_input']['photo_id_second'] = msg.chat
+    manager.dialog_data['save_input']['photo_id_second'] = msg.photo[0].file_id
     await manager.next()
 
 

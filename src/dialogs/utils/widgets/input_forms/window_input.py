@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 
 from aiogram.types import Message
@@ -6,6 +7,7 @@ from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.kbd import Button
 from aiogram_dialog.widgets.text import Format, Const
 
+from src.dialogs.utils.buttons import TXT_BACK
 from src.dialogs.utils.calendar import CustomCalendar
 from src.utils.fsm import DialogInput
 
@@ -35,6 +37,8 @@ async def start_dialog_filling_profile(
     data['btn_back_text'] = btn_status[1]
     data['btn_back_date'] = btn_status[2]
     data['created_text'] = data['text'] if error is None else f"{error}\n\n{data['text']}"
+    data['created_text'] = f"{data['created_text']}\n\nКомментарий: {data['comment']}" \
+        if data['comment'] is not None else data['created_text']
     if input_date:
         await manager.start(state=DialogInput.date, data=data)
     else:
@@ -81,7 +85,7 @@ dialog_input = Dialog(
             on_success=save_data,
         ),
         Button(
-            Const("< Назад"),
+            Const(TXT_BACK),
             id="input_text_back",
             on_click=on_back,
             when="btn_back_text"
@@ -103,7 +107,7 @@ dialog_input = Dialog(
             on_click=on_date_selected
         ),
         Button(
-            Const("< Назад"),
+            Const(TXT_BACK),
             id="input_date_back",
             on_click=on_back,
             when="btn_back_date"

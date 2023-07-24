@@ -1,9 +1,7 @@
-import logging
-
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, and_
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.tables import PersonalData, Social, PersonalDataTemplate
+from src.models.tables import PersonalData, Social, PersonalDataTemplate, PersonalDataComments
 
 
 class PersonalDataHandler:
@@ -11,42 +9,6 @@ class PersonalDataHandler:
     def __init__(self, session_maker, logger):
         self.session_maker = session_maker
         self.logger = logger
-
-    async def get_all_data_status(self, tg_id: int) -> tuple[str, str] | tuple[None, None]:
-        async with self.session_maker() as session:
-            try:
-                logging.debug(tg_id)
-                logging.debug(type(tg_id))
-                query = select(PersonalData).where(PersonalData.tg_id == tg_id)
-                result = await session.execute(query)
-                user = result.scalar_one_or_none()
-                if user:
-                    return user.all_passport_data, user.all_bank_data
-                else:
-                    self.logger.error(f"Пользователь с tg_id {tg_id} не найден. Создание новой записи.")
-                    new_user = PersonalData(tg_id=tg_id)
-                    session.add(new_user)
-                    await session.commit()
-                    return None, None
-            except SQLAlchemyError as e:
-                self.logger.error("Ошибка при выполнении запроса get_all_data_status: %s", e)
-                await session.rollback()
-                return None, None
-
-    async def get_personal_data_confirm(self, tg_id: int) -> bool:
-        async with self.session_maker() as session:
-            try:
-                query = select(PersonalData).where(PersonalData.tg_id == tg_id)
-                result = await session.execute(query)
-                user = result.scalar_one_or_none()
-                if user:
-                    return user.confirm_use_personal_data
-                else:
-                    await self.create_row(tg_id)
-                    return False
-            except SQLAlchemyError as e:
-                self.logger.error("Ошибка при выполнении запроса: %s", e)
-                return False
 
     async def confirm_personal_data(self, tg_id: int) -> bool:
         async with self.session_maker() as session:
@@ -61,18 +23,6 @@ class PersonalDataHandler:
                     return False
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
-                await session.rollback()
-                return False
-
-    async def create_row(self, tg_id: int) -> bool:
-        async with self.session_maker() as session:
-            try:
-                personal_data = PersonalData(tg_id=tg_id)
-                session.add(personal_data)
-                await session.commit()
-                return True
-            except SQLAlchemyError as e:
-                self.logger.error("Ошибка при создании строки в PersonalData: %s", e)
                 await session.rollback()
                 return False
 
@@ -167,11 +117,9 @@ class PersonalDataHandler:
                 list_name_data = template_result.scalars().all()
 
                 count_none = sum(1 for key in list_name_data if getattr(personal_data, key) is None)
-                self.logger.info(count_none)
                 all_data_field = f"all_{header_data}_data"
-                self.logger.info(all_data_field)
                 if hasattr(PersonalData, all_data_field):
-                    setattr(personal_data, all_data_field, 2 if count_none > 1 else 1)
+                    setattr(personal_data, all_data_field, "reject" if count_none > 1 else "process")
 
                 for key, value in data.items():
                     if hasattr(PersonalData, key):
@@ -192,6 +140,10 @@ class PersonalDataHandler:
                 personal_data_result = await session.execute(personal_data_query)
                 personal_data = personal_data_result.scalar_one_or_none()
 
+                # If there is no personal data for the given tg_id, return an empty list
+                if personal_data is None:
+                    return []
+
                 # Fetch the name_data, text, example, and input_type values for the given header_data
                 template_query = select(
                     PersonalDataTemplate.name_data,
@@ -208,7 +160,20 @@ class PersonalDataHandler:
                                 for name_data, title, text, example, input_type in template_data
                                 if getattr(personal_data, name_data) is None]
 
-                return none_columns
+                # Fetch the comments for the columns with None values
+                comments_query = select(PersonalDataComments).where(
+                    (PersonalDataComments.tg_id == tg_id) &
+                    (PersonalDataComments.column_name.in_([column[0] for column in none_columns]))
+                )
+                comments_result = await session.execute(comments_query)
+                comments = comments_result.scalars().all()
+
+                # Combine the none_columns and comments into a single list of tuples
+                result = [(column[0], column[1], column[2], column[3], column[4],
+                           next((comment.comment for comment in comments if comment.column_name == column[0]), None))
+                          for column in none_columns]
+
+                return result
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при получении данных из таблицы PersonalData: %s", e)
                 return []
@@ -216,7 +181,7 @@ class PersonalDataHandler:
     async def get_docs_passport(self) -> list | None:
         async with self.session_maker() as session:
             try:
-                query = select(PersonalData).where(PersonalData.all_passport_data == 1).\
+                query = select(PersonalData).where(PersonalData.all_passport_data == 1). \
                     order_by(PersonalData.add_datetime.asc())
                 result = await session.execute(query)
                 return result.scalars().all()
@@ -224,7 +189,7 @@ class PersonalDataHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return None
 
-    async def get_data_by_tg(self, tg_id: int):
+    async def get_all_by_tg(self, tg_id: int):
         async with self.session_maker() as session:
             try:
                 query = select(PersonalData).where(PersonalData.tg_id == tg_id)
@@ -233,5 +198,3 @@ class PersonalDataHandler:
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return None
-
-
