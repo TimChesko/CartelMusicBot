@@ -67,6 +67,8 @@ class PersonalData(Base):
     all_bank_data = Column(Enum("process", "reject", "approve", name="bank_status"))
     moderated = Column(Boolean, default=False)
 
+    last_datetime = Column(DateTime, default=datetime.utcnow)
+
     social = relationship("Social", back_populates="personal_data", uselist=False)
     comments = relationship("PersonalDataComments", back_populates="personal_data", uselist=False)
 
@@ -222,3 +224,10 @@ class TrackApprovement(Base):
     track = relationship('Track', back_populates='track_approvement')
     employee = relationship('Employee', back_populates='track_approvement')
     template = relationship('ListeningTemplates', back_populates='track_approvement', uselist=False)
+
+
+class CommentsTemplate(Base):
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    comment = Column(String)
+    is_text = Column(Boolean)
+    is_img = Column(Boolean)

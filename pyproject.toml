@@ -20,6 +20,7 @@ sqlalchemy = "^2.0.15"
 aiogram-dialog = "2.0.0b20"
 alembic = "^1.11.1"
 babel = "^2.12.1"
+adaptix = "^3.0.0a4"
 
 [build-system]
 requires = ["poetry-core"]

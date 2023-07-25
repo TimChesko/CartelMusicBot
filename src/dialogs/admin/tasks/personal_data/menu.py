@@ -1,4 +1,5 @@
 import datetime
+import logging
 from operator import itemgetter
 
 from aiogram_dialog import Dialog, Window, DialogManager
@@ -51,15 +52,5 @@ dialog = Dialog(
         BTN_CANCEL_BACK,
         getter=get_data,
         state=AdminCheckPassport.menu
-    ),
-    Window(
-        Format("{text}"),
-        Row(
-            # SwitchTo(Const("Отклонить")),
-            Button(Const("Принять"), id="passport_data_approve", on_click=...)
-        ),
-        BTN_BACK,
-        getter=get_passport,
-        state=AdminCheckPassport.view
-    ),
+    )
 )

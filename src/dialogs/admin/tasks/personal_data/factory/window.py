@@ -1,7 +1,12 @@
+import logging
+
+from aiogram.enums import ContentType
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import Message
 from aiogram_dialog import Dialog, Window, DialogManager
+from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo
+from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.dialogs.utils.buttons import BTN_BACK, TXT_CONFIRM, TXT_REJECT
@@ -10,25 +15,26 @@ from src.utils.fsm import PersonalDataCheck
 
 
 async def start_dialog_check_docs(manager: DialogManager, data: dict):
-    if data['no_img'] is True:
-        await manager.start(state=PersonalDataCheck.text, data=data)
-    else:
-        await manager.start(state=PersonalDataCheck.img, data=data)
+    if data['is_img'] is True:
+        return await manager.start(state=PersonalDataCheck.img, data=data)
+    return await manager.start(state=PersonalDataCheck.text, data=data)
 
 
-async def get_data_text(dialog_manager: DialogManager):
-    text = dialog_manager.dialog_data['personal_data_text']
+async def get_data_text(dialog_manager: DialogManager, **_kwargs):
+    title = dialog_manager.dialog_data['task']['title']
+    value = dialog_manager.dialog_data['task']['value']
     return {
-        "text": text,
-        "list_answer": "answer"
+        "text": f"{title}\nОтвет: {value}"
     }
 
 
-async def get_data_img(dialog_manager: DialogManager):
-    text = dialog_manager.dialog_data['personal_data_text']
+async def get_data_img(dialog_manager: DialogManager, **_kwargs):
+    title = dialog_manager.dialog_data['task']['title']
+    file_id = dialog_manager.dialog_data['task']['value']
+    media = MediaAttachment(type=ContentType.PHOTO, file_id=MediaId(file_id))
     return {
-        "text": text,
-        "list_answer": "answer"
+        "text": title,
+        "media": media
     }
 
 
@@ -60,7 +66,8 @@ async def on_confirm(_, __, manager: DialogManager):
 
 dialog = Dialog(
     Window(
-        Format("{text_info}"),
+        Format("{text}"),
+        DynamicMedia(selector="media"),
         Row(
             SwitchTo(Const(TXT_REJECT), id="personal_data_reject", state=PersonalDataCheck.reject_template),
             Button(Const(TXT_CONFIRM), id="personal_data_confirm", on_click=on_confirm)
@@ -69,7 +76,7 @@ dialog = Dialog(
         getter=get_data_img
     ),
     Window(
-        Format("{text_info}"),
+        Format("{text}"),
         Row(
             SwitchTo(Const(TXT_REJECT), id="personal_data_reject", state=PersonalDataCheck.reject_template),
             Button(Const(TXT_CONFIRM), id="personal_data_confirm", on_click=on_confirm)

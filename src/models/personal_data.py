@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy import select, delete, and_
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -18,6 +20,50 @@ class PersonalDataHandler:
                 return result.scalar()
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при получении данных из таблицы PersonalData: %s", e)
+                return None
+
+    async def get_specific_data(self, tg_id: int, names_header: list[str]):
+        async with self.session_maker() as session:
+            try:
+                # Get the personal data for the given tg_id
+                personal_data_query = select(PersonalData).where(PersonalData.tg_id == tg_id)
+                personal_data_result = await session.execute(personal_data_query)
+                personal_data = personal_data_result.scalar_one_or_none()
+
+                # Get all the template data
+                template_query = select(PersonalDataTemplate).where(PersonalDataTemplate.header_data.in_(names_header))
+                template_result = await session.execute(template_query)
+                template_data = template_result.scalars().all()
+
+                # Filter and sort the personal data based on the template data
+                filtered_data = []
+                for template in template_data:
+                    column_value = getattr(personal_data, template.name_data, None)
+                    if column_value is not None:
+                        if isinstance(column_value, datetime.datetime):
+                            column_value = column_value.isoformat()
+                        filtered_data.append({
+                            "column_id": template.id,
+                            "header_name": template.header_data,
+                            "column_name": template.name_data,
+                            "title": template.title,
+                            "value": column_value,
+                        })
+
+                # Sort the data so that columns starting with "photo_id" come first
+                def sort_key(item):
+                    return (
+                        not item["column_name"].startswith('photo_id'),
+                        not item["header_name"] == 'passport',
+                        not item["header_name"] == 'bank',
+                        item["column_id"]
+                    )
+
+                sorted_data = sorted(filtered_data, key=sort_key)
+
+                return sorted_data
+            except SQLAlchemyError as e:
+                self.logger.error(f"Error occurred during query execution: {e}")
                 return None
 
     async def confirm_personal_data(self, tg_id: int) -> bool:
@@ -191,8 +237,10 @@ class PersonalDataHandler:
     async def get_docs_passport(self) -> list | None:
         async with self.session_maker() as session:
             try:
-                query = select(PersonalData).where(PersonalData.all_passport_data == 1). \
-                    order_by(PersonalData.add_datetime.asc())
+                query = select(PersonalData).\
+                    where(PersonalData.all_passport_data == "process"
+                          and PersonalData.all_bank_data == "process"). \
+                    order_by(PersonalData.last_datetime.asc())
                 result = await session.execute(query)
                 return result.scalars().all()
             except SQLAlchemyError as e:
