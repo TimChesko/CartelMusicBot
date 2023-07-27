@@ -45,6 +45,7 @@ class AdminListening(StatesGroup):
     info = State()
     templates = State()
     custom = State()
+    custom_confirm = State()
     confirm = State()
 
 

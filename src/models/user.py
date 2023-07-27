@@ -41,7 +41,7 @@ class UserHandler:
     async def update_nickname(self, tg_id: int, nickname: str) -> bool:
         async with self.session_maker() as session:
             try:
-                query = update(User).where(User.tg_id == tg_id).value({"nickname": nickname})
+                query = update(User).where(User.tg_id == tg_id).values({"nickname": nickname})
                 await session.execute(query)
                 await session.commit()
                 return True

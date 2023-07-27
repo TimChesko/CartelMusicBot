@@ -22,7 +22,7 @@ async def cmd_start(msg: Message,
     if not user:
         await UserHandler(session_maker, database_logger).add_new_user(msg)
     employee: Employee = await EmployeeHandler(session_maker, database_logger).check_employee_by_tg_id(msg.from_user.id)
-    if any(name is None for name in (employee.first_name, employee.middle_name, employee.surname)):
+    if employee and any(name is None for name in (employee.first_name, employee.middle_name, employee.surname)):
         await dialog_manager.start(AdminRegistration.first_name, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND)
     else:
         await dialog_manager.start(AdminMenu.start, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND)

@@ -5,6 +5,7 @@ from aiogram_dialog import Window, Dialog, DialogManager
 from aiogram_dialog.widgets.kbd import Cancel, ScrollingGroup, Select
 from aiogram_dialog.widgets.text import Const, Format
 
+from src.dialogs.admin.listening.custom import reason_window, confirm_reason_window
 from src.dialogs.admin.listening.on_track import info_window, reject_templates
 from src.models.tracks import TrackHandler
 from src.utils.fsm import AdminListening
@@ -63,5 +64,7 @@ tracks = Dialog(
         getter=track_list_getter
     ),
     info_window,
-    reject_templates
+    reject_templates,
+    reason_window,
+    confirm_reason_window
 )

@@ -3,7 +3,7 @@ from _operator import itemgetter
 from aiogram import Bot
 from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery
-from aiogram_dialog import Window, DialogManager
+from aiogram_dialog import Window, DialogManager, ShowMode
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.kbd import SwitchTo, Back, Next, Button, ScrollingGroup, Select, Cancel
 from aiogram_dialog.widgets.media import DynamicMedia
@@ -67,6 +67,7 @@ async def cancel_task(_, __, manager: DialogManager):
     data = manager.middleware_data
     track_id = manager.dialog_data['getter_info']['track_id']
     await TrackHandler(data['session_maker'], data['database_logger']).update_checker(track_id, None)
+    manager.show_mode = ShowMode.EDIT
 
 
 async def approve(callback: CallbackQuery, btn: Button, manager: DialogManager):

@@ -194,7 +194,8 @@ class TrackHandler:
         async with self.session_maker() as session:
             try:
                 await session.execute(
-                    update(Track).where(Track.id == track_id).values(checker=employee_id)
+                    update(Track).where(Track.id == track_id).values(checker=employee_id,
+                                                                     status='reject')
                 )
                 await session.commit()
                 return True
