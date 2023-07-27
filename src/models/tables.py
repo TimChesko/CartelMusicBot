@@ -107,11 +107,17 @@ class PersonalDataTemplate(Base):
 
 
 class Album(Base):
+    """
+    TODO Лимитер новых альбомов (чтобы не заспамили альбомами ничего), думаю 3 альбома одновременно будет достаточно
+    TODO Сделать состояния, прикреплена обложка (после чего появляется кнопка создать ЛС), проверено подписанное ЛС, проверен трек номер
+    TODO Также сделать заполнение ПРОМО (думаю отдельной таблицей), если подтверждено с промо
+    """
     # todo не забыть добавить колонки для промо
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey(User.tg_id))
     album_cover = Column(String)  # Обложка
+    album_title = Column(String)  # Название
 
     signed_license = Column(String)  # Подписанное ЛС на проверку
     unsigned_license = Column(String)  # Неподписанное ЛС на проверку
@@ -119,6 +125,8 @@ class Album(Base):
 
     tracks = relationship('Track', back_populates='album')  # новое отношение с треками
     user = relationship("User", back_populates="albums")
+    # TODO Лимитер новых альбомов (чтобы не заспамили альбомами ничего)
+    # TODO Сделать состояния, прикреплена обложка (после чего появляется кнопка создать ЛС),
 
 
 class Employee(Base):
