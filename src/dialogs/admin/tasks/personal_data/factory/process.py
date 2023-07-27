@@ -2,12 +2,12 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from adaptix import Retort
 from aiogram_dialog import DialogManager
 
 from src.dialogs.admin.tasks.personal_data.factory.window import start_dialog_check_docs
 from src.models.comments_template import CommentsTemplateHandler
 from src.models.personal_data import PersonalDataHandler
+from src.utils.fsm import PersonalDataCheck
 
 
 @dataclass
@@ -33,24 +33,87 @@ async def get_all_answer(manager: DialogManager):
 
 
 async def load_task_dialog(manager: DialogManager, tg_id: int):
-    manager.dialog_data['all_task'] = await create_all_task(manager, tg_id)
-    manager.dialog_data["old_task"] = []
-    manager.dialog_data['photo'] = True
-    manager.dialog_data['all_answer'] = await get_all_answer(manager)
-    manager.dialog_data['comments'] = []
+    dialog = manager.dialog_data
+    dialog['all_task'] = await create_all_task(manager, tg_id)
+    dialog["old_task"] = []
+    dialog['photo'] = True
+    dialog['all_answer'] = await get_all_answer(manager)
+    dialog['comments'] = {}
+    dialog['edit'] = {}
 
 
 async def create_args(manager: DialogManager):
     dialog = manager.dialog_data
     task = dialog['all_task'].pop(0)
     data = {"task": task, "is_img": False}
-    manager.dialog_data["old_task"].append(task)
+    dialog["old_task"].append(task)
     if data['task']['column_name'].startswith("photo"):
         data['is_img'] = True
     return data
 
 
+async def undo_created_args(manager: DialogManager):
+    dialog = manager.dialog_data
+    task = dialog['old_task'].pop(0)
+    dialog["all_task"].extend(task)
+
+
+async def check_img_status(manager: DialogManager, data: dict):
+    if not data['is_img'] and manager.dialog_data['photo']:
+        manager.dialog_data['photo'] = False
+        return False
+    else:
+        return True
+
+
 async def start_view_personal_data(manager: DialogManager, tg_id: int):
     await load_task_dialog(manager, tg_id)
     data = await create_args(manager)
-    await start_dialog_check_docs(manager, data=data)
+    status = await check_img_status(manager, data)
+    if status:
+        await start_dialog_check_docs(manager, data=data)
+    else:
+        await undo_created_args(manager)
+        await manager.start(state=PersonalDataCheck.check_img)
+
+
+async def next_task(manager: DialogManager):
+    dialog = manager.dialog_data
+    if len(dialog['all_task']) > 0:
+        data = await create_args(manager)
+        await start_dialog_check_docs(manager, data=data)
+    else:
+        await manager.start(state=PersonalDataCheck.finish)
+
+
+async def back_task(manager: DialogManager):
+    dialog = manager.dialog_data
+    logging.debug(len(dialog["old_task"]) > 0)
+    if len(dialog["old_task"]) > 1:
+        task = dialog['old_task'].pop(0)
+        dialog["all_task"].extend(task)
+        await next_task(manager)
+    else:
+        await manager.done()
+
+
+async def on_process_check(_, result: Any, manager: DialogManager):
+    if "finish" in result and result['back']:
+        logging.debug(manager.dialog_data['edit'])
+        logging.debug(manager.dialog_data['comments'])
+    elif "back" in result and result['back']:
+        await back_task(manager)
+    elif result['confirm']:
+        if "stop" in result and result['stop']:
+            logging.debug(manager.dialog_data['edit'])
+            logging.debug(manager.dialog_data['comments'])
+        else:
+            await next_task(manager)
+    elif not result['confirm']:
+        if result['edit'] is None:
+            manager.dialog_data['comments'][result['column']] = result['comment']
+        else:
+            manager.dialog_data['edit'][result['column']] = result['edit']
+        await next_task(manager)
+    else:
+        logging.debug("something wrong !!!")

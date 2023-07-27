@@ -230,3 +230,5 @@ class PersonalDataCheck(StatesGroup):
     img = State()
     text = State()
     reject_template = State()
+    check_img = State()
+    finish = State()

@@ -1,15 +1,13 @@
-import logging
-
 from aiogram.enums import ContentType
 from aiogram.filters.callback_data import CallbackData
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
-from src.dialogs.utils.buttons import BTN_BACK, TXT_CONFIRM, TXT_REJECT
+from src.dialogs.utils.buttons import BTN_BACK, TXT_CONFIRM, TXT_REJECT, TXT_BACK
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.utils.fsm import PersonalDataCheck
 
@@ -64,23 +62,42 @@ async def on_confirm(_, __, manager: DialogManager):
     await manager.done({"confirm": True, "column": None, "edit": None, "comment": None})
 
 
+async def on_back(_, __, manager: DialogManager):
+    await manager.done({"confirm": True, "back": True})
+
+
+ROW_ANSWERS = Row(
+    SwitchTo(Const(TXT_REJECT), id="personal_data_reject", state=PersonalDataCheck.reject_template),
+    Button(Const(TXT_CONFIRM), id="personal_data_confirm", on_click=on_confirm)
+)
+
+
+async def on_check_img(callback: CallbackQuery, _, manager: DialogManager):
+    data = callback.data.split("_")[-1]
+    if data == "stop":
+        result = True
+    else:
+        result = False
+    return {"confirm": True, "stop": result}
+
+
+async def on_finish(_, __, manager: DialogManager):
+    await manager.done({"finish": True})
+
+
 dialog = Dialog(
     Window(
         Format("{text}"),
         DynamicMedia(selector="media"),
-        Row(
-            SwitchTo(Const(TXT_REJECT), id="personal_data_reject", state=PersonalDataCheck.reject_template),
-            Button(Const(TXT_CONFIRM), id="personal_data_confirm", on_click=on_confirm)
-        ),
+        ROW_ANSWERS,
+        Button(Const(TXT_BACK), id="btn_back_factory_img", on_click=on_back),
         state=PersonalDataCheck.img,
         getter=get_data_img
     ),
     Window(
         Format("{text}"),
-        Row(
-            SwitchTo(Const(TXT_REJECT), id="personal_data_reject", state=PersonalDataCheck.reject_template),
-            Button(Const(TXT_CONFIRM), id="personal_data_confirm", on_click=on_confirm)
-        ),
+        ROW_ANSWERS,
+        Button(Const(TXT_BACK), id="btn_back_factory_txt", on_click=on_back),
         state=PersonalDataCheck.text,
         getter=get_data_text
     ),
@@ -92,6 +109,21 @@ dialog = Dialog(
         BTN_BACK,
         state=PersonalDataCheck.reject_template,
         getter=get_data_reject
+    ),
+    Window(
+        Const("Некоторые фотографии не прошли проверку, выберете дальнейшее действие:"),
+        Button(Const("Закончить проверку"), id="personal_data_img_stop", on_click=on_check_img),
+        Button(Const("Продолжить проверку"), id="personal_data_img_next", on_click=on_check_img),
+        Button(Const(TXT_BACK), id="btn_back_factory_img", on_click=on_back),
+        state=PersonalDataCheck.check_img,
+    ),
+    Window(
+        Const("Закончить просмотр документа ?"),
+        Row(
+            BTN_BACK,
+            Button(Const(TXT_CONFIRM), id="personal_data_finish", on_click=on_finish)
+        ),
+        state=PersonalDataCheck.finish
     ),
     on_start=on_start_copy_start_data,
 )

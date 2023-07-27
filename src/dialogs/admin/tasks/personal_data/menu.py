@@ -1,13 +1,11 @@
-import datetime
-import logging
 from operator import itemgetter
 
 from aiogram_dialog import Dialog, Window, DialogManager
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Row, Button
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.dialogs.admin.tasks.personal_data.factory.process import start_view_personal_data
-from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK
+from src.dialogs.admin.tasks.personal_data.factory.process import start_view_personal_data, on_process_check
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK
 from src.models.personal_data import PersonalDataHandler
 from src.utils.fsm import AdminCheckPassport
 
@@ -52,5 +50,6 @@ dialog = Dialog(
         BTN_CANCEL_BACK,
         getter=get_data,
         state=AdminCheckPassport.menu
-    )
+    ),
+    on_process_result=on_process_check
 )
