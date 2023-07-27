@@ -1,8 +1,11 @@
+import logging
+from dataclasses import dataclass
+
 from aiogram.enums import ContentType
-from aiogram.filters.callback_data import CallbackData
 from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
+from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
@@ -36,24 +39,20 @@ async def get_data_img(dialog_manager: DialogManager, **_kwargs):
     }
 
 
-async def get_data_reject(dialog_manager: DialogManager):
+async def get_data_reject(dialog_manager: DialogManager, **_kwargs):
     return {
-        "no_img": True
+        "no_img": not dialog_manager.dialog_data['is_img']
     }
 
 
-async def on_reject_template(callback: CallbackData, _, manager: DialogManager):
-    pass
-
-
-async def on_reject_edit(msg: Message, _, manager: DialogManager):
-    column = manager.dialog_data['column']
+async def on_reject_edit(msg: Message, _, manager: DialogManager, __):
+    column = manager.dialog_data['task']['column_name']
     await msg.delete()
     await manager.done({"confirm": False, "column": column, "edit": msg.text, "comment": None})
 
 
-async def on_reject_comment(msg: Message, _, manager: DialogManager):
-    column = manager.dialog_data['column']
+async def on_reject_comment(msg: Message, _, manager: DialogManager, __):
+    column = manager.dialog_data['task']['column_name']
     await msg.delete()
     await manager.done({"confirm": False, "column": column, "edit": None, "comment": msg.text})
 
@@ -78,11 +77,19 @@ async def on_check_img(callback: CallbackQuery, _, manager: DialogManager):
         result = True
     else:
         result = False
-    return {"confirm": True, "stop": result}
+    await manager.done({"confirm": True, "stop": result})
 
 
 async def on_finish(_, __, manager: DialogManager):
     await manager.done({"finish": True})
+
+
+async def get_answers(dialog_manager: DialogManager, **_kwargs):
+    answers = dialog_manager.dialog_data['answers']
+    data = [i.values() for i in answers]
+    return {
+        "buttons": data
+    }
 
 
 dialog = Dialog(
@@ -103,12 +110,32 @@ dialog = Dialog(
     ),
     Window(
         Const("Выберете причину отклонения:"),
-        Button(Const("Шаблонный ответ"), id="personal_data_reject_template"),
-        Button(Const("Написать комментарий"), id="personal_data_reject_comment"),
-        Button(Const("Редактировать ответ"), id="personal_data_reject_edit", when="no_img"),
+        SwitchTo(Const("Шаблонный ответ"), id="personal_data_reject_template", state=PersonalDataCheck.template),
+        SwitchTo(Const("Написать комментарий"), id="personal_data_reject_comment", state=PersonalDataCheck.comment),
+        SwitchTo(Const("Редактировать ответ"), id="personal_data_reject_edit",
+                 when="no_img",
+                 state=PersonalDataCheck.edit),
         BTN_BACK,
         state=PersonalDataCheck.reject_template,
         getter=get_data_reject
+    ),
+    Window(
+        Const("Выберете один из ответов:"),
+        SwitchTo(Const(TXT_BACK), id="btn_back_from_template", state=PersonalDataCheck.reject_template),
+        state=PersonalDataCheck.template,
+        getter=get_answers
+    ),
+    Window(
+        Const("Пришлите комментарий, который закрепиться за данной информацией:"),
+        TextInput(id="input_comment", on_success=on_reject_comment),
+        SwitchTo(Const(TXT_BACK), id="btn_back_from_comment", state=PersonalDataCheck.reject_template),
+        state=PersonalDataCheck.comment
+    ),
+    Window(
+        Const("Пришлите отредактированные данные:"),
+        TextInput(id="input_comment", on_success=on_reject_edit),
+        SwitchTo(Const(TXT_BACK), id="btn_back_from_edit", state=PersonalDataCheck.reject_template),
+        state=PersonalDataCheck.edit
     ),
     Window(
         Const("Некоторые фотографии не прошли проверку, выберете дальнейшее действие:"),
@@ -120,7 +147,7 @@ dialog = Dialog(
     Window(
         Const("Закончить просмотр документа ?"),
         Row(
-            BTN_BACK,
+            Button(Const(TXT_BACK), id="btn_back_factory_img", on_click=on_back),
             Button(Const(TXT_CONFIRM), id="personal_data_finish", on_click=on_finish)
         ),
         state=PersonalDataCheck.finish

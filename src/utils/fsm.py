@@ -232,3 +232,7 @@ class PersonalDataCheck(StatesGroup):
     reject_template = State()
     check_img = State()
     finish = State()
+
+    template = State()
+    comment = State()
+    edit = State()

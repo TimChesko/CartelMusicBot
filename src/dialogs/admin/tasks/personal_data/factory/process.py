@@ -34,18 +34,14 @@ async def load_task_dialog(manager: DialogManager, tg_id: int):
 
 async def create_args(manager: DialogManager):
     dialog = manager.dialog_data
-    task = dialog['all_task'].pop(0)
+    task = dialog['all_task'][0]
     data = {"task": task, "is_img": False}
-    dialog["old_task"].append(task)
     if data['task']['column_name'].startswith("photo"):
         data['is_img'] = True
+        dialog['photo'] = True
+    data['answers'] = dialog['all_answer']
+    logging.debug(data['answers'])
     return data
-
-
-async def undo_created_args(manager: DialogManager):
-    dialog = manager.dialog_data
-    task = dialog['old_task'].pop()
-    dialog["all_task"].insert(0, task)
 
 
 async def check_img_status(manager: DialogManager, data: dict):
@@ -63,13 +59,13 @@ async def start_view_personal_data(manager: DialogManager, tg_id: int):
     if status:
         await start_dialog_check_docs(manager, data=data)
     else:
-        await undo_created_args(manager)
         await manager.start(state=PersonalDataCheck.check_img)
 
 
 async def next_task(manager: DialogManager):
     dialog = manager.dialog_data
     if len(dialog['all_task']) > 0:
+        dialog['old_task'].append(dialog["all_task"].pop(0))
         data = await create_args(manager)
         await start_dialog_check_docs(manager, data=data)
     else:
@@ -79,14 +75,8 @@ async def next_task(manager: DialogManager):
 async def back_task(manager: DialogManager):
     dialog = manager.dialog_data
     if len(dialog["old_task"]) > 1:
-        task = dialog['old_task'].pop()
-        dialog["all_task"].insert(0, task)
-        data = {"task": task, "is_img": False}
-        if data['task']['column_name'].startswith("photo"):
-            data['is_img'] = True
-            dialog['photo'] = True
-        logging.debug(dialog["old_task"])
-        logging.debug(data)
+        dialog['all_task'].insert(0, dialog["old_task"].pop())
+        data = await create_args(manager)
         await start_dialog_check_docs(manager, data=data)
     else:
         await manager.done()
