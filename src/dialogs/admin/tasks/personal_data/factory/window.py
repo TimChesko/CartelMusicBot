@@ -63,7 +63,7 @@ async def on_confirm(_, __, manager: DialogManager):
 
 
 async def on_back(_, __, manager: DialogManager):
-    await manager.done({"confirm": True, "back": True})
+    await manager.done({"back": True})
 
 
 ROW_ANSWERS = Row(

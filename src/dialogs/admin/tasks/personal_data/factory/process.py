@@ -1,5 +1,4 @@
 import logging
-from dataclasses import dataclass
 from typing import Any
 
 from aiogram_dialog import DialogManager
@@ -8,15 +7,6 @@ from src.dialogs.admin.tasks.personal_data.factory.window import start_dialog_ch
 from src.models.comments_template import CommentsTemplateHandler
 from src.models.personal_data import PersonalDataHandler
 from src.utils.fsm import PersonalDataCheck
-
-
-@dataclass
-class ModelData:
-    column_id: int
-    header_name: str
-    column_name: str
-    title: str
-    value: Any
 
 
 async def create_all_task(manager: DialogManager, tg_id: int) -> list:
@@ -54,8 +44,8 @@ async def create_args(manager: DialogManager):
 
 async def undo_created_args(manager: DialogManager):
     dialog = manager.dialog_data
-    task = dialog['old_task'].pop(0)
-    dialog["all_task"].extend(task)
+    task = dialog['old_task'].pop()
+    dialog["all_task"].insert(0, task)
 
 
 async def check_img_status(manager: DialogManager, data: dict):
@@ -88,11 +78,16 @@ async def next_task(manager: DialogManager):
 
 async def back_task(manager: DialogManager):
     dialog = manager.dialog_data
-    logging.debug(len(dialog["old_task"]) > 0)
     if len(dialog["old_task"]) > 1:
-        task = dialog['old_task'].pop(0)
-        dialog["all_task"].extend(task)
-        await next_task(manager)
+        task = dialog['old_task'].pop()
+        dialog["all_task"].insert(0, task)
+        data = {"task": task, "is_img": False}
+        if data['task']['column_name'].startswith("photo"):
+            data['is_img'] = True
+            dialog['photo'] = True
+        logging.debug(dialog["old_task"])
+        logging.debug(data)
+        await start_dialog_check_docs(manager, data=data)
     else:
         await manager.done()
 
