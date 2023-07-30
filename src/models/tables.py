@@ -228,6 +228,7 @@ class TrackApprovement(Base):
 
 class CommentsTemplate(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String)
     comment = Column(String)
     is_text = Column(Boolean)
     is_img = Column(Boolean)

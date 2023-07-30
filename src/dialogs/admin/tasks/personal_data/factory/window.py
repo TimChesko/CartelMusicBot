@@ -1,12 +1,12 @@
 import logging
-from dataclasses import dataclass
+from operator import itemgetter
 
 from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery
-from aiogram_dialog import Dialog, Window, DialogManager
+from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo
+from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo, ScrollingGroup, Select
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
@@ -48,6 +48,7 @@ async def get_data_reject(dialog_manager: DialogManager, **_kwargs):
 async def on_reject_edit(msg: Message, _, manager: DialogManager, __):
     column = manager.dialog_data['task']['column_name']
     await msg.delete()
+    manager.show_mode = ShowMode.EDIT
     await manager.done({"confirm": False, "column": column, "edit": msg.text, "comment": None})
 
 
@@ -55,6 +56,13 @@ async def on_reject_comment(msg: Message, _, manager: DialogManager, __):
     column = manager.dialog_data['task']['column_name']
     await msg.delete()
     await manager.done({"confirm": False, "column": column, "edit": None, "comment": msg.text})
+
+
+async def on_reject_template(_, __, manager: DialogManager, data):
+    column = manager.dialog_data['task']['column_name']
+    answers = manager.dialog_data['answers']
+    result = next((item["comment"] for item in answers if item["id"] == data), None)
+    await manager.done({"confirm": False, "column": column, "edit": None, "comment": result})
 
 
 async def on_confirm(_, __, manager: DialogManager):
@@ -73,10 +81,7 @@ ROW_ANSWERS = Row(
 
 async def on_check_img(callback: CallbackQuery, _, manager: DialogManager):
     data = callback.data.split("_")[-1]
-    if data == "stop":
-        result = True
-    else:
-        result = False
+    result = True if data == "stop" else False
     await manager.done({"confirm": True, "stop": result})
 
 
@@ -86,7 +91,7 @@ async def on_finish(_, __, manager: DialogManager):
 
 async def get_answers(dialog_manager: DialogManager, **_kwargs):
     answers = dialog_manager.dialog_data['answers']
-    data = [i.values() for i in answers]
+    data = [[i["id"], i['title']] for i in answers]
     return {
         "buttons": data
     }
@@ -121,6 +126,19 @@ dialog = Dialog(
     ),
     Window(
         Const("Выберете один из ответов:"),
+        ScrollingGroup(
+            Select(
+                Format("{item[1]}"),
+                id="list_answer",
+                items="buttons",
+                item_id_getter=itemgetter(0),
+                on_click=on_reject_template
+            ),
+            width=1,
+            height=5,
+            id='scroll_answer_with_pager',
+            hide_on_single_page=True
+        ),
         SwitchTo(Const(TXT_BACK), id="btn_back_from_template", state=PersonalDataCheck.reject_template),
         state=PersonalDataCheck.template,
         getter=get_answers
