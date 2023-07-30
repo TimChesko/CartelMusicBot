@@ -6,7 +6,8 @@ from aiogram_dialog import DialogManager, ShowMode
 from src.dialogs.admin.tasks.personal_data.factory.window import start_dialog_check_docs
 from src.models.comments_template import CommentsTemplateHandler
 from src.models.personal_data import PersonalDataHandler
-from src.utils.fsm import PersonalDataCheck, AdminCheckPassport
+from src.models.personal_data_comment import PersonalDataCommentsHandler
+from src.utils.fsm import PersonalDataCheck
 
 
 async def create_all_task(manager: DialogManager, tg_id: int) -> list:
@@ -82,13 +83,21 @@ async def back_task(manager: DialogManager):
 async def on_process_check(_, result: Any, manager: DialogManager):
     manager.show_mode = ShowMode.EDIT
     if "finish" in result and result['finish']:
-        logging.debug(manager.dialog_data['edit'])
-        logging.debug(manager.dialog_data['comments'])
+        middleware = manager.middleware_data
+        user_id = manager.event.from_user.id
+        # TODO провреить edit
+        await PersonalDataHandler(middleware['session_maker'], middleware['database_logger']). \
+            set_edit_data(user_id, manager.dialog_data['edit'])
+        return await PersonalDataCommentsHandler(middleware['session_maker'], middleware['database_logger']). \
+            set_comments(user_id, manager.dialog_data['comments'])
     elif "back" in result and result['back']:
         await back_task(manager)
     elif result['confirm']:
         if "stop" in result and result['stop']:
-            logging.debug(manager.dialog_data['comments'])
+            middleware = manager.middleware_data
+            user_id = manager.event.from_user.id
+            return await PersonalDataCommentsHandler(middleware['session_maker'], middleware['database_logger']). \
+                set_comments(user_id, manager.dialog_data['comments'])
         else:
             await next_task(manager)
     elif not result['confirm']:

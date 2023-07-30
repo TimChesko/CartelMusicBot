@@ -1,4 +1,3 @@
-import logging
 from operator import itemgetter
 
 from aiogram.enums import ContentType
