@@ -118,15 +118,17 @@ class Album(Base):
     user_id = Column(BigInteger, ForeignKey(User.tg_id))
     album_cover = Column(String)  # Обложка
     album_title = Column(String)  # Название
+    state = Column(Enum('title', 'cover', 'license', 'mail_track', 'finish', name='album_status'), default='title')
 
     signed_license = Column(String)  # Подписанное ЛС на проверку
     unsigned_license = Column(String)  # Неподписанное ЛС на проверку
     mail_track_photo = Column(String)  # трек номер отправленного письма с ЛС
+    id_who_approve = Column(String)
+
+    create_datetime = Column(DateTime)
 
     tracks = relationship('Track', back_populates='album')  # новое отношение с треками
     user = relationship("User", back_populates="albums")
-    # TODO Лимитер новых альбомов (чтобы не заспамили альбомами ничего)
-    # TODO Сделать состояния, прикреплена обложка (после чего появляется кнопка создать ЛС),
 
 
 class Employee(Base):
@@ -236,6 +238,7 @@ class TrackApprovement(Base):
 
 class CommentsTemplate(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String)
     comment = Column(String)
     is_text = Column(Boolean)
     is_img = Column(Boolean)

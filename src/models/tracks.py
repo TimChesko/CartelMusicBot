@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import select, update, or_, asc, and_
+from sqlalchemy import select, update, or_, asc, and_, delete
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.models.tables import Track, User, TrackInfo

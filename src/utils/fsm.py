@@ -127,8 +127,8 @@ class MyTracksRejected(StatesGroup):
     finish = State()
 
 
-# Public my_tracks states
-class PublicTrack(StatesGroup):
+# Release my_tracks states
+class ReleaseTrack(StatesGroup):
     list = State()
 
 
