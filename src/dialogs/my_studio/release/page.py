@@ -9,7 +9,7 @@ from aiogram_dialog.widgets.kbd import Button, SwitchTo
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.dialogs.utils.buttons import BTN_CANCEL_BACK
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_CANCEL_SWITCH
 from src.models.album import AlbumHandler
 from src.utils.fsm import AlbumPage, AlbumTracks
 
@@ -33,6 +33,7 @@ cover = Window(
     Const("Прикрепите новую обложку в виде фото без сжатия"),
     MessageInput(set_album_cover, content_types=[ContentType.DOCUMENT]),
     MessageInput(other_type_handler_doc),
+    BTN_CANCEL_SWITCH(AlbumPage.main, 'from_cover'),
     state=AlbumPage.cover
 )
 
@@ -56,6 +57,7 @@ title = Window(
     Const("Дайте название альбому"),
     MessageInput(set_album_title, content_types=[ContentType.TEXT]),
     MessageInput(other_type_handler_text),
+    BTN_CANCEL_SWITCH(AlbumPage.main, 'from_title'),
     state=AlbumPage.title
 )
 

@@ -1,4 +1,5 @@
-from aiogram_dialog.widgets.kbd import Cancel, Back
+from aiogram.fsm.state import State
+from aiogram_dialog.widgets.kbd import Cancel, Back, SwitchTo
 from aiogram_dialog.widgets.text import Const
 
 # TEXT
@@ -9,3 +10,7 @@ TXT_CONFIRM = "✓ Принять"
 # BUTTONS
 BTN_CANCEL_BACK = Cancel(Const(TXT_BACK))
 BTN_BACK = Back(Const(TXT_BACK))
+
+
+def BTN_CANCEL_SWITCH(state: State, id):
+    return SwitchTo(Const(TXT_BACK), state=state, id=f'CAncElSwtCH{id}')
