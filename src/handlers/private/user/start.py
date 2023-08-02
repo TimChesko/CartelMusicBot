@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from structlog._log_levels import BoundLoggerFilteringAtDebug
 
 from src.data import config
-from src.models.tracks import TrackHandler
+from src.models.track import TrackHandler
 from src.models.user import UserHandler
 from src.utils.fsm import RegNickname, StartMenu, RejectAnswer
 

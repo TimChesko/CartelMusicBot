@@ -4,7 +4,7 @@ from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.kbd import Cancel, Start
 from aiogram_dialog.widgets.text import Const
 
-from src.models.tracks import TrackHandler
+from src.models.track import TrackHandler
 from src.utils.fsm import Listening, ListeningNewTrack, ListeningEditTrack
 
 

@@ -118,7 +118,10 @@ class Album(Base):
     user_id = Column(BigInteger, ForeignKey(User.tg_id))
     album_cover = Column(String)  # Обложка
     album_title = Column(String)  # Название
-    state = Column(Enum('title', 'cover', 'license', 'mail_track', 'finish', name='album_status'), default='title')
+
+    unsigned_state = Column(Enum("process", "reject", "approve", name="unsigned_status"))
+    signed_state = Column(Enum("process", "reject", "approve", name="signed_status"))
+    mail_track_state = Column(Enum("process", "reject", "approve", name="mail_status"))
 
     signed_license = Column(String)  # Подписанное ЛС на проверку
     unsigned_license = Column(String)  # Неподписанное ЛС на проверку

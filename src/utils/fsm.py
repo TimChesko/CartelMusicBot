@@ -132,6 +132,27 @@ class ReleaseTrack(StatesGroup):
     list = State()
 
 
+class AlbumPage(StatesGroup):
+    main = State()
+    title = State()
+    cover = State()
+
+
+class AlbumTitle(StatesGroup):
+    start = State()
+    finish = State()
+
+
+class AlbumCover(StatesGroup):
+    start = State()
+    finish = State()
+
+
+class AlbumTracks(StatesGroup):
+    start = State()
+    finish = State()
+
+
 #  Service's states
 class Service(StatesGroup):
     menu = State()

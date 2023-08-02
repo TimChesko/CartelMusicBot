@@ -6,6 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from src.models.tables import Track, User, TrackInfo
 
 
+# noinspection PyTypeChecker
 class TrackHandler:
 
     def __init__(self, session_maker, logger):
@@ -122,37 +123,6 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def get_task_msg_id_by_track_id(self, track_id: int):
-        async with self.session_maker() as session:
-            try:
-                result = await session.execute(select(Track.task_msg_id).where(Track.id == track_id))
-                msg_id = result.scalar_one_or_none()
-                return msg_id
-            except SQLAlchemyError as e:
-                self.logger.error(f"Ошибка при выполнении запроса: {e}")
-                return False
-
-    async def get_user_id_by_track_id(self, track_id: int):
-        async with self.session_maker() as session:
-            try:
-                result = await session.execute(select(Track.user_id).where(Track.id == track_id))
-                user_id = result.scalar_one_or_none()
-                return user_id
-            except SQLAlchemyError as e:
-                self.logger.error(f"Ошибка при выполнении запроса: {e}")
-                return False
-
-    async def get_title(self, track_id: int):
-        async with self.session_maker() as session:
-            try:
-                result = await session.execute(
-                    select(Track.track_title).where(Track.id == track_id))
-                row = result.first()
-                return row
-            except SQLAlchemyError as e:
-                self.logger.error(f"Ошибка при выполнении запроса: {e}")
-                return False
-
     async def get_process_tracks(self):
         async with self.session_maker() as session:
             try:
@@ -190,12 +160,24 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def update_checker(self, track_id, employee_id=None) -> bool:
+    async def update_checker(self, track_id: int, employee_id=None) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(
                     update(Track).where(Track.id == track_id).values(checker=employee_id,
                                                                      status='reject')
+                )
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
+                return False
+
+    async def update_album_id(self, track_ids: list, album_id) -> bool:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(
+                    update(Track).where(Track.id.in_(track_ids)).values(album_id=album_id)
                 )
                 await session.commit()
                 return True
@@ -235,6 +217,18 @@ class TrackHandler:
                 query = select(Track).where(Track.id == track_id)
                 result = await session.execute(query)
                 return result.scalar()
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
+    async def get_for_album_multiselect(self, tg_id: int):
+        async with self.session_maker() as session:
+            try:
+                result = await session.execute(
+                    select(Track.track_title, Track.id)
+                    .where(Track.user_id == tg_id, or_(Track.status == "approve", Track.status == "approve_promo")))
+                tracks = result.all()
+                return tracks
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False

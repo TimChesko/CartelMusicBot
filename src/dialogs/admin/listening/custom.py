@@ -7,7 +7,7 @@ from aiogram_dialog.widgets.text import Format, Const
 
 from src.data import config
 from src.models.approvement import ApprovementHandler
-from src.models.tracks import TrackHandler
+from src.models.track import TrackHandler
 from src.models.user import UserHandler
 from src.utils.fsm import RejectAnswer, AdminListening
 
