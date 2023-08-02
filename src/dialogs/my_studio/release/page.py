@@ -1,18 +1,17 @@
 import logging
-from _operator import itemgetter
 
 from aiogram.enums import ContentType
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import Message
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Button, Start, Next, Cancel, SwitchTo
+from aiogram_dialog.widgets.kbd import Button, SwitchTo
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format
 
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK
 from src.models.album import AlbumHandler
-from src.models.tables import Album
-from src.utils.fsm import ReleaseTrack, AlbumTitle, AlbumPage, AlbumCover, AlbumTracks
+from src.utils.fsm import AlbumPage, AlbumTracks
 
 
 async def set_album_cover(msg: Message, _, manager: DialogManager):
@@ -63,14 +62,19 @@ title = Window(
 
 async def getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    album = await AlbumHandler(data['session_maker'], data['database_logger']).get_album_scalar(
+    album, tracks = await AlbumHandler(data['session_maker'], data['database_logger']).get_album_scalar(
         dialog_manager.start_data['album_id'])
+    is_cover = None
     if album.album_cover:
-        cover = MediaAttachment(ContentType.DOCUMENT, file_id=MediaId(album.album_cover))
+        is_cover = MediaAttachment(ContentType.DOCUMENT, file_id=MediaId(album.album_cover))
     return {
         'data': dialog_manager.start_data,
         'title': dialog_manager.start_data['title'],
-        'cover': cover if album.album_cover else None,
+        'cover': is_cover,
+        'tracks': '\n'.join(tracks) if tracks is not None else "",
+        'text_title': '✓ Название' if album.album_title else 'Дать название',
+        'text_cover': '✓ Обложка' if album.album_cover else 'Прикрепить обложку',
+        'text_tracks': '✓ Треки' if tracks is not None else 'Прикрепить треки'
     }
 
 
@@ -79,15 +83,29 @@ async def choose_track(__, _, manager: DialogManager):
                         show_mode=ShowMode.EDIT)
 
 
+async def clear_tracks(__, _, manager: DialogManager):
+    data = manager.middleware_data
+    await AlbumHandler(data['session_maker'], data['database_logger']).delete_album_id_from_tracks(
+        manager.start_data['album_id'])
+
+
+async def delete_release(__, _, manager: DialogManager):
+    data = manager.middleware_data
+    await AlbumHandler(data['session_maker'], data['database_logger']).delete_release(manager.start_data['album_id'])
+    await manager.done()
+
+
 main = Dialog(
     Window(
-        Format("Релиз: {title}\n "),
+        Format("Релиз: '{title}' "),
+        Format("Треки в этом релизе: \n{tracks}"),
         DynamicMedia('cover'),
-        # TODO переделать константы в формат, идея с галочкой, когда есть запись в бд
-        SwitchTo(Const('Название альбома'), id='create_album_title', state=AlbumPage.title),
-        SwitchTo(Const('Обложка альбома'), id='create_album_cover', state=AlbumPage.cover),
-        Button(Const('Выбор треков'), id='add_tracks_to_album', on_click=choose_track),
-        Cancel(Const('Назад'), id='cancel_albums1'),
+        SwitchTo(Format('{text_title}'), id='create_album_title', state=AlbumPage.title),
+        SwitchTo(Format('{text_cover}'), id='create_album_cover', state=AlbumPage.cover),
+        Button(Format('{text_tracks}'), id='add_tracks_to_album', on_click=choose_track),
+        Button(Const('Очистить треки'), on_click=clear_tracks, id='clear_tracks'),
+        Button(Const('Удалить'), on_click=delete_release, id='delete_release'),
+        BTN_CANCEL_BACK,
         state=AlbumPage.main,
         getter=getter
     ),

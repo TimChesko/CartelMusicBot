@@ -6,6 +6,7 @@ from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Button, Cancel
 from aiogram_dialog.widgets.text import Const, Format
 
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK
 from src.models.album import AlbumHandler
 from src.utils.fsm import ReleaseTrack, AlbumPage
 
@@ -37,7 +38,7 @@ main = Dialog(
         Const("Создайте или выберите работу"),
         ScrollingGroup(
             Select(
-                Format("{item[1]}"),
+                Format("🎵{item[1]}"),
                 id="ms",
                 items="albums",
                 item_id_getter=itemgetter(0, 1),
@@ -46,9 +47,10 @@ main = Dialog(
             width=1,
             height=5,
             id='scroll_tracks_with_pager',
+            hide_on_single_page=True
         ),
         Button(Const('Создать'), on_click=create_album, id='create_new_album'),
-        Cancel(),
+        BTN_CANCEL_BACK,
         getter=list_getter,
         state=ReleaseTrack.list
     )

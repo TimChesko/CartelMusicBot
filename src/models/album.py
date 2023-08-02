@@ -1,9 +1,9 @@
 import datetime
 
-from sqlalchemy import select, update
+from sqlalchemy import select, update, delete
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.tables import Album
+from src.models.tables import Album, Track
 
 
 # noinspection PyTypeChecker
@@ -38,9 +38,52 @@ class AlbumHandler:
     async def get_album_scalar(self, album_id) -> Album:
         async with self.session_maker() as session:
             try:
-                result = await session.execute(select(Album).where(Album.id == album_id))
-                track_info = result.scalar_one_or_none()
-                return track_info
+                album = await session.execute(select(Album).where(Album.id == album_id))
+                album_info = album.scalar_one_or_none()
+                tracks = await session.execute(select(Track.track_title).where(Track.album_id == album_id))
+                tracks_info = tracks.scalars().all()
+                return album_info, tracks_info if len(tracks_info) > 0 else None
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
+    async def delete_album_id_from_tracks(self, album_id) -> Album:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(
+                    update(Track).where(Track.album_id == album_id).values(album_id=None)
+                )
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
+    async def delete_release(self, album_id) -> Album:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(
+                    update(Track).where(Track.album_id == album_id).values(album_id=None)
+                )
+                await session.execute(
+                    delete(Album).where(Album.id == album_id)
+                )
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
+    async def get_albums_scalar(self, album_id) -> Album:
+        async with self.session_maker() as session:
+            try:
+                subquery = select(Track.track_title).where(Track.album_id == Album.id).alias()
+                result = await session.execute(
+                    select(Album, subquery.c.track_title)
+                    .where(Album.id == album_id)
+                )
+                album_and_tracks = result.all()
+                return album_and_tracks
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
