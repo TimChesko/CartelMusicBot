@@ -17,7 +17,6 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
     personal_data = await PersonalDataHandler(data['session_maker'], data['database_logger']).\
         get_all_by_tg(user_id)
     user = await UserHandler(data['session_maker'], data['database_logger']).get_user_by_tg_id(user_id)
-
     status_dict = {
         "process": "🟡 на проверке",
         "reject": "⛔️ отклонены",

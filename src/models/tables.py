@@ -63,7 +63,7 @@ class PersonalData(Base):
     bik_code = Column(String)  # БИК
     bank_recipient = Column(String)  # Банк получатель
     correct_code = Column(String)  # Корр. Счет
-    itn_self = Column(String)  # ИНН физ лица
+    tin_self = Column(String)  # ИНН физ лица
     tin_bank = Column(String)  # Инн банка
     kpp_code = Column(String)  # КПП
     all_bank_data = Column(Enum("process", "reject", "approve", name="bank_status"))
