@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import select, delete, and_
+from sqlalchemy import select, delete, or_, func
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.models.tables import PersonalData, Social, PersonalDataTemplate, PersonalDataComments
@@ -22,7 +22,7 @@ class PersonalDataHandler:
                 self.logger.error("Ошибка при получении данных из таблицы PersonalData: %s", e)
                 return None
 
-    async def get_specific_data(self, tg_id: int, names_header: list[str]):
+    async def get_specific_data(self, tg_id: int, header_name: str) -> list | None:
         async with self.session_maker() as session:
             try:
                 # Get the personal data for the given tg_id
@@ -31,7 +31,7 @@ class PersonalDataHandler:
                 personal_data = personal_data_result.scalar_one_or_none()
 
                 # Get all the template data
-                template_query = select(PersonalDataTemplate).where(PersonalDataTemplate.header_data.in_(names_header))
+                template_query = select(PersonalDataTemplate).where(PersonalDataTemplate.header_data == header_name)
                 template_result = await session.execute(template_query)
                 template_data = template_result.scalars().all()
 
@@ -44,7 +44,6 @@ class PersonalDataHandler:
                             column_value = column_value.isoformat()
                         filtered_data.append({
                             "column_id": template.id,
-                            "header_name": template.header_data,
                             "column_name": template.name_data,
                             "title": template.title,
                             "value": column_value,
@@ -52,12 +51,7 @@ class PersonalDataHandler:
 
                 # Sort the data so that columns starting with "photo_id" come first
                 def sort_key(item):
-                    return (
-                        not item["column_name"].startswith('photo_id'),
-                        not item["header_name"] == 'passport',
-                        not item["header_name"] == 'bank',
-                        item["column_id"]
-                    )
+                    return not item["column_name"].startswith('photo_id'), item["column_id"]
 
                 sorted_data = sorted(filtered_data, key=sort_key)
 
@@ -65,6 +59,54 @@ class PersonalDataHandler:
             except SQLAlchemyError as e:
                 self.logger.error(f"Error occurred during query execution: {e}")
                 return None
+
+    async def set_confirm_personal_data(self, user_id: int, header_name: str):
+        async with self.session_maker() as session:
+            try:
+                user = await session.get(PersonalData, user_id)
+                if user:
+                    if header_name == "passport":
+                        user.all_passport_data = "approve"
+                    elif header_name == "bank":
+                        user.all_bank_data = "approve"
+                    else:
+                        self.logger.error("Неправильный header_name: %s", header_name)
+                        return False
+                    await session.commit()
+                    return True
+                else:
+                    self.logger.error("Данного user(%s) не существует в таблице personal_data", str(user_id))
+                    return False
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при обновлении данных в: %s", e)
+                await session.rollback()
+                return False
+
+    async def set_reject_dict(self, user_id: int, header_name: str, data: list):
+        async with self.session_maker() as session:
+            try:
+                query = select(PersonalData).where(PersonalData.tg_id == user_id)
+                result = await session.execute(query)
+                user = result.scalar()
+                if user:
+                    if header_name == "passport":
+                        user.all_passport_data = "reject"
+                    elif header_name == "bank":
+                        user.all_bank_data = "reject"
+                    else:
+                        self.logger.error("Неправильный header_name: %s", header_name)
+                        return False
+                    for column in data:
+                        setattr(user, column, None)
+                    await session.commit()
+                    return True
+                else:
+                    self.logger.error("Данного user(%s) не существует в таблице personal_data", str(user_id))
+                    return False
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при обновлении данных в: %s", e)
+                await session.rollback()
+                return False
 
     async def confirm_personal_data(self, tg_id: int) -> bool:
         async with self.session_maker() as session:
@@ -234,15 +276,32 @@ class PersonalDataHandler:
                 self.logger.error("Ошибка при получении данных из таблицы PersonalData: %s", e)
                 return []
 
-    async def get_docs_passport(self) -> list | None:
+    async def get_docs_personal_data(self) -> list | None:
         async with self.session_maker() as session:
             try:
-                query = select(PersonalData).\
-                    where(PersonalData.all_passport_data == "process"
-                          and PersonalData.all_bank_data == "process"). \
-                    order_by(PersonalData.last_datetime.asc())
+                query = select(PersonalData).where(
+                    or_(
+                        PersonalData.all_passport_data == "process",
+                        PersonalData.all_bank_data == "process"
+                    )
+                ).order_by(PersonalData.last_datetime.asc())
                 result = await session.execute(query)
                 return result.scalars().all()
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return None
+
+    async def get_docs_count_personal_data(self) -> int | None:
+        async with self.session_maker() as session:
+            try:
+                query = select(func.count(PersonalData.tg_id)).where(
+                    or_(
+                        PersonalData.all_passport_data == "process",
+                        PersonalData.all_bank_data == "process"
+                    )
+                )
+                count = await session.execute(query)
+                return count.scalar()
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return None

@@ -1,12 +1,14 @@
 from operator import itemgetter
 
+from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Button
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.dialogs.admin.tasks.personal_data.factory.process import start_view_personal_data, on_process_check
-from src.dialogs.utils.buttons import BTN_CANCEL_BACK
+from src.dialogs.admin.tasks.personal_data.factory.process import CheckDocs, on_process
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK
 from src.models.personal_data import PersonalDataHandler
+from src.models.user import UserHandler
 from src.utils.fsm import AdminCheckPassport
 
 
@@ -20,7 +22,7 @@ async def formatting_docs(docs: list) -> list:
 
 async def get_data(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    docs = await PersonalDataHandler(data['session_maker'], data['database_logger']).get_docs_passport()
+    docs = await PersonalDataHandler(data['session_maker'], data['database_logger']).get_docs_personal_data()
     docs = await formatting_docs(docs)
     return {
         "tasks": docs
@@ -28,12 +30,38 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
 
 
 async def on_item_selected(_, __, manager: DialogManager, selected_item: str):
-    await start_view_personal_data(manager, int(selected_item))
+    manager.dialog_data['user_id'] = int(selected_item)
+    await manager.switch_to(AdminCheckPassport.view)
+
+
+async def get_data_user(dialog_manager: DialogManager, **_kwargs):
+    user_id = dialog_manager.dialog_data['user_id']
+    data = dialog_manager.middleware_data
+    user_data = await UserHandler(data['session_maker'], data['database_logger']).get_user_by_tg_id(user_id)
+    user = await PersonalDataHandler(data['session_maker'], data['database_logger']).get_all_personal_data(user_id)
+    passport = True if user.all_passport_data == "process" else False
+    bank = True if user.all_bank_data == "process" else False
+    return {
+        "nickname": user_data.nickname,
+        "user_id": user_id,
+        "passport": passport,
+        "bank": bank
+    }
+
+
+async def start_passport(callback: CallbackQuery, _, manager: DialogManager):
+    user_id = manager.dialog_data['user_id']
+    await CheckDocs(manager, "passport").start_form(user_id, callback)
+
+
+async def start_bank(callback: CallbackQuery, _, manager: DialogManager):
+    user_id = manager.dialog_data['user_id']
+    await CheckDocs(manager, "bank").start_form(user_id, callback)
 
 
 dialog = Dialog(
     Window(
-        Const("Список паспортных данных на проверку"),
+        Const("Список данных на проверку"),
         ScrollingGroup(
             Select(
                 Format("{item[1]}"),
@@ -51,5 +79,14 @@ dialog = Dialog(
         getter=get_data,
         state=AdminCheckPassport.menu
     ),
-    on_process_result=on_process_check
+    Window(
+        Format("Никнейм: {nickname}\nUser_id: {user_id}\n"),
+        Const("Выберете данные для проверки:"),
+        Button(Const("Паспортные данные"), id="passport_data_check", on_click=start_passport, when="passport"),
+        Button(Const("Банковские данные"), id="bank_data_check", on_click=start_bank, when="bank"),
+        BTN_BACK,
+        state=AdminCheckPassport.view,
+        getter=get_data_user
+    ),
+    on_process_result=on_process
 )

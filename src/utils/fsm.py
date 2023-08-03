@@ -227,12 +227,6 @@ class AdminCheckPassport(StatesGroup):
 
 
 class PersonalDataCheck(StatesGroup):
-    img = State()
     text = State()
-    reject_template = State()
-    check_img = State()
+    reject_data = State()
     finish = State()
-
-    template = State()
-    comment = State()
-    edit = State()

@@ -17,14 +17,12 @@ async def get_data_from_db(header_data: str, manager: DialogManager):
 async def convert_database_to_data(data_list: list) -> dict:
     result_dict = {}
     for data in data_list:
-        logging.debug(data)
-        comment = data.get('comment', None)
         result_dict[data["name_data"]] = {
             'data_name': data["name_data"],
             'title': data["title"],
             'text': data["text"] + "\n\n" + "Пример: " + data["example"],
-            'input_type': data["input_type"].split(","),
-            'comment': comment}
+            'input_type': data["input_type"].split(",")
+        }
     return result_dict
 
 
