@@ -1,8 +1,10 @@
+import logging
 from datetime import date
 
+from aiogram.enums import ContentType
 from aiogram.types import Message
 from aiogram_dialog import Dialog, Window, DialogManager
-from aiogram_dialog.widgets.input import TextInput
+from aiogram_dialog.widgets.input import TextInput, MessageInput
 from aiogram_dialog.widgets.kbd import Button
 from aiogram_dialog.widgets.text import Format, Const
 
@@ -14,6 +16,7 @@ from src.utils.fsm import DialogInput
 async def start_dialog_filling_profile(
         btn_status: list[bool],
         input_date: bool,
+        input_img: bool,
         data: dict,
         manager: DialogManager,
         error: str = None
@@ -36,10 +39,10 @@ async def start_dialog_filling_profile(
     data['btn_back_text'] = btn_status[1]
     data['btn_back_date'] = btn_status[2]
     data['created_text'] = data['text'] if error is None else f"{error}\n\n{data['text']}"
-    data['created_text'] = f"{data['created_text']}\n\nКомментарий: {data['comment']}" \
-        if data['comment'] is not None else data['created_text']
     if input_date:
         await manager.start(state=DialogInput.date, data=data)
+    elif input_img:
+        await manager.start(state=DialogInput.img, data=data)
     else:
         await manager.start(state=DialogInput.text, data=data)
 
@@ -58,6 +61,13 @@ async def save_data(message: Message, _, manager: DialogManager, __):
     start_data = manager.start_data
     await manager.done(
         [message.text, start_data['data_name']]
+    )
+
+
+async def save_img(message: Message, _, manager: DialogManager):
+    start_data = manager.start_data
+    await manager.done(
+        [message.photo[0].file_id, start_data['data_name']]
     )
 
 
@@ -97,7 +107,6 @@ dialog_input = Dialog(
         ),
         disable_web_page_preview=True,
         state=DialogInput.text,
-        getter=get_data
     ),
     Window(
         Format("{text}"),
@@ -113,6 +122,14 @@ dialog_input = Dialog(
         ),
         disable_web_page_preview=True,
         state=DialogInput.date,
-        getter=get_data
-    )
+    ),
+    Window(
+        Format("{text}"),
+        MessageInput(
+            func=save_img,
+            content_types=ContentType.PHOTO
+        ),
+        state=DialogInput.img,
+    ),
+    getter=get_data
 )

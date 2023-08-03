@@ -19,16 +19,6 @@ async def create_form(_, __, manager: DialogManager):
     await InputForm(manager).start_dialog(buttons, task_list)
 
 
-async def save_first_img(msg: Message, _, manager: DialogManager):
-    manager.dialog_data['save_input']['photo_id_first'] = msg.photo[0].file_id
-    await manager.next()
-
-
-async def save_second_img(msg: Message, _, manager: DialogManager):
-    manager.dialog_data['save_input']['photo_id_second'] = msg.photo[0].file_id
-    await manager.next()
-
-
 async def on_finally_passport(callback: CallbackQuery, _, manager: DialogManager):
     middleware_data = manager.middleware_data
     user_id = middleware_data['event_from_user'].id
@@ -55,22 +45,6 @@ add_full_data = Dialog(
         ),
         Cancel(Const("Вернуться в профиль")),
         state=Passport.add_data
-    ),
-    Window(
-        Const("Пришлите фотографию 1 страницы паспорта"),
-        MessageInput(
-            func=save_first_img,
-            content_types=ContentType.PHOTO
-        ),
-        state=Passport.passport_first_img
-    ),
-    Window(
-        Const("Пришлите фотографию 2 страницы паспорта"),
-        MessageInput(
-            func=save_second_img,
-            content_types=ContentType.PHOTO
-        ),
-        state=Passport.passport_second_img
     ),
     Window(
         Const("Проверьте и подтвердите правильность всех данных."

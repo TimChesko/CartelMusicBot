@@ -177,6 +177,7 @@ class ProfileEdit(StatesGroup):
 class DialogInput(StatesGroup):
     text = State()
     date = State()
+    img = State()
 
 
 class MyStudio(StatesGroup):

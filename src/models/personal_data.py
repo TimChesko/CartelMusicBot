@@ -258,18 +258,17 @@ class PersonalDataHandler:
                                 for name_data, title, text, example, input_type in template_data
                                 if getattr(personal_data, name_data) is None]
 
-                # Fetch the comments for the columns with None values
-                comments_query = select(PersonalDataComments).where(
-                    (PersonalDataComments.tg_id == tg_id) &
-                    (PersonalDataComments.column_name.in_([column[0] for column in none_columns]))
-                )
-                comments_result = await session.execute(comments_query)
-                comments = comments_result.scalars().all()
-
                 # Combine the none_columns and comments into a single list of tuples
-                result = [(column[0], column[1], column[2], column[3], column[4],
-                           next((comment.comment for comment in comments if comment.column_name == column[0]), None))
-                          for column in none_columns]
+                result = [
+                    {
+                        "name_data": column[0],
+                        "title": column[1],
+                        "text": column[2],
+                        "example": column[3],
+                        "input_type": column[4],
+                    }
+                    for column in none_columns
+                ]
 
                 return result
             except SQLAlchemyError as e:

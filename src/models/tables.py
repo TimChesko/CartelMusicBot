@@ -54,6 +54,7 @@ class PersonalData(Base):
     registration_address = Column(String)  # адрес регистрации
     photo_id_first = Column(String)  # фотография первой страницы паспорта
     photo_id_second = Column(String)  # фотография второй страницы паспорта
+    email = Column(String)  # почта
     all_passport_data = Column(Enum("process", "reject", "approve", name="passport_status"))
 
     # Банковские данные
