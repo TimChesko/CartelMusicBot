@@ -1,4 +1,4 @@
-from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
+from aiogram_dialog import DialogManager, Dialog, Window, ShowMode, StartMode
 from aiogram_dialog.widgets.kbd import Start, Button
 from aiogram_dialog.widgets.text import Const, Format
 
@@ -34,7 +34,7 @@ async def start_profile(_, __, manager: DialogManager):
     personal_data = await PersonalDataHandler(data['session_maker'], data['database_logger']).\
         get_personal_data_confirm(user_id)
     if personal_data:
-        await manager.start(state=Profile.menu)
+        await manager.start(state=Profile.menu, mode=StartMode.NORMAL)
     else:
         await manager.start(state=PersonalData.confirm)
 

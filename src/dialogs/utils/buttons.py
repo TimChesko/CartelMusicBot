@@ -12,5 +12,3 @@ BTN_CANCEL_BACK = Cancel(Const(TXT_BACK))
 BTN_BACK = Back(Const(TXT_BACK))
 
 
-def BTN_CANCEL_SWITCH(state: State, id):
-    return SwitchTo(Const(TXT_BACK), state=state, id=f'CAncElSwtCH{id}')

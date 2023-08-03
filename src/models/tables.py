@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 
 from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger, Enum
-from sqlalchemy.orm import relationship, declared_attr, as_declarative, column_property
+from sqlalchemy.orm import relationship, declared_attr, as_declarative
 
 
 @as_declarative()
@@ -62,10 +62,12 @@ class PersonalData(Base):
     bik_code = Column(String)  # БИК
     bank_recipient = Column(String)  # Банк получатель
     correct_code = Column(String)  # Корр. Счет
-    inn_code = Column(String)  # ИНН
+    tin_self = Column(String)  # ИНН физ лица
+    tin_bank = Column(String)  # Инн банка
     kpp_code = Column(String)  # КПП
     all_bank_data = Column(Enum("process", "reject", "approve", name="bank_status"))
     moderated = Column(Boolean, default=False)
+    email = Column(String)  # почта
 
     last_datetime = Column(DateTime, default=datetime.utcnow)
 

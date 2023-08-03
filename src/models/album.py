@@ -111,3 +111,17 @@ class AlbumHandler:
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
+
+    async def update_unsigned_state(self, album_id: int, file_id) -> bool:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(
+                    update(Album).where(Album.id == album_id).values(unsigned_license=file_id,
+                                                                     unsigned_state='process'
+                                                                     )
+                )
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
+                return False
