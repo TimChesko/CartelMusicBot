@@ -243,3 +243,15 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
+    async def get_for_album_multiselect(self, tg_id: int):
+        async with self.session_maker() as session:
+            try:
+                result = await session.execute(
+                    select(Track.track_title, Track.id)
+                    .where(and_(Track.user_id == tg_id, Track.album_id == None),
+                           or_(Track.status == "approve", Track.status == "approve_promo")))
+                tracks = result.all()
+                return tracks
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False

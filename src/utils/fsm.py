@@ -49,6 +49,22 @@ class AdminListening(StatesGroup):
     confirm = State()
 
 
+class AdminRelease(StatesGroup):
+    menu = State()
+
+
+class AdminReleaseLvl1(StatesGroup):
+    start = State()
+
+
+class AdminReleaseLvl2(StatesGroup):
+    start = State()
+
+
+class AdminReleaseLvl3(StatesGroup):
+    start = State()
+
+
 class AdminEmployee(StatesGroup):
     start = State()
     info = State()

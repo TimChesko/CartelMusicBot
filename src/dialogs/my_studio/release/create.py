@@ -3,7 +3,7 @@ from _operator import itemgetter
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Button, Cancel
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Button
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK
@@ -13,7 +13,6 @@ from src.utils.fsm import ReleaseTrack, AlbumPage
 
 async def on_album_selected(callback: CallbackQuery, __, manager: DialogManager, selected_item: str):
     items = eval(selected_item)
-    logging.info(type(items[0]))
     await manager.start(AlbumPage.main, data={'album_id': items[0],
                                               'title': items[1]}, show_mode=ShowMode.EDIT)
 

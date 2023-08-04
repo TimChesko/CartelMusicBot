@@ -1,8 +1,12 @@
 from aiogram import Router
 
-from src.dialogs.admin import dashboard, menu, registration, listening, tasks
+from src.dialogs.admin import dashboard, menu, registration, tasks
+from src.dialogs.admin.tasks import release, listening
 
 router = Router()
 
-router.include_routers(dashboard.router, menu.menu, registration.reg_fullname, listening.router)
-router.include_router(tasks.router)
+router.include_routers(menu.menu,
+                       registration.reg_fullname,
+                       dashboard.router,
+                       tasks.router,
+                       )
