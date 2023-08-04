@@ -73,12 +73,13 @@ async def cancel_task(_, __, manager: DialogManager):
 
 async def approve(callback: CallbackQuery, btn: Button, manager: DialogManager):
     data = manager.middleware_data
-    bot: Bot = manager.middleware_data['bot']
+    bot: Bot = data.get("bot", None)
     track_id = manager.dialog_data['getter_info']['track_id']
-    user_id = await TrackHandler(data['session_maker'], data['database_logger']).update_approve(track_id,
-                                                                        callback.from_user.id)
-    text = await ListeningTemplatesHandler(data['session_maker'], data['database_logger']).get_approve_reason(
-        btn.widget_id)
+    user_id = await (TrackHandler(data['session_maker'], data['database_logger']).
+                     update_approve(track_id, callback.from_user.id))
+
+    text = await (ListeningTemplatesHandler(data['session_maker'], data['database_logger']).
+                  get_approve_reason(btn.widget_id))
     logging.debug(text)
     await bot.send_message(chat_id=user_id, text=text)
 

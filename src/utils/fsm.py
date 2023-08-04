@@ -234,5 +234,11 @@ class PersonalDataCheck(StatesGroup):
     finish = State()
 
 
+class AdminListTracks(StatesGroup):
+    menu = State()
+
+
 class AdminCheckTrack(StatesGroup):
     menu = State()
+    reject_data = State()
+    finish = State()

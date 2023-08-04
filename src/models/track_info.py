@@ -10,6 +10,28 @@ class TrackInfoHandler:
         self.session_maker = session_maker
         self.logger = logger
 
+    async def get_docs_by_id(self, track_id: int):
+        async with self.session_maker() as session:
+            try:
+                query = select(TrackInfo).where(TrackInfo.track_id == track_id)
+                result = await session.execute(query)
+                return result.scalar()
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return None
+
+    async def add_track_info(self, data: dict) -> bool:
+        async with self.session_maker() as session:
+            try:
+                new_track_info = TrackInfo(**data)
+                session.add(new_track_info)
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при добавлении нового трека: {e}")
+                await session.rollback()
+                return False
+
     async def get_docs_by_status(self, status: str) -> list | None:
         async with self.session_maker() as session:
             try:
