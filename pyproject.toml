@@ -9,6 +9,7 @@ packages = [
 
 
 [tool.poetry.dependencies]
+docxtpl = "^0.16.7"
 python = "^3.10"
 environs = "^9.5.0"
 asyncpg = "^0.27.0"

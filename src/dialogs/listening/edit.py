@@ -12,7 +12,7 @@ from aiogram_dialog.widgets.text import Format, Const
 from src.dialogs.listening.menu import tracks_getter
 from src.dialogs.listening.new import other_type_handler_audio
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK, TXT_BACK
-from src.models.tracks import TrackHandler
+from src.models.track import TrackHandler
 from src.utils.fsm import ListeningEditTrack
 
 

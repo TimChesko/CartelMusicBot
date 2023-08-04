@@ -8,7 +8,7 @@ from aiogram_dialog.widgets.text import Const, Format
 from src.dialogs.admin.listening.custom import reason_window, confirm_reason_window
 from src.dialogs.admin.listening.on_track import info_window, reject_templates
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK
-from src.models.tracks import TrackHandler
+from src.models.track import TrackHandler
 from src.utils.fsm import AdminListening
 
 

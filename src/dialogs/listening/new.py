@@ -8,7 +8,7 @@ from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK
-from src.models.tracks import TrackHandler
+from src.models.track import TrackHandler
 from src.models.user import UserHandler
 from src.utils.fsm import ListeningNewTrack
 

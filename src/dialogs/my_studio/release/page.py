@@ -1,10 +1,9 @@
-import io
 import logging
 import os
 
 from aiogram import Bot
 from aiogram.enums import ContentType
-from aiogram.types import Message, CallbackQuery, BufferedInputFile, FSInputFile
+from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.input import MessageInput

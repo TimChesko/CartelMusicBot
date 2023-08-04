@@ -4,7 +4,7 @@ from aiogram_dialog.widgets.text import Const, Format
 
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.personal_data import PersonalDataHandler
-from src.models.tracks import TrackHandler
+from src.models.track import TrackHandler
 from src.utils.fsm import StartMenu, Listening, PublicTrack, Profile, \
     PersonalData, MyStudio
 

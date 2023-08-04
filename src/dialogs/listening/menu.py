@@ -3,7 +3,7 @@ from aiogram_dialog.widgets.kbd import Start
 from aiogram_dialog.widgets.text import Const
 
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK
-from src.models.tracks import TrackHandler
+from src.models.track import TrackHandler
 from src.utils.fsm import Listening, ListeningNewTrack, ListeningEditTrack
 
 
