@@ -1,3 +1,4 @@
+import logging
 from _operator import itemgetter
 
 from aiogram import Bot
@@ -75,9 +76,10 @@ async def approve(callback: CallbackQuery, btn: Button, manager: DialogManager):
     bot: Bot = manager.middleware_data['bot']
     track_id = manager.dialog_data['getter_info']['track_id']
     user_id = await TrackHandler(data['session_maker'], data['database_logger']).update_approve(track_id,
-                                                                                                callback.from_user.id)
+                                                                        callback.from_user.id)
     text = await ListeningTemplatesHandler(data['session_maker'], data['database_logger']).get_approve_reason(
         btn.widget_id)
+    logging.debug(text)
     await bot.send_message(chat_id=user_id, text=text)
 
 

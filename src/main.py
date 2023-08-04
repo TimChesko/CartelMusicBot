@@ -88,7 +88,6 @@ async def main() -> None:
     )
 
     dp['config'] = config
-    dp['bot'] = bot
     dp.errors.register(
         on_unknown_intent,
         ExceptionTypeFilter(UnknownIntent),

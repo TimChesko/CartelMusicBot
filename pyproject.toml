@@ -2,7 +2,7 @@
 name = "cartelmusicbot"
 version = "0.1.0"
 description = ""
-authors = ["Tima <timofey.lazarev@gmail.com>"]
+authors = ["Timofey <https://t.me/getxp>", "Kolya <https://t.me/nownuserr>"]
 packages = [
     {include = "src"}
 ]
@@ -11,13 +11,13 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.10"
 environs = "^9.5.0"
-asyncpg = "^0.27.0"
+asyncpg = "^0.28.0"
 apscheduler = "^3.10.1"
 redis = "^4.5.5"
 structlog = "^23.1.0"
-aiogram = "3.0.0b7"
+aiogram = "3.0.0b9"
 sqlalchemy = "^2.0.15"
-aiogram-dialog = "2.0.0b20"
+aiogram-dialog = "2.0.0b21"
 alembic = "^1.11.1"
 babel = "^2.12.1"
 adaptix = "^3.0.0a4"
