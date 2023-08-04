@@ -10,7 +10,7 @@ from src.utils.fsm import Passport
 
 
 async def create_form(_, __, manager: DialogManager):
-    buttons = [False, True, False]
+    buttons = [False, True, True]
     task_list = await get_data_from_db("passport", manager)
     await InputForm(manager).start_dialog(buttons, task_list)
 
@@ -19,10 +19,8 @@ async def on_finally_passport(callback: CallbackQuery, _, manager: DialogManager
     middleware_data = manager.middleware_data
     user_id = middleware_data['event_from_user'].id
     data = await convert_data_types(manager.dialog_data['save_input'])
-
     await PersonalDataHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
         update_all_personal_data(user_id, "passport", data)
-
     await callback.message.answer("Вы успешно внесли данные о паспорте !\n"
                                   "Чтобы обезопасить себя, нажмите на 3 точки в правом углу, "
                                   "затем clear history/очистить историю. Чтобы удалить все внесенные данные из чата.")

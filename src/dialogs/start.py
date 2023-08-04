@@ -1,3 +1,5 @@
+import logging
+
 from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
 from aiogram_dialog.widgets.kbd import Start, Button
 from aiogram_dialog.widgets.text import Const, Format
@@ -9,18 +11,18 @@ from src.utils.fsm import StartMenu, Listening, PublicTrack, Profile, \
     PersonalData, MyStudio
 
 
-async def get_data(dialog_manager: DialogManager, **kwargs):
+async def get_data(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     user_id = data['event_from_user'].id
     library = await TrackHandler(data['session_maker'], data['database_logger']).has_tracks_by_tg_id(user_id)
     tracks = await TrackHandler(data['session_maker'], data['database_logger']).check_chat_exists(user_id)
-    passport, bank = await PersonalDataHandler(data['session_maker'], data['database_logger']).\
-        get_all_data_status(user_id)
+    personal_data = await PersonalDataHandler(data['session_maker'], data['database_logger']).\
+        get_all_by_tg(user_id)
     return {
         "library_check": library,
         'track_check': tracks,
         'data': data,
-        "text": "Профиль" if passport and bank else "Пройти верификацию"
+        "text": "Профиль" if personal_data.all_passport_data and personal_data.all_bank_data else "Пройти верификацию"
     }
 
 
@@ -32,8 +34,8 @@ async def start_profile(_, __, manager: DialogManager):
     data = manager.middleware_data
     user_id = data['event_from_user'].id
     personal_data = await PersonalDataHandler(data['session_maker'], data['database_logger']).\
-        get_personal_data_confirm(user_id)
-    if personal_data:
+        get_all_by_tg(user_id)
+    if personal_data.confirm_use_personal_data:
         await manager.start(state=Profile.menu)
     else:
         await manager.start(state=PersonalData.confirm)

@@ -144,7 +144,8 @@ class Profile(StatesGroup):
 class Passport(StatesGroup):
     add_data = State()
     edit_data = State()
-
+    passport_first_img = State()
+    passport_second_img = State()
     confirm = State()
 
 
@@ -177,6 +178,7 @@ class ProfileEdit(StatesGroup):
 class DialogInput(StatesGroup):
     text = State()
     date = State()
+    img = State()
 
 
 class MyStudio(StatesGroup):
@@ -215,3 +217,22 @@ class StudioEdit(StatesGroup):
     author_beat_percent = State()
     feat_percent = State()
     confirm = State()
+
+
+class AdminViewTypeDocs(StatesGroup):
+    menu = State()
+
+
+class AdminCheckPassport(StatesGroup):
+    menu = State()
+    view = State()
+
+
+class PersonalDataCheck(StatesGroup):
+    text = State()
+    reject_data = State()
+    finish = State()
+
+
+class AdminCheckTrack(StatesGroup):
+    menu = State()

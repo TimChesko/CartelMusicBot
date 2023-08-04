@@ -54,6 +54,7 @@ class PersonalData(Base):
     registration_address = Column(String)  # адрес регистрации
     photo_id_first = Column(String)  # фотография первой страницы паспорта
     photo_id_second = Column(String)  # фотография второй страницы паспорта
+    email = Column(String)  # почта
     all_passport_data = Column(Enum("process", "reject", "approve", name="passport_status"))
 
     # Банковские данные
@@ -62,7 +63,8 @@ class PersonalData(Base):
     bik_code = Column(String)  # БИК
     bank_recipient = Column(String)  # Банк получатель
     correct_code = Column(String)  # Корр. Счет
-    inn_code = Column(String)  # ИНН
+    tin_self = Column(String)  # ИНН физ лица
+    tin_bank = Column(String)  # Инн банка
     kpp_code = Column(String)  # КПП
     all_bank_data = Column(Enum("process", "reject", "approve", name="bank_status"))
     moderated = Column(Boolean, default=False)
@@ -228,6 +230,7 @@ class TrackApprovement(Base):
 
 class CommentsTemplate(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String)
     comment = Column(String)
     is_text = Column(Boolean)
     is_img = Column(Boolean)

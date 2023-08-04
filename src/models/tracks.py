@@ -19,7 +19,7 @@ class TrackHandler:
                 track = result.scalar_one_or_none()
                 return track is not None
             except SQLAlchemyError as e:
-                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                self.logger.error(f"Ошибка при выполнении запроса has_tracks_by_tg_id: {e}")
                 return False
 
     async def has_reject_by_tg_id(self, tg_id: int) -> list[Track] | bool:
@@ -41,7 +41,7 @@ class TrackHandler:
                 track = result.scalar_one_or_none()
                 return track is not None
             except SQLAlchemyError as e:
-                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                self.logger.error(f"Ошибка при выполнении запроса check_chat_exists: {e}")
                 return False
 
     async def add_new_track(self, user_id: int, track_title: str, file_id_audio: str) -> bool:
@@ -218,3 +218,4 @@ class TrackHandler:
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
+

@@ -2,7 +2,7 @@ from aiogram.types import Message
 from sqlalchemy import update, select
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.tables import User
+from src.models.tables import User, PersonalData
 
 
 class UserHandler:
@@ -31,6 +31,8 @@ class UserHandler:
                     tg_last_name=msg.from_user.last_name
                 )
                 session.add(new_user)
+                personal_data = PersonalData(tg_id=msg.from_user.id)
+                session.add(personal_data)
                 await session.commit()
                 return True
             except SQLAlchemyError as e:

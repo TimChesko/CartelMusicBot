@@ -1,3 +1,4 @@
+import logging
 import re
 from typing import Any
 
@@ -33,12 +34,13 @@ class InputForm:
         # Запуск первой формы
         await start_dialog_filling_profile(*(await self.get_args()))
 
-    async def get_args(self) -> tuple[list[bool], bool, dict, DialogManager]:
+    async def get_args(self) -> tuple[list[bool], bool, bool, dict, DialogManager]:
         task_list = self.manager.dialog_data['task_list_all']
         key = self.manager.dialog_data["task_list_process"][0]
         input_date = True if "date" in task_list[key]['input_type'] else False
+        input_img = True if "img" in task_list[key]['input_type'] else False
         btn_status = self.manager.dialog_data['btn_status']
-        return btn_status, input_date, task_list[key], self.manager
+        return btn_status, input_date, input_img, task_list[key], self.manager
 
     async def __dialog_save_task_list(self,
                                       btn_status: list[bool],
@@ -61,6 +63,7 @@ class InputForm:
             "space": [r"\s", "пробелы"],
             "any": [".*", "любые символы"],
             "date": [".*", "любые символы"],
+            "img": [".*", "фотография"]
         }
 
         input_pattern = ''.join(template_input.get(item, [""])[0] for item in input_type)
@@ -75,7 +78,7 @@ class InputForm:
         else:
             regex_pattern = rf'^[{input_pattern}]+$'
 
-        if "date" in input_type or re.match(regex_pattern, input_result):
+        if "img" in input_type or "date" in input_type or re.match(regex_pattern, input_result):
             return {"value": input_result, "check": True}
         else:
             return {"value": f"Ответ может содержать {allowed_characters}\nПовторите попытку снова", "check": False}
@@ -95,10 +98,6 @@ async def process_input_result(_, result: Any, manager: DialogManager):
             await start_dialog_filling_profile(*(await InputForm(manager).get_args()))
         else:
             await manager.done()
-
-    # elif "stop" == result[0]:
-    #     # TODO проверить что тут будет
-    #     await manager.done("cancel")
 
     elif "task_list_process" in manager.dialog_data:
         validate = await InputForm(manager).validate_input(input_type, result[0])
