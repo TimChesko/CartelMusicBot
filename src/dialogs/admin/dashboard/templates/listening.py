@@ -5,9 +5,10 @@ from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Cancel, SwitchTo, Button, Select, ScrollingGroup
+from aiogram_dialog.widgets.kbd import SwitchTo, Button, Select, ScrollingGroup
 from aiogram_dialog.widgets.text import Const, Format
 
+from src.dialogs.utils.buttons import TXT_BACK, BTN_CANCEL_BACK
 from src.models.listening_templates import ListeningTemplatesHandler
 from src.utils.fsm import TemplatesListening
 
@@ -25,7 +26,7 @@ async def add_content(message: Message, _, manager: DialogManager):
 add_new_content = Window(
     Const('Введите текст для шаблона'),
     MessageInput(add_content, content_types=[ContentType.TEXT]),
-    SwitchTo(Const('Назад'), id='bck_to_menu', state=TemplatesListening.start),
+    SwitchTo(Const(TXT_BACK), id='bck_to_menu', state=TemplatesListening.start),
     state=TemplatesListening.add_content
 )
 
@@ -39,7 +40,7 @@ async def add_name(message: Message, _, manager: DialogManager):
 add_new_name = Window(
     Const('Введите название для шаблона'),
     MessageInput(add_name, content_types=[ContentType.TEXT]),
-    SwitchTo(Const('Назад'), id='bck_to_menu', state=TemplatesListening.start),
+    SwitchTo(Const(TXT_BACK), id='bck_to_menu', state=TemplatesListening.start),
     state=TemplatesListening.add_name
 )
 
@@ -67,14 +68,14 @@ async def update_name(message: Message, _, manager: DialogManager):
 name_input = Window(
     Const('Введите новое название для шаблона'),
     MessageInput(update_name, content_types=[ContentType.TEXT]),
-    SwitchTo(Const('Назад'), id='bck_to_menu', state=TemplatesListening.start),
+    SwitchTo(Const(TXT_BACK), id='bck_to_menu', state=TemplatesListening.start),
     state=TemplatesListening.name
 )
 
 content_input = Window(
     Const('Введите новый текст для шаблона'),
     MessageInput(update_content, content_types=[ContentType.TEXT]),
-    SwitchTo(Const('Назад'), id='bck_to_menu', state=TemplatesListening.start),
+    SwitchTo(Const(TXT_BACK), id='bck_to_menu', state=TemplatesListening.start),
     state=TemplatesListening.content
 )
 
@@ -109,7 +110,7 @@ rejects_list = Window(
         hide_on_single_page=True
     ),
     SwitchTo(Const('Добавить'), id='add', state=TemplatesListening.add_name),
-    SwitchTo(Const('Назад'), id='bck_to_menu', state=TemplatesListening.start),
+    SwitchTo(Const(TXT_BACK), id='bck_to_menu', state=TemplatesListening.start),
     state=TemplatesListening.reject,
     getter=reject_list_getter
 )
@@ -132,7 +133,7 @@ async def to_next(_, btn: Button, manager: DialogManager):
     manager.dialog_data['type'] = btn.widget_id
 
 
-async def del_data(_, btn: Button, manager: DialogManager):
+async def del_data(_, __, manager: DialogManager):
     manager.dialog_data.clear()
 
 
@@ -150,7 +151,7 @@ info = Window(
     SwitchTo(Const('Изменить текст'), id='change_content', state=TemplatesListening.content),
     SwitchTo(Const('Изменить название'), id='change_name', state=TemplatesListening.name, when='rejected'),
     SwitchTo(Const('Удалить'), id='delete_rej', state=TemplatesListening.start, on_click=del_reject, when='rejected'),
-    SwitchTo(Const('Назад'), id='bck_to_menu', state=TemplatesListening.start, on_click=del_data),
+    SwitchTo(Const(TXT_BACK), id='bck_to_menu', state=TemplatesListening.start, on_click=del_data),
     state=TemplatesListening.info,
     getter=info_getter
 )
@@ -170,7 +171,7 @@ choice = Dialog(
                  id='reject',
                  on_click=to_next,
                  state=TemplatesListening.reject),
-        Cancel(Const('Главное меню')),
+        BTN_CANCEL_BACK,
         state=TemplatesListening.start
     ),
     info,

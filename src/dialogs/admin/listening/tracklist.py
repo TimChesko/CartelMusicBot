@@ -2,11 +2,12 @@ from _operator import itemgetter
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Window, Dialog, DialogManager
-from aiogram_dialog.widgets.kbd import Cancel, ScrollingGroup, Select
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.dialogs.admin.listening.custom import reason_window, confirm_reason_window
 from src.dialogs.admin.listening.on_track import info_window, reject_templates
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK
 from src.models.tracks import TrackHandler
 from src.utils.fsm import AdminListening
 
@@ -19,7 +20,7 @@ async def on_item_selected(callback: CallbackQuery, __, manager: DialogManager, 
     checker, file, user = await TrackHandler(data['session_maker'], data['database_logger']).get_listening_info(
         track_id)
     if checker is None or checker == callback.from_user.id:
-        await TrackHandler(data['session_maker'], data['database_logger']).update_checker(track_id,
+        await TrackHandler(data['session_maker'], data['database_logger']).set_task_state(track_id,
                                                                                           data['event_from_user'].id)
         local['file'] = file
         local['getter_info'] = {
@@ -59,7 +60,7 @@ tracks = Dialog(
             id='scroll_tracks_with_pager',
             hide_on_single_page=True
         ),
-        Cancel(),
+        BTN_CANCEL_BACK,
         state=AdminListening.start,
         getter=track_list_getter
     ),

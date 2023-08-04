@@ -1,15 +1,14 @@
 from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery
-from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
+from aiogram_dialog import Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Cancel, Row, Button, Back, SwitchTo
+from aiogram_dialog.widgets.kbd import Row, Button, Back, SwitchTo
 from aiogram_dialog.widgets.text import Format, Const
 
-from src.data import config
+from src.dialogs.utils.buttons import TXT_BACK
 from src.models.approvement import ApprovementHandler
 from src.models.tracks import TrackHandler
-from src.models.user import UserHandler
-from src.utils.fsm import RejectAnswer, AdminListening
+from src.utils.fsm import AdminListening
 
 
 async def id_getter(dialog_manager: DialogManager, **_kwargs):
@@ -51,7 +50,7 @@ reason_window = Window(
     Format('#{id} -- Введи причину отказа'),
     MessageInput(set_reject_reason, content_types=[ContentType.TEXT]),
     MessageInput(other_type_handler_text),
-    SwitchTo(Const('Отмена'), state=AdminListening.info, id='bck_to_info'),
+    SwitchTo(Const(TXT_BACK), state=AdminListening.info, id='bck_to_info'),
     state=AdminListening.custom,
     getter=id_getter
 )
@@ -62,7 +61,7 @@ confirm_reason_window = Window(
         Button(Const("Подтверждаю"), on_click=on_finish_custom_reason, id="approve_reason"),
         Back(Const("Изменить"), id="bck_reason"),
     ),
-    SwitchTo(Const('Отмена'), state=AdminListening.info, id='bck_to_info'),
+    SwitchTo(Const(TXT_BACK), state=AdminListening.info, id='bck_to_info'),
     state=AdminListening.custom_confirm,
     getter=reason_getter
 )

@@ -1,8 +1,9 @@
 from aiogram_dialog import Window, DialogManager
-from aiogram_dialog.widgets.kbd import Cancel, Back, Row
+from aiogram_dialog.widgets.kbd import Back, Row
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.dialogs.admin.dashboard.employee.info import employee_getter
+from src.dialogs.utils.buttons import BTN_BACK
 from src.models.employee import EmployeeHandler
 from src.utils.fsm import AdminEmployee
 
@@ -17,7 +18,7 @@ delete_window = Window(
     Format('Подтвердите увольнение сотрудника {name}'),
     Row(
         Back(Const("Подтверждаю"), on_click=delete_employee, id="fire_employee"),
-        Back(Const("Отмена"), id="reject_layoff"),
+        BTN_BACK,
     ),
     state=AdminEmployee.layoff,
     getter=employee_getter

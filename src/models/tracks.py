@@ -203,6 +203,18 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
+    async def set_task_state(self, track_id, employee_id=None) -> bool:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(
+                    update(Track).where(Track.id == track_id).values(checker=employee_id)
+                )
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
+                return False
+
     async def update_approve(self, track_id, employee_id) -> bool:
         async with self.session_maker() as session:
             try:

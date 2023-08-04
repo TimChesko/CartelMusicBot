@@ -1,7 +1,8 @@
 from aiogram_dialog import Dialog, Window
-from aiogram_dialog.widgets.kbd import Start, Cancel
+from aiogram_dialog.widgets.kbd import Start
 from aiogram_dialog.widgets.text import Const
 
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK
 from src.utils.fsm import AdminDashboard, AdminStatistic, AdminEmployee, AdminTemplates
 
 dashboard = Dialog(
@@ -18,7 +19,7 @@ dashboard = Dialog(
         Start(Const('Шаблоны'),
               id='admin_templates',
               state=AdminTemplates.start),
-        Cancel(Const('Главное меню')),
+        BTN_CANCEL_BACK,
         state=AdminDashboard.start
     ),
 )

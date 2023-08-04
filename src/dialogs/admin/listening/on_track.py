@@ -9,6 +9,7 @@ from aiogram_dialog.widgets.kbd import SwitchTo, Back, Next, Button, ScrollingGr
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format
 
+from src.dialogs.utils.buttons import TXT_BACK, BTN_BACK
 from src.models.approvement import ApprovementHandler
 from src.models.listening_templates import ListeningTemplatesHandler
 from src.models.tracks import TrackHandler
@@ -57,7 +58,7 @@ reject_templates = Window(
         id='scroll_rejects_without_pager',
         hide_on_single_page=True
     ),
-    Back(Const('Назад')),
+    BTN_BACK,
     state=AdminListening.templates,
     getter=reject_list_getter
 )
@@ -66,7 +67,7 @@ reject_templates = Window(
 async def cancel_task(_, __, manager: DialogManager):
     data = manager.middleware_data
     track_id = manager.dialog_data['getter_info']['track_id']
-    await TrackHandler(data['session_maker'], data['database_logger']).update_checker(track_id, None)
+    await TrackHandler(data['session_maker'], data['database_logger']).set_task_state(track_id, None)
     manager.show_mode = ShowMode.EDIT
 
 
@@ -105,7 +106,7 @@ info_window = Window(
     SwitchTo(Const('Свой ответ'),
              id='custom_reject',
              state=AdminListening.custom),
-    Cancel(Const('Назад'),
+    Cancel(Const(TXT_BACK),
            on_click=cancel_task),
     state=AdminListening.info,
     getter=info_getter

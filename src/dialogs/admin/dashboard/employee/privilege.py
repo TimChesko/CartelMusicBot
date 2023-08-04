@@ -1,18 +1,12 @@
-import logging
+from aiogram.types import CallbackQuery
+from aiogram_dialog import Window, DialogManager
+from aiogram_dialog.widgets.kbd import Button, SwitchTo
+from aiogram_dialog.widgets.text import Const
 
-from aiogram.enums import ContentType
-from aiogram.types import Message, CallbackQuery
-from aiogram_dialog import Window, Dialog, DialogManager, ShowMode
-from aiogram_dialog.widgets.input import TextInput, MessageInput
-from aiogram_dialog.widgets.kbd import Cancel, Button, Row, Back, SwitchTo
-from aiogram_dialog.widgets.text import Const, Format
-
-from src.data import config
-from src.dialogs.admin.common import translate_privilege
 from src.dialogs.admin.dashboard.employee.add import developer_getter
+from src.dialogs.utils.buttons import TXT_BACK
 from src.models.employee import EmployeeHandler
-from src.models.user import UserHandler
-from src.utils.fsm import AdminAddEmployee, AdminEmployee
+from src.utils.fsm import AdminEmployee
 
 
 async def set_new_privilege(callback: CallbackQuery, button: Button, manager: DialogManager):
@@ -39,7 +33,7 @@ privilege_window = Window(
            id='admin',
            on_click=set_new_privilege,
            when='developer'),
-    SwitchTo(Const("Назад"),
+    SwitchTo(Const(TXT_BACK),
              state=AdminEmployee.info,
              id='bck_info'),
     state=AdminEmployee.change_privilege,

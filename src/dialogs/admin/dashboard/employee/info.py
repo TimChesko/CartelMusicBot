@@ -1,8 +1,9 @@
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Window, DialogManager
-from aiogram_dialog.widgets.kbd import SwitchTo, Back, Url
+from aiogram_dialog.widgets.kbd import SwitchTo, Url
 from aiogram_dialog.widgets.text import Const, Format
 
+from src.dialogs.utils.buttons import BTN_BACK
 from src.models.employee import EmployeeHandler
 from src.utils.fsm import AdminEmployee
 
@@ -71,7 +72,7 @@ info_window = Window(
              id='delete_employee',
              state=AdminEmployee.layoff,
              when='not_fired'),
-    Back(Const("Назад")),
+    BTN_BACK,
     state=AdminEmployee.info,
     getter=employee_getter
 )

@@ -1,15 +1,13 @@
-from aiogram.types import CallbackQuery, ContentType, Message
+from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import (
     Dialog, DialogManager, Window, StartMode, ShowMode,
 )
-from aiogram_dialog.widgets.input import MessageInput, TextInput
-from aiogram_dialog.widgets.kbd import Back, Button, Row, SwitchTo, Start
-from aiogram_dialog.widgets.text import Const, Format, Multi
+from aiogram_dialog.widgets.input import TextInput
+from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo
+from aiogram_dialog.widgets.text import Const, Format
 
 from src.models.employee import EmployeeHandler
-from src.models.personal_data import PersonalDataHandler
-from src.models.user import UserHandler
-from src.utils.fsm import RegNickname, StartMenu, AdminRegistration, AdminMenu
+from src.utils.fsm import AdminRegistration, AdminMenu
 
 
 async def fullname_getter(dialog_manager: DialogManager, **_kwargs):
@@ -55,8 +53,8 @@ reg_fullname = Dialog(
     Window(
         Format('Вас зовут {fullname}, Вы уверены?'),
         Row(
-            Button(Const('Уверен'), id='success', on_click=on_finish),
             SwitchTo(Const('Сомневаюсь...'), id='doubt', state=AdminRegistration.first_name),
+            Button(Const('Уверен'), id='success', on_click=on_finish),
         ),
         state=AdminRegistration.confirm,
         getter=fullname_getter

@@ -4,11 +4,12 @@ from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Window, Dialog, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Cancel, Button, Row, Back
+from aiogram_dialog.widgets.kbd import Button, Row, Back
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.data import config
 from src.dialogs.admin.common import translate_privilege
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK
 from src.models.employee import EmployeeHandler
 from src.models.user import UserHandler
 from src.utils.fsm import AdminAddEmployee
@@ -79,7 +80,7 @@ new_employee = Dialog(
                      content_types=[ContentType.TEXT],
                      # filter=F.text.isdigit()
                      ),
-        Cancel(Const('Назад')),
+        BTN_CANCEL_BACK,
         state=AdminAddEmployee.start
     ),
     Window(
@@ -97,7 +98,7 @@ new_employee = Dialog(
                id='admin',
                on_click=set_privilege,
                when='developer'),
-        Back(),
+        BTN_BACK,
         state=AdminAddEmployee.privilege,
         getter=developer_getter
     ),
@@ -108,7 +109,7 @@ new_employee = Dialog(
             Button(Const("Подтверждаю"), on_click=on_finish_privilege, id="approve_track"),
             Back(Const("Изменить"), id="edit_track"),
         ),
-        Cancel(Const("Вернуться в главное меню")),
+        BTN_CANCEL_BACK,
         state=AdminAddEmployee.finish,
         getter=on_finish_getter
     ),

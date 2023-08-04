@@ -1,13 +1,14 @@
 from _operator import itemgetter
 
 from aiogram_dialog import Window, Dialog, DialogManager
-from aiogram_dialog.widgets.kbd import Start, Cancel, ScrollingGroup, Select, Group, SwitchTo
+from aiogram_dialog.widgets.kbd import Start, ScrollingGroup, Select, Group, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.data import config
 from src.dialogs.admin.dashboard.employee.delete import delete_window
 from src.dialogs.admin.dashboard.employee.info import info_window
 from src.dialogs.admin.dashboard.employee.privilege import privilege_window
+from src.dialogs.utils.buttons import BTN_BACK
 from src.models.employee import EmployeeHandler
 from src.utils.fsm import AdminEmployee, AdminAddEmployee
 
@@ -53,6 +54,7 @@ async def on_item_selected(_, __, manager: DialogManager, selected_item: str):
     await manager.next()
 
 
+# noinspection PyTypeChecker
 employees = Dialog(
     Window(
         Const("Сотрудники"),
@@ -83,7 +85,7 @@ employees = Dialog(
             Start(Const('Добавить'),
                   id='employee_add',
                   state=AdminAddEmployee.start),
-            Cancel(Const('Назад')),
+            BTN_BACK,
             width=2
         ),
         state=AdminEmployee.start,

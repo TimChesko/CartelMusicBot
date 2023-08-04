@@ -1,7 +1,8 @@
 from aiogram_dialog import Dialog, Window, DialogManager
-from aiogram_dialog.widgets.kbd import Cancel, Start
+from aiogram_dialog.widgets.kbd import Start
 from aiogram_dialog.widgets.text import Const
 
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK
 from src.models.tracks import TrackHandler
 from src.utils.fsm import Listening, ListeningNewTrack, ListeningEditTrack
 
@@ -27,7 +28,7 @@ listening_menu = Dialog(
         Start(Const('Новый трек'), state=ListeningNewTrack.start, id='listening_new_track', when='process_check',
               data="data"),
         Start(Const('Отклоненные'), state=ListeningEditTrack.start, id='listening_old_track', when='rejects_check'),
-        Cancel(Const('Назад')),
+        BTN_CANCEL_BACK,
         state=Listening.start,
         getter=tracks_getter
     )

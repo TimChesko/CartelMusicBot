@@ -1,4 +1,3 @@
-import logging
 from operator import itemgetter
 
 from aiogram.enums import ContentType
@@ -6,12 +5,13 @@ from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back, ScrollingGroup, Select
+from aiogram_dialog.widgets.kbd import Row, Button, Back, ScrollingGroup, Select, SwitchTo
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.dialogs.listening.menu import tracks_getter
 from src.dialogs.listening.new import other_type_handler_audio
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK, TXT_BACK
 from src.models.tracks import TrackHandler
 from src.utils.fsm import ListeningEditTrack
 
@@ -69,13 +69,13 @@ edit_track = Dialog(
             height=5,
             id='scroll_tracks_with_pager',
         ),
-        Cancel(),
+        BTN_CANCEL_BACK,
         getter=tracks_getter,
         state=ListeningEditTrack.start,
     ),
     Window(
         Format("Скиньте новый файл трека {title}"),
-        Cancel(Const("Назад")),
+        BTN_BACK,
         MessageInput(set_music_file_for_edit, content_types=[ContentType.AUDIO]),
         MessageInput(other_type_handler_audio),
         state=ListeningEditTrack.select_track,
@@ -88,7 +88,7 @@ edit_track = Dialog(
             Button(Const("Подтверждаю"), on_click=on_finish_old_track, id="approve_old_track"),
             Back(Const("Изменить"), id="edit_old_track"),
         ),
-        Cancel(Const("Вернуться в главное меню")),
+        SwitchTo(Const(TXT_BACK), state=ListeningEditTrack.start, id='bck_to_list_start'),
         state=ListeningEditTrack.finish,
         getter=on_finish_getter
     ),

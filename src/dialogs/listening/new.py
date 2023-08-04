@@ -3,10 +3,11 @@ from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.api.entities import MediaId, MediaAttachment
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back
+from aiogram_dialog.widgets.kbd import Row, Button, Back
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK
 from src.models.tracks import TrackHandler
 from src.models.user import UserHandler
 from src.utils.fsm import ListeningNewTrack
@@ -67,7 +68,7 @@ async def other_type_handler_text(msg: Message, _, __):
 new_track = Dialog(
     Window(
         Format("{nickname}, скиньте ваш трек"),
-        Cancel(Const("Назад")),
+        BTN_CANCEL_BACK,
         MessageInput(set_music_file, content_types=[ContentType.AUDIO]),
         MessageInput(other_type_handler_audio),
         state=ListeningNewTrack.start,
@@ -77,6 +78,7 @@ new_track = Dialog(
         Const("Дайте название вашему треку"),
         MessageInput(set_music_title, content_types=[ContentType.TEXT]),
         MessageInput(other_type_handler_text),
+        BTN_BACK,
         state=ListeningNewTrack.title
     ),
     Window(
@@ -86,7 +88,7 @@ new_track = Dialog(
             Button(Const("Подтверждаю"), on_click=on_finish_new_track, id="approve_track"),
             Back(Const("Изменить"), id="edit_track"),
         ),
-        Cancel(Const("Вернуться в главное меню")),
+        BTN_CANCEL_BACK,
         state=ListeningNewTrack.finish,
         getter=on_finish_getter
     ),
