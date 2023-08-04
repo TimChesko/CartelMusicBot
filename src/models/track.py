@@ -190,7 +190,7 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def update_checker(self, track_id, employee_id=None) -> bool:
+    async def update_checker(self, track_id: int, employee_id=None) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(
@@ -208,6 +208,18 @@ class TrackHandler:
             try:
                 await session.execute(
                     update(Track).where(Track.id == track_id).values(checker=employee_id)
+                )
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
+                return False
+
+    async def update_album_id(self, track_ids: list, album_id) -> bool:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(
+                    update(Track).where(Track.id.in_(track_ids)).values(album_id=album_id)
                 )
                 await session.commit()
                 return True

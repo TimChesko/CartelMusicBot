@@ -1,5 +1,3 @@
-import logging
-
 from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
 from aiogram_dialog.widgets.kbd import Start, Button
 from aiogram_dialog.widgets.text import Const, Format

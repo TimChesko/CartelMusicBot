@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 
 from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger, Enum
-from sqlalchemy.orm import relationship, declared_attr, as_declarative, column_property
+from sqlalchemy.orm import relationship, declared_attr, as_declarative
 
 
 @as_declarative()
@@ -68,6 +68,7 @@ class PersonalData(Base):
     kpp_code = Column(String)  # КПП
     all_bank_data = Column(Enum("process", "reject", "approve", name="bank_status"))
     moderated = Column(Boolean, default=False)
+    email = Column(String)  # почта
 
     last_datetime = Column(DateTime, default=datetime.utcnow)
 
@@ -109,15 +110,28 @@ class PersonalDataTemplate(Base):
 
 
 class Album(Base):
+    """
+    TODO Лимитер новых альбомов (чтобы не заспамили альбомами ничего), думаю 3 альбома одновременно будет достаточно
+    TODO Сделать состояния, прикреплена обложка (после чего появляется кнопка создать ЛС), проверено подписанное ЛС, проверен трек номер
+    TODO Также сделать заполнение ПРОМО (думаю отдельной таблицей), если подтверждено с промо
+    """
     # todo не забыть добавить колонки для промо
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey(User.tg_id))
     album_cover = Column(String)  # Обложка
+    album_title = Column(String)  # Название
+
+    unsigned_state = Column(Enum("process", "reject", "approve", name="unsigned_status"))
+    signed_state = Column(Enum("process", "reject", "approve", name="signed_status"))
+    mail_track_state = Column(Enum("process", "reject", "approve", name="mail_status"))
 
     signed_license = Column(String)  # Подписанное ЛС на проверку
     unsigned_license = Column(String)  # Неподписанное ЛС на проверку
     mail_track_photo = Column(String)  # трек номер отправленного письма с ЛС
+    id_who_approve = Column(String)
+
+    create_datetime = Column(DateTime)
 
     tracks = relationship('Track', back_populates='album')  # новое отношение с треками
     user = relationship("User", back_populates="albums")

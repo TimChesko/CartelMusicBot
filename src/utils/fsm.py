@@ -127,9 +127,30 @@ class MyTracksRejected(StatesGroup):
     finish = State()
 
 
-# Public my_tracks states
-class PublicTrack(StatesGroup):
+# Release my_tracks states
+class ReleaseTrack(StatesGroup):
     list = State()
+
+
+class AlbumPage(StatesGroup):
+    main = State()
+    title = State()
+    cover = State()
+
+
+class AlbumTitle(StatesGroup):
+    start = State()
+    finish = State()
+
+
+class AlbumCover(StatesGroup):
+    start = State()
+    finish = State()
+
+
+class AlbumTracks(StatesGroup):
+    start = State()
+    finish = State()
 
 
 #  Service's states
