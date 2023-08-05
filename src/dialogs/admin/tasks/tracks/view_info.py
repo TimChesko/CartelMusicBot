@@ -1,8 +1,11 @@
+import logging
 from operator import itemgetter
 
 from aiogram import Bot
+from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
-from aiogram_dialog.widgets.kbd import Row, Button, ScrollingGroup, Multiselect, SwitchTo
+from aiogram_dialog.widgets.input import TextInput
+from aiogram_dialog.widgets.kbd import Row, Button, ScrollingGroup, Multiselect, SwitchTo, Next
 from aiogram_dialog.widgets.text import Const, Format
 from sqlalchemy.orm.state import InstanceState
 
@@ -103,29 +106,27 @@ async def on_start(_, dialog_manager: DialogManager):
     dialog_manager.show_mode = ShowMode.SEND
 
 
-async def on_approve(_, __, dialog_manager: DialogManager):
-    pass
-
-
 async def get_buttons(dialog_manager: DialogManager, **_kwargs):
     dict_text = dialog_manager.dialog_data['text']
     buttons = []
     for key in dict_text.keys():
         buttons.append([template[key], key])
-    return {"data": buttons}
+    return {
+        "data": buttons,
+        "result": True if dialog_manager.find("ms_track").get_checked() else False
+    }
 
 
 async def on_pre_reject(_, __, manager: DialogManager):
-    widget = manager.find("ms_track")
-    manager.dialog_data['result'] = widget.get_checked()
-    await manager.next()
+    await manager.switch_to(AdminCheckTrack.finish)
 
 
 async def get_finish_text(dialog_manager: DialogManager, **_kwargs):
-    result = dialog_manager.dialog_data['result']
-    dict_text = dialog_manager.dialog_data['text']
+    dict_text = dialog_manager.dialog_data.get("text")
+    widget = dialog_manager.find("ms_track")
+    dialog_manager.dialog_data['result'] = result = widget.get_checked()
     text = ""
-    for key in dialog_manager.dialog_data['text'].keys():
+    for key in dict_text.keys():
         if key in result:
             text += f"❌ {template[key]}: {dict_text[key]}\n"
         else:
@@ -136,7 +137,33 @@ async def get_finish_text(dialog_manager: DialogManager, **_kwargs):
 
 
 async def on_reject(_, __, manager: DialogManager):
-    pass
+    middleware = manager.middleware_data
+    dialog_data = manager.dialog_data
+    user_id = middleware['event_from_user'].id
+    comment = dialog_data.get("comment", None)
+    await (TrackInfoHandler(middleware['session_maker'], middleware['database_logger']).
+           set_status_reject(dialog_data['track_id'], dialog_data['result'], comment))
+    bot: Bot = middleware.get("bot", None)
+    await bot.send_message(chat_id=user_id, text=f"Документы к треку {dialog_data['text']['title']} отклонены !")
+    if comment:
+        await bot.send_message(chat_id=user_id, text=f"Комментарий от модератора: \n{comment}")
+    await manager.done()
+
+
+async def on_approve(_, __, manager: DialogManager):
+    middleware = manager.middleware_data
+    dialog_data = manager.dialog_data
+    user_id = middleware['event_from_user'].id
+    await (TrackInfoHandler(middleware['session_maker'], middleware['database_logger']).
+           set_status_approve(dialog_data['track_id']))
+    bot: Bot = middleware.get("bot", None)
+    await bot.send_message(chat_id=user_id, text=f"Документы к треку {dialog_data['text']['title']} приняты !")
+    await manager.done()
+
+
+async def set_comment(msg: Message, _, manager: DialogManager, __):
+    manager.dialog_data['comment'] = msg.text
+    await manager.next()
 
 
 dialog = Dialog(
@@ -166,10 +193,21 @@ dialog = Dialog(
             id="scroll_with_pager_personal_data",
             hide_on_single_page=True
         ),
-        Button(Const("Продолжить"), id="finish_check", on_click=on_pre_reject),
-        BTN_BACK,
+        Next(Const("Написать комментарий"), when='result'),
+        Row(
+            BTN_BACK,
+            SwitchTo(Const("Продолжить"), id="finish_check", state=AdminCheckTrack.finish),
+        ),
         state=AdminCheckTrack.reject_data,
         getter=get_buttons
+    ),
+    Window(
+        Format("{finish_text}"),
+        Const("\nПришлите комментарий, который вы хотите оставить:"),
+        TextInput(id="input_text_comment", on_success=set_comment),
+        BTN_BACK,
+        getter=get_finish_text,
+        state=AdminCheckTrack.comment
     ),
     Window(
         Format("{finish_text}"),

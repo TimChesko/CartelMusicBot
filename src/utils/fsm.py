@@ -241,4 +241,5 @@ class AdminListTracks(StatesGroup):
 class AdminCheckTrack(StatesGroup):
     menu = State()
     reject_data = State()
+    comment = State()
     finish = State()

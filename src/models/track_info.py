@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.models.tables import TrackInfo, Track, PersonalData
@@ -9,6 +9,32 @@ class TrackInfoHandler:
     def __init__(self, session_maker, logger):
         self.session_maker = session_maker
         self.logger = logger
+
+    async def set_status_reject(self, track_id: int, edit_list: list, comment: str | None):
+        async with self.session_maker() as session:
+            try:
+                result = dict.fromkeys(edit_list, None)
+                result["status"] = "reject"
+                if comment:
+                    result['comment'] = comment
+                query = update(TrackInfo).where(TrackInfo.track_id == track_id).values(**result)
+                await session.execute(query)
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'отклонено': {e}")
+                return False
+
+    async def set_status_approve(self, track_id: int):
+        async with self.session_maker() as session:
+            try:
+                query = update(TrackInfo).where(TrackInfo.track_id == track_id).values(status='approve')
+                await session.execute(query)
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
+                return False
 
     async def get_docs_by_id(self, track_id: int):
         async with self.session_maker() as session:

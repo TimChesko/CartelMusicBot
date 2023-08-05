@@ -200,6 +200,7 @@ class TrackInfo(Base):
 
     status = Column(Enum("wait_feat", "wait_docs_feat", "process", "approve", "reject",
                          name='track_info_status'))
+    comment = Column(String)
 
     id_who_check = Column(String)
     # Определение связи с Track
