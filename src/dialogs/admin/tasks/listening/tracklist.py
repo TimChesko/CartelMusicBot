@@ -1,5 +1,6 @@
 from _operator import itemgetter
 
+from aiogram import Bot
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Window, Dialog, DialogManager
 from aiogram_dialog.widgets.kbd import ScrollingGroup, Select
@@ -21,7 +22,7 @@ async def on_item_selected(callback: CallbackQuery, __, manager: DialogManager, 
         track_id)
     if checker is None or checker == callback.from_user.id:
         await TrackHandler(data['session_maker'], data['database_logger']).set_task_state(track_id,
-                                                                                          data['event_from_user'].id)
+                                                                                          callback.from_user.id)
         local['file'] = file
         local['getter_info'] = {
             'track_id': track_id,

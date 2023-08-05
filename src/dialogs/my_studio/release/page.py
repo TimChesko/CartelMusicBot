@@ -19,7 +19,6 @@ from src.utils.fsm import AlbumPage, AlbumTracks
 
 async def set_album_cover(msg: Message, _, manager: DialogManager):
     data = manager.middleware_data
-    logging.info(msg.document.file_id)
     await AlbumHandler(data['session_maker'], data['database_logger']).set_cover(manager.start_data['album_id'],
                                                                                  msg.document.file_id)
     await msg.delete()

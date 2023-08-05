@@ -126,12 +126,15 @@ class Album(Base):
     signed_state = Column(Enum("process", "reject", "approve", name="signed_status"))
     mail_track_state = Column(Enum("process", "reject", "approve", name="mail_status"))
 
+    checker = Column(BigInteger)
+
     signed_license = Column(String)  # Подписанное ЛС на проверку
     unsigned_license = Column(String)  # Неподписанное ЛС на проверку
     mail_track_photo = Column(String)  # трек номер отправленного письма с ЛС
     id_who_approve = Column(String)
 
     create_datetime = Column(DateTime)
+    sort_datetime = Column(DateTime)
 
     tracks = relationship('Track', back_populates='album')  # новое отношение с треками
     user = relationship("User", back_populates="albums")
@@ -211,6 +214,7 @@ class TrackInfo(Base):
     # Utils
     tiktok_time = Column(String)
     explicit_lyrics = Column(Boolean)
+    comment = Column(String)
 
     status = Column(Enum("wait_feat", "wait_docs_feat", "process", "approve", "reject",
                          name='track_info_status'))

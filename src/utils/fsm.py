@@ -55,6 +55,7 @@ class AdminRelease(StatesGroup):
 
 class AdminReleaseLvl1(StatesGroup):
     start = State()
+    info = State()
 
 
 class AdminReleaseLvl2(StatesGroup):
