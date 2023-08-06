@@ -9,7 +9,7 @@ from aiogram_dialog.widgets.input import MessageInput, TextInput
 from aiogram_dialog.widgets.kbd import Button, Row, Start
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.dialogs.utils.buttons import BTN_BACK, BTN_CANCEL_BACK
+from src.dialogs.utils.buttons import BTN_BACK, BTN_CANCEL_BACK, TXT_CONFIRM
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.track_info import TrackInfoHandler
 from src.models.tracks import TrackHandler
@@ -117,7 +117,7 @@ dialog = Dialog(
         Start(Const("Изменить"), id="studio_edit_title", state=StudioEdit.title),
         Row(
             BTN_CANCEL_BACK,
-            Button(Const("Подтвердить"), id="studio_title", on_click=add_title),
+            Button(TXT_CONFIRM, id="studio_title", on_click=add_title),
         ),
         getter=get_title,
         state=TrackApprove.title

@@ -1,7 +1,6 @@
-import logging
 from typing import Callable, Dict, Any, Awaitable
 
-from aiogram import BaseMiddleware, Dispatcher
+from aiogram import BaseMiddleware
 from aiogram.dispatcher.flags import get_flag
 from aiogram.types import Message
 from aiogram.utils.chat_action import ChatActionSender

@@ -2,9 +2,10 @@ from operator import itemgetter
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Button, Row, Back, Url, SwitchTo
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Button, Row, Url, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
+from src.dialogs.utils.buttons import TXT_CONFIRM, BTN_BACK
 from src.dialogs.utils.widgets.input_forms.process_input import process_input_result, InputForm
 from src.dialogs.utils.widgets.input_forms.utils import get_data_from_db
 from src.models.personal_data import PersonalDataHandler
@@ -88,8 +89,8 @@ dialog = Dialog(
     ),
     Window(
         Const("Подтвердите добавление ссылки"),
-        Button(Const("Подтвердить"), id="social_confirm", on_click=on_finally),
-        Back(Const("Назад")),
+        Button(TXT_CONFIRM, id="social_confirm", on_click=on_finally),
+        BTN_BACK,
         state=Social.confirm
     ),
     Window(

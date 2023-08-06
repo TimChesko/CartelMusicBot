@@ -3,7 +3,7 @@ from aiogram_dialog.widgets.kbd import Start
 from aiogram_dialog.widgets.text import Const
 
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK
-from src.utils.fsm import AdminViewTypeDocs, AdminCheckPassport, AdminCheckTrack, AdminListTracks
+from src.utils.fsm import AdminViewTypeDocs, AdminCheckPassport, AdminListTracks
 
 dialog = Dialog(
     Window(

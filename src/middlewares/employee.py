@@ -18,5 +18,3 @@ class EmployeeCheck:
         if privilege or event.from_user.id in config.DEVELOPERS:
             return await handler(event, data)
         return
-
-

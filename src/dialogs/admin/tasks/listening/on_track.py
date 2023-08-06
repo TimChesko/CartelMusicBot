@@ -109,7 +109,7 @@ info_window = Window(
     SwitchTo(Const('Свой ответ'),
              id='custom_reject',
              state=AdminListening.custom),
-    Cancel(Const(TXT_BACK),
+    Cancel(TXT_BACK,
            on_click=cancel_task),
     state=AdminListening.info,
     getter=info_getter

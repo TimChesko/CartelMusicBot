@@ -1,9 +1,7 @@
-import datetime
-
-from sqlalchemy import update, select, and_, or_, delete
+from sqlalchemy import update, select, delete
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.tables import Track, TrackApprovement, ListeningTemplates
+from src.models.tables import ListeningTemplates
 
 
 class ListeningTemplatesHandler:

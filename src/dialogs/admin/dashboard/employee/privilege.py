@@ -33,7 +33,7 @@ privilege_window = Window(
            id='admin',
            on_click=set_new_privilege,
            when='developer'),
-    SwitchTo(Const(TXT_BACK),
+    SwitchTo(TXT_BACK,
              state=AdminEmployee.info,
              id='bck_info'),
     state=AdminEmployee.change_privilege,

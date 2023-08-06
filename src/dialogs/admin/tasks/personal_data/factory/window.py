@@ -1,5 +1,4 @@
 import dataclasses
-import logging
 from operator import itemgetter
 
 from aiogram.types import CallbackQuery, InputMediaPhoto
@@ -83,10 +82,10 @@ dialog = Dialog(
     Window(
         Format("{text}"),
         Row(
-            SwitchTo(Const(TXT_REJECT), id="personal_data_reject", state=PersonalDataCheck.reject_data),
-            Button(Const(TXT_CONFIRM), id="personal_data_confirm", on_click=on_confirm),
+            SwitchTo(TXT_REJECT, id="personal_data_reject", state=PersonalDataCheck.reject_data),
+            Button(TXT_CONFIRM, id="personal_data_confirm", on_click=on_confirm),
         ),
-        Button(Const(TXT_BACK), id="btn_back_factory_txt", on_click=on_back),
+        Button(TXT_BACK, id="btn_back_factory_txt", on_click=on_back),
         state=PersonalDataCheck.text,
     ),
     Window(

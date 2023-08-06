@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy import select, update, delete, asc
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.tables import Album, Track, User, PersonalData
+from src.models.tables import Album, Track, User
 
 
 # noinspection PyTypeChecker

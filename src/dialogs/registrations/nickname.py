@@ -6,7 +6,6 @@ from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Back, Button, Row
 from aiogram_dialog.widgets.text import Const, Format, Multi
 
-from src.models.personal_data import PersonalDataHandler
 from src.models.user import UserHandler
 from src.utils.fsm import RegNickname, StartMenu
 

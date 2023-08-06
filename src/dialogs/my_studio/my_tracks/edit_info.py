@@ -2,9 +2,10 @@ from aiogram.enums import ContentType
 from aiogram.types import Message
 from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.input import TextInput, MessageInput
-from aiogram_dialog.widgets.kbd import Back, Button, Row, Cancel
+from aiogram_dialog.widgets.kbd import Button, Row
 from aiogram_dialog.widgets.text import Const
 
+from src.dialogs.utils.buttons import BTN_BACK, BTN_CANCEL_BACK, TXT_CONFIRM
 from src.utils.fsm import StudioEdit
 
 
@@ -64,7 +65,7 @@ dialog = Dialog(
             func=save_document_author_text,
             content_types=ContentType.DOCUMENT
         ),
-        Cancel(Const("Назад")),
+        BTN_CANCEL_BACK,
         state=StudioEdit.author_text
     ),
     Window(
@@ -74,7 +75,7 @@ dialog = Dialog(
             type_factory=int,
             on_success=save_percentage_text
         ),
-        Back(Const("Назад")),
+        BTN_BACK,
         state=StudioEdit.author_text_percent
     ),
     Window(
@@ -83,7 +84,7 @@ dialog = Dialog(
             func=save_document_author_beat,
             content_types=ContentType.DOCUMENT
         ),
-        Cancel(Const("Назад")),
+        BTN_CANCEL_BACK,
         state=StudioEdit.author_beat
     ),
     Window(
@@ -93,7 +94,7 @@ dialog = Dialog(
             type_factory=int,
             on_success=save_percentage_beat
         ),
-        Back(Const("Назад")),
+        BTN_BACK,
         state=StudioEdit.author_beat_percent
     ),
     Window(
@@ -103,14 +104,14 @@ dialog = Dialog(
             type_factory=int,
             on_success=save_percentage_feat
         ),
-        Back(Const("Назад")),
+        BTN_BACK,
         state=StudioEdit.feat_percent
     ),
     Window(
         Const("Подтвердить внесенные изменения ?"),
         Row(
-            Back(Const("Вернуться")),
-            Button(Const("Подтвердить"), id="confirm_edit", on_click=finish)
+            BTN_BACK,
+            Button(TXT_CONFIRM, id="confirm_edit", on_click=finish)
         ),
         state=StudioEdit.confirm
     )
