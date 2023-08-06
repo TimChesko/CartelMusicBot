@@ -93,7 +93,7 @@ dialog_input = Dialog(
             on_success=save_data,
         ),
         Button(
-            Const(TXT_BACK),
+            TXT_BACK,
             id="input_text_back",
             on_click=on_back,
             when="btn_back_text"
@@ -114,7 +114,7 @@ dialog_input = Dialog(
             on_click=on_date_selected
         ),
         Button(
-            Const(TXT_BACK),
+            TXT_BACK,
             id="input_date_back",
             on_click=on_back,
             when="btn_back_date"

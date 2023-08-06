@@ -2,9 +2,10 @@ from operator import itemgetter
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Button, Back
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Button
 from aiogram_dialog.widgets.text import Const, Format
 
+from src.dialogs.utils.buttons import TXT_CONFIRM, BTN_BACK
 from src.dialogs.utils.widgets.input_forms.process_input import process_input_result, InputForm
 from src.dialogs.utils.widgets.input_forms.utils import convert_database_to_data
 from src.models.personal_data import PersonalDataHandler
@@ -83,8 +84,8 @@ dialog = Dialog(
         Const("Проверьте и подтвердите правильность всех данных."
               "В целях безопасности, в дальнейшем у вас не будет возможности просмотреть"
               " внесенные данные без помощи модераторов."),
-        Button(Const("Подтвердить"), id="edit_confirm", on_click=on_finally),
-        Back(Const("Назад")),
+        Button(TXT_CONFIRM, id="edit_confirm", on_click=on_finally),
+        BTN_BACK,
         state=ProfileEdit.confirm
     ),
     on_process_result=process_input_result,

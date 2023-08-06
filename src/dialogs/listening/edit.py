@@ -88,7 +88,7 @@ edit_track = Dialog(
             Button(Const("Подтверждаю"), on_click=on_finish_old_track, id="approve_old_track"),
             Back(Const("Изменить"), id="edit_old_track"),
         ),
-        SwitchTo(Const(TXT_BACK), state=ListeningEditTrack.start, id='bck_to_list_start'),
+        SwitchTo(TXT_BACK, state=ListeningEditTrack.start, id='bck_to_list_start'),
         state=ListeningEditTrack.finish,
         getter=on_finish_getter
     ),

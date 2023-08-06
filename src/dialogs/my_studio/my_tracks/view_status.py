@@ -1,5 +1,4 @@
 from operator import itemgetter
-from operator import itemgetter
 from typing import Any
 
 from aiogram.enums import ContentType
@@ -10,6 +9,7 @@ from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Button, B
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
+from src.dialogs.utils.buttons import TXT_CONFIRM
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.track_info import TrackInfoHandler
 from src.models.tracks import TrackHandler
@@ -147,7 +147,7 @@ dialog = Dialog(
     ),
     Window(
         Const("Подтвердите действие"),
-        Button(Const("Подтвердить"), id="my_studio_accept", on_click=delete_track),
+        Button(TXT_CONFIRM, id="my_studio_accept", on_click=delete_track),
         SwitchTo(Const("Отменить"), id="my_studio_cancel", state=ViewStatus.menu),
         state=ViewStatus.accept
     ),

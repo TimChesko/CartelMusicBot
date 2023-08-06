@@ -14,7 +14,7 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
     user_id = data['event_from_user'].id
     library = await TrackHandler(data['session_maker'], data['database_logger']).has_tracks_by_tg_id(user_id)
     tracks = await TrackHandler(data['session_maker'], data['database_logger']).check_chat_exists(user_id)
-    personal_data = await PersonalDataHandler(data['session_maker'], data['database_logger']).\
+    personal_data = await PersonalDataHandler(data['session_maker'], data['database_logger']). \
         get_all_by_tg(user_id)
     return {
         "library_check": library,
@@ -31,7 +31,7 @@ async def start_listening(_, __, manager: DialogManager):
 async def start_profile(_, __, manager: DialogManager):
     data = manager.middleware_data
     user_id = data['event_from_user'].id
-    personal_data = await PersonalDataHandler(data['session_maker'], data['database_logger']).\
+    personal_data = await PersonalDataHandler(data['session_maker'], data['database_logger']). \
         get_all_by_tg(user_id)
     if personal_data.confirm_use_personal_data:
         await manager.start(state=Profile.menu)

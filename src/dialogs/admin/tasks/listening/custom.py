@@ -5,7 +5,7 @@ from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Row, Button, Back, SwitchTo
 from aiogram_dialog.widgets.text import Format, Const
 
-from src.dialogs.utils.buttons import TXT_BACK
+from src.dialogs.utils.buttons import TXT_BACK, TXT_CONFIRM
 from src.models.approvement import ApprovementHandler
 from src.models.tracks import TrackHandler
 from src.utils.fsm import AdminListening
@@ -50,7 +50,7 @@ reason_window = Window(
     Format('#{id} -- Введи причину отказа'),
     MessageInput(set_reject_reason, content_types=[ContentType.TEXT]),
     MessageInput(other_type_handler_text),
-    SwitchTo(Const(TXT_BACK), state=AdminListening.info, id='bck_to_info'),
+    SwitchTo(TXT_BACK, state=AdminListening.info, id='bck_to_info'),
     state=AdminListening.custom,
     getter=id_getter
 )
@@ -58,10 +58,10 @@ confirm_reason_window = Window(
     Format('Подтвердите текст:\n'
            '{custom_reason}'),
     Row(
-        Button(Const("Подтверждаю"), on_click=on_finish_custom_reason, id="approve_reason"),
+        Button(TXT_CONFIRM, on_click=on_finish_custom_reason, id="approve_reason"),
         Back(Const("Изменить"), id="bck_reason"),
     ),
-    SwitchTo(Const(TXT_BACK), state=AdminListening.info, id='bck_to_info'),
+    SwitchTo(TXT_BACK, state=AdminListening.info, id='bck_to_info'),
     state=AdminListening.custom_confirm,
     getter=reason_getter
 )

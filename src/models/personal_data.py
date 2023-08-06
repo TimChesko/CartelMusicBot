@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy import select, delete, or_, func
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.tables import PersonalData, Social, PersonalDataTemplate, PersonalDataComments
+from src.models.tables import PersonalData, Social, PersonalDataTemplate
 
 
 class PersonalDataHandler:

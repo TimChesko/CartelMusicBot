@@ -6,11 +6,11 @@ from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Back, Cancel, Checkbox, Next, SwitchTo, Row, Button
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Back, Cancel, Checkbox, SwitchTo, Row
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format, List
 
-from src.dialogs.utils.buttons import BTN_CANCEL_BACK, TXT_CONFIRM, TXT_REJECT, BTN_BACK, TXT_BACK
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK, TXT_CONFIRM, TXT_BACK
 from src.models.album import AlbumHandler
 from src.utils.fsm import AdminReleaseLvl1
 
@@ -49,7 +49,7 @@ reason_window = Window(
     Const('Введи причину отказа'),
     MessageInput(set_reject_reason, content_types=[ContentType.TEXT]),
     MessageInput(other_type_handler_text),
-    SwitchTo(Const(TXT_BACK), state=AdminReleaseLvl1.info, id='bck_to_info'),
+    SwitchTo(TXT_BACK, state=AdminReleaseLvl1.info, id='bck_to_info'),
     state=AdminReleaseLvl1.custom,
     getter={}
 )
@@ -60,7 +60,7 @@ confirm_reason_window = Window(
         Cancel(Const("Подтверждаю"), on_click=reject, id="approve_reason"),
         Back(Const("Изменить"), id="bck_reason"),
     ),
-    SwitchTo(Const(TXT_BACK), state=AdminReleaseLvl1.info, id='bck_to_info'),
+    SwitchTo(TXT_BACK, state=AdminReleaseLvl1.info, id='bck_to_info'),
     state=AdminReleaseLvl1.confirm,
     getter=reason_getter
 )
@@ -118,10 +118,10 @@ task_page = Window(
              id='swap_docs',
              on_click=change_state,
              default=True),
-    Back(Const(TXT_CONFIRM), id='approve_album', on_click=confirm_album),
+    Back(TXT_CONFIRM, id='approve_album', on_click=confirm_album),
     Back(Const('✘ Отклонить'), id='reject_album', on_click=reject),
     SwitchTo(Const('✘ Свой ответ'), id='reject_album_custom', state=AdminReleaseLvl1.custom),
-    Cancel(Const(TXT_BACK), on_click=cancel_task),
+    Cancel(TXT_BACK, on_click=cancel_task),
     state=AdminReleaseLvl1.info,
     getter=task_page_getter
 )

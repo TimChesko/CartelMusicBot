@@ -1,7 +1,7 @@
 from typing import Any
 
 from aiogram_dialog import Dialog, Window, DialogManager
-from aiogram_dialog.widgets.kbd import Start, Cancel, Button
+from aiogram_dialog.widgets.kbd import Start, Button
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.dialogs.profile.personal_data.view.nickname import start_edit_nickname
@@ -14,7 +14,7 @@ from src.utils.fsm import Profile, Passport, Bank, ProfileEdit, Social
 async def get_data(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     user_id = data['event_from_user'].id
-    personal_data = await PersonalDataHandler(data['session_maker'], data['database_logger']).\
+    personal_data = await PersonalDataHandler(data['session_maker'], data['database_logger']). \
         get_all_by_tg(user_id)
     user = await UserHandler(data['session_maker'], data['database_logger']).get_user_by_tg_id(user_id)
     status_dict = {

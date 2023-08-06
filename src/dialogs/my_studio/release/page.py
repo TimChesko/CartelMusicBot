@@ -1,4 +1,3 @@
-import logging
 import os
 
 from aiogram import Bot
@@ -35,7 +34,7 @@ cover = Window(
     Const("Прикрепите новую обложку в виде фото без сжатия"),
     MessageInput(set_album_cover, content_types=[ContentType.DOCUMENT]),
     MessageInput(other_type_handler_doc),
-    SwitchTo(Const(TXT_BACK), 'from_cover', AlbumPage.main),
+    SwitchTo(TXT_BACK, 'from_cover', AlbumPage.main),
     state=AlbumPage.cover
 )
 
@@ -59,7 +58,7 @@ title = Window(
     Const("Дайте название альбому"),
     MessageInput(set_album_title, content_types=[ContentType.TEXT]),
     MessageInput(other_type_handler_text),
-    SwitchTo(Const(TXT_BACK), 'from_title', AlbumPage.main),
+    SwitchTo(TXT_BACK, 'from_title', AlbumPage.main),
     state=AlbumPage.title
 )
 

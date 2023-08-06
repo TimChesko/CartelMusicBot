@@ -1,4 +1,5 @@
 from aiogram import Router
+
 from . import window
 
 router = Router()

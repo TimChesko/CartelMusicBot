@@ -1,8 +1,9 @@
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, ShowMode, Window
-from aiogram_dialog.widgets.kbd import Button, Cancel, Back
+from aiogram_dialog.widgets.kbd import Button, Cancel
 from aiogram_dialog.widgets.text import Const
 
+from src.dialogs.utils.buttons import TXT_CONFIRM, BTN_BACK
 from src.dialogs.utils.widgets.input_forms.process_input import process_input_result, InputForm
 from src.dialogs.utils.widgets.input_forms.utils import convert_data_types, get_data_from_db
 from src.models.personal_data import PersonalDataHandler
@@ -45,8 +46,8 @@ add_full_data = Dialog(
         Const("Проверьте и подтвердите правильность всех данных."
               "В целях безопасности, в дальнейшем у вас не будет возможности просмотреть"
               " внесенные данные без помощи модераторов."),
-        Button(Const("Подтвердить"), id="bank_confirm", on_click=on_finally_bank),
-        Back(Const("Назад")),
+        Button(TXT_CONFIRM, id="bank_confirm", on_click=on_finally_bank),
+        BTN_BACK,
         state=Bank.confirm
     ),
     on_process_result=process_input_result,

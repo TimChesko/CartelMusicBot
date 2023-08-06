@@ -11,6 +11,6 @@ async def start_edit_nickname(manager: DialogManager):
         "text": "Пришлите ваш новый никнейм\n\nПример: getxp",
         "input_type": ["any"],
         "comment": None
-        }
+    }
     }
     await InputForm(manager).start_dialog(buttons, task_list)

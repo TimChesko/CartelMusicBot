@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.tables import TrackInfo, PersonalData, PersonalDataTemplate
+from src.models.tables import TrackInfo, PersonalData
 
 
 class DatabaseQueries:

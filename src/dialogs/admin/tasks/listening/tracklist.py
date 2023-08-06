@@ -1,6 +1,5 @@
 from _operator import itemgetter
 
-from aiogram import Bot
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Window, Dialog, DialogManager
 from aiogram_dialog.widgets.kbd import ScrollingGroup, Select

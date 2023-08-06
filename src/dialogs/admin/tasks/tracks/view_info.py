@@ -1,8 +1,7 @@
-import logging
 from operator import itemgetter
 
 from aiogram import Bot
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.kbd import Row, Button, ScrollingGroup, Multiselect, SwitchTo, Next
@@ -171,8 +170,8 @@ dialog = Dialog(
         Const("Информация по треку\n"),
         Format("{text}"),
         Row(
-            SwitchTo(Const(TXT_REJECT), id="check_track_reject", state=AdminCheckTrack.reject_data),
-            Button(Const(TXT_CONFIRM), id="check_track_approve", on_click=on_approve),
+            SwitchTo(TXT_REJECT, id="check_track_reject", state=AdminCheckTrack.reject_data),
+            Button(TXT_CONFIRM, id="check_track_approve", on_click=on_approve),
         ),
         BTN_CANCEL_BACK,
         getter=get_data,

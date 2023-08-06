@@ -9,7 +9,7 @@ from aiogram_dialog.widgets.text import Const, Format
 
 from src.data import config
 from src.dialogs.admin.common import translate_privilege
-from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK, TXT_CONFIRM
 from src.models.employee import EmployeeHandler
 from src.models.user import UserHandler
 from src.utils.fsm import AdminAddEmployee
@@ -106,7 +106,7 @@ new_employee = Dialog(
         Format('Подтвердите действия Telegram ID: "{employee_id}"\n'
                'Статус: {privilege}'),
         Row(
-            Button(Const("Подтверждаю"), on_click=on_finish_privilege, id="approve_track"),
+            Button(TXT_CONFIRM, on_click=on_finish_privilege, id="approve_track"),
             Back(Const("Изменить"), id="edit_track"),
         ),
         BTN_CANCEL_BACK,
