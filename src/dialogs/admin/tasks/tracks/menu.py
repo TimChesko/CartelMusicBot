@@ -4,16 +4,15 @@ from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.kbd import ScrollingGroup, Select
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.dialogs.admin.tasks.personal_data.factory.process import on_process
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK
 from src.models.track_info import TrackInfoHandler
-from src.utils.fsm import AdminCheckTrack
+from src.utils.fsm import AdminCheckTrack, AdminListTracks
 
 
 async def formatting_docs(docs: list) -> list:
     new_docs = []
     for item in docs:
-        new_docs.append([item.tg_id, item.title])
+        new_docs.append([item.track_id, item.title])
     return new_docs
 
 
@@ -27,8 +26,7 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
 
 
 async def on_item_selected(_, __, manager: DialogManager, selected_item: str):
-    # await CheckDocs(manager, "passport").start_form(int(selected_item), callback)
-    pass
+    await manager.start(state=AdminCheckTrack.menu, data={"track_id": int(selected_item)})
 
 
 dialog = Dialog(
@@ -49,7 +47,6 @@ dialog = Dialog(
         ),
         BTN_CANCEL_BACK,
         getter=get_data,
-        state=AdminCheckTrack.menu
-    ),
-    on_process_result=on_process
+        state=AdminListTracks.menu
+    )
 )

@@ -12,6 +12,41 @@ class TrackHandler:
         self.session_maker = session_maker
         self.logger = logger
 
+    async def get_tracks_by_status(self, tg_id: int, status: str):
+        async with self.session_maker() as session:
+            try:
+                query = select(Track).where(and_(Track.user_id == tg_id, Track.status == status))
+                result = await session.execute(query)
+                return result.scalars().all()
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса get_tracks_by_status: {e}")
+                return False
+
+    async def get_track_by_id(self, track_id: int):
+        async with self.session_maker() as session:
+            try:
+                query = select(Track).where(Track.id == track_id)
+                result = await session.execute(query)
+                return result.scalar()
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса get_tracks_by_status: {e}")
+                return False
+
+    async def delete_track_by_id(self, track_id: int):
+        async with self.session_maker() as session:
+            try:
+                query = select(Track).where(Track.id == track_id)
+                result = await session.execute(query)
+                if result is not None:
+                    session.delete(result)
+                    session.commit()
+                    return True
+                else:
+                    return False
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса delete_track_by_id: {e}")
+                return False
+
     async def has_tracks_by_tg_id(self, tg_id: int) -> bool:
         async with self.session_maker() as session:
             try:

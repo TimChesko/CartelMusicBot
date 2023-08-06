@@ -1,6 +1,7 @@
+import logging
 from typing import Callable, Dict, Any, Awaitable
 
-from aiogram import BaseMiddleware
+from aiogram import BaseMiddleware, Dispatcher
 from aiogram.dispatcher.flags import get_flag
 from aiogram.types import Message
 from aiogram.utils.chat_action import ChatActionSender
@@ -17,5 +18,5 @@ class ChatActions(BaseMiddleware):
         if not chat_action:
             return await handler(event, data)
 
-        async with ChatActionSender(action=chat_action, chat_id=event.chat.id):
+        async with ChatActionSender(bot=data['bot'], action=chat_action, chat_id=event.chat.id):
             return await handler(event, data)

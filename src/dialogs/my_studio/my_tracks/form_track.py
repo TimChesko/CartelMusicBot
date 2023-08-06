@@ -11,7 +11,8 @@ from aiogram_dialog.widgets.text import Const, Format
 
 from src.dialogs.utils.buttons import BTN_BACK, BTN_CANCEL_BACK
 from src.dialogs.utils.common import on_start_copy_start_data
-from src.models.track import TrackHandler
+from src.models.track_info import TrackInfoHandler
+from src.models.tracks import TrackHandler
 from src.utils.fsm import TrackApprove, StudioEdit
 
 
@@ -74,9 +75,8 @@ async def save_data_callback(callback: CallbackQuery, _, manager: DialogManager)
     await manager.next()
 
 
-async def save_data_feat(callback: CallbackQuery, _, manager: DialogManager):
-    answer = callback.data.split("_")[-1]
-    manager.dialog_data['feat'] = bool(answer)
+async def save_data_feat(_, __, manager: DialogManager):
+    manager.dialog_data['feat'] = False
     await manager.next()
 
 
@@ -87,7 +87,7 @@ async def finish(callback: CallbackQuery, __, manager: DialogManager):
     else:
         data.update({"status": "process"})
     middleware_data = manager.middleware_data
-    track_id_info = await TrackHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
+    track_id_info = await TrackInfoHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
         add_track_info(data)
     if manager.dialog_data['feat']:
         link = create_deep_link("DurakTonBot",
@@ -96,7 +96,7 @@ async def finish(callback: CallbackQuery, __, manager: DialogManager):
                                 encode=True)
         await callback.message.answer("Данные занесены в базу данных. Чтобы они отправились на модерацию, "
                                       "пригласите по данной ссылке участника фита.\n"
-                                      f"Ссылка: {link}")
+                                      f"Ссылка: {link}", disable_web_page_preview=True)
     else:
         await callback.message.answer("Данные отправлены на модерацию")
     manager.show_mode = ShowMode.SEND
