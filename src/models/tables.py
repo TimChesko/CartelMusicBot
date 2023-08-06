@@ -68,7 +68,6 @@ class PersonalData(Base):
     kpp_code = Column(String)  # КПП
     all_bank_data = Column(Enum("process", "reject", "approve", name="bank_status"))
     moderated = Column(Boolean, default=False)
-    email = Column(String)  # почта
 
     last_datetime = Column(DateTime, default=datetime.utcnow)
 
@@ -112,7 +111,8 @@ class PersonalDataTemplate(Base):
 class Album(Base):
     """
     TODO Лимитер новых альбомов (чтобы не заспамили альбомами ничего), думаю 3 альбома одновременно будет достаточно
-    TODO Сделать состояния, прикреплена обложка (после чего появляется кнопка создать ЛС), проверено подписанное ЛС, проверен трек номер
+    TODO Сделать состояния, прикреплена обложка (после чего появляется кнопка создать ЛС), проверено подписанное ЛС,
+    проверен трек номер
     TODO Также сделать заполнение ПРОМО (думаю отдельной таблицей), если подтверждено с промо
     """
     # todo не забыть добавить колонки для промо
@@ -217,7 +217,6 @@ class TrackInfo(Base):
     # Utils
     tiktok_time = Column(String)
     explicit_lyrics = Column(Boolean)
-    comment = Column(String)
 
     status = Column(Enum("wait_feat", "wait_docs_feat", "process", "approve", "reject",
                          name='track_info_status'))

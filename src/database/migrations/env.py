@@ -14,7 +14,8 @@ from src import models
 # access to the values within the .ini file in use.
 config = context.config
 
-connection_string = f"postgresql+asyncpg://{config_env.PG_USER}:{config_env.PG_PASSWORD}@{config_env.PG_HOST}/{config_env.PG_DATABASE}"
+connection_string = (f"postgresql+asyncpg://{config_env.PG_USER}:{config_env.PG_PASSWORD}@{config_env.PG_HOST}/"
+                     f"{config_env.PG_DATABASE}")
 config.set_main_option('sqlalchemy.url', connection_string)
 
 # Interpret the config file for Python logging.

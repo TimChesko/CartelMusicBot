@@ -13,7 +13,7 @@ from aiogram_dialog.widgets.text import Const, Format
 from src.dialogs.utils.buttons import TXT_BACK, BTN_BACK
 from src.models.approvement import ApprovementHandler
 from src.models.listening_templates import ListeningTemplatesHandler
-from src.models.track import TrackHandler
+from src.models.tracks import TrackHandler
 from src.utils.fsm import AdminListening
 
 
@@ -23,8 +23,8 @@ async def on_item_selected(callback: CallbackQuery, __, manager: DialogManager, 
     bot: Bot = manager.middleware_data['bot']
     track_id = manager.dialog_data['getter_info']['track_id']
     user_id = manager.dialog_data['getter_info']['user_id']
-    track = await ListeningTemplatesHandler(data['session_maker'], data['database_logger']).get_all_scalar('reject',
-                                                                                                           id=template_id)
+    track = await (ListeningTemplatesHandler(data['session_maker'], data['database_logger']).
+                   get_all_scalar('reject', id=template_id))
     await ApprovementHandler(data['session_maker'], data['database_logger']).add_reject(callback.from_user.id,
                                                                                         track_id,
                                                                                         template_id)

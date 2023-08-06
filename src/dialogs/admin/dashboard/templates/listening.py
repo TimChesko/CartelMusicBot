@@ -118,9 +118,9 @@ rejects_list = Window(
 
 async def info_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    id = dialog_manager.dialog_data['temp_id'] if 'temp_id' in dialog_manager.dialog_data else None
+    info_id = dialog_manager.dialog_data['temp_id'] if 'temp_id' in dialog_manager.dialog_data else None
     reason = await ListeningTemplatesHandler(data['session_maker'], data['database_logger']).get_all_scalar(
-        dialog_manager.dialog_data['type'], id)
+        dialog_manager.dialog_data['type'], info_id)
     logging.info(reason)
     return {
         'name': reason.name,

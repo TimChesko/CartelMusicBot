@@ -21,13 +21,14 @@ async def reject(callback: CallbackQuery, __, manager: DialogManager):
     await AlbumHandler(data['session_maker'], data['database_logger']).reject(manager.dialog_data['album_id'],
                                                                               callback.from_user.id,
                                                                               state='unsigned')
+    text = manager.dialog_data.get("reason") if manager.dialog_data.get("reason") else "Комментарий отсутствует"
     await bot.send_message(manager.dialog_data['user_id'],
                            f'Ваша обложка или название отклонены с комментарием:\n'
-                           f'{manager.dialog_data.get("reason") if manager.dialog_data.get("reason") else "Комментарий отсутствует"}'
+                           f'{text}'
                            f' \n перейдите в меню для дальнейших действий')
 
 
-async def reason_getter(dialog_manager: DialogManager, **kwargs):
+async def reason_getter(dialog_manager: DialogManager, **_kwargs):
     return {
         'custom_reason': dialog_manager.dialog_data['reason']
     }

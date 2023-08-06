@@ -10,7 +10,7 @@ from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.dialogs.utils.common import on_start_copy_start_data
-from src.models.track import TrackHandler
+from src.models.tracks import TrackHandler
 from src.utils.fsm import ViewStatus, ListeningNewTrack, TrackApprove
 
 

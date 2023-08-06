@@ -27,7 +27,6 @@ async def employee_list_getter(dialog_manager: DialogManager, **_kwargs):
     dialog_data = dialog_manager.dialog_data
     privilege = dialog_data['filter']
     employees = await EmployeeHandler(data['session_maker'], data['database_logger']).get_privilege_by_filter(privilege)
-    # dialog_manager.dialog_data['username'] =
     buttons = {
         "admin": "Админ",
         "manager": "Менеджер",

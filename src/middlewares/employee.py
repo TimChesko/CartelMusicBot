@@ -13,7 +13,8 @@ class EmployeeCheck:
                        event: Message,
                        data: Dict[str, Any]
                        ) -> Any:
-        privilege = await EmployeeHandler(data['session_maker'], data['database_logger']).check_employee_by_tg_id(event.from_user.id)
+        privilege = await (EmployeeHandler(data['session_maker'], data['database_logger'])
+                           .check_employee_by_tg_id(event.from_user.id))
         if privilege or event.from_user.id in config.DEVELOPERS:
             return await handler(event, data)
         return

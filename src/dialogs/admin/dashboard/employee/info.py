@@ -25,8 +25,8 @@ async def employee_getter(dialog_manager: DialogManager, **_kwargs):
         'fired': "Уволен!"
     }
     return {
-        'name': f'{surname} {first_name} {middle_name}' \
-            if first_name or surname or middle_name is not None else f'@{dialog_manager.dialog_data["username"]}',
+        'name': f'{surname} {first_name} {middle_name}' if first_name or surname or middle_name is not None
+        else f'@{dialog_manager.dialog_data["username"]}',
         'privilege': f'{priv[privilege]}',
         'state': f'{status[state]}',
         'add_date': f'{add_date.strftime("%d.%m.%Y %H:%M") if add_date is not None else ""}',

@@ -6,7 +6,7 @@ from aiogram_dialog.widgets.kbd import ScrollingGroup, Button, Multiselect
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK
-from src.models.track import TrackHandler
+from src.models.tracks import TrackHandler
 from src.utils.fsm import AlbumTracks
 
 

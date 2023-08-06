@@ -7,7 +7,7 @@ from aiogram_dialog.widgets.text import Format, Const
 
 from src.dialogs.utils.buttons import TXT_BACK
 from src.models.approvement import ApprovementHandler
-from src.models.track import TrackHandler
+from src.models.tracks import TrackHandler
 from src.utils.fsm import AdminListening
 
 
@@ -17,7 +17,7 @@ async def id_getter(dialog_manager: DialogManager, **_kwargs):
     }
 
 
-async def reason_getter(dialog_manager: DialogManager, **kwargs):
+async def reason_getter(dialog_manager: DialogManager, **_kwargs):
     return {
         'custom_reason': dialog_manager.dialog_data['reason']
     }

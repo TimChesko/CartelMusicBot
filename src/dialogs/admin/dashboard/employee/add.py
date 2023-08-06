@@ -18,8 +18,8 @@ from src.utils.fsm import AdminAddEmployee
 async def employee_id(
         message: Message,
         _, manager: DialogManager):
-    data = manager.middleware_data
-    # user = await UserHandler(data['session_maker'], data['database_logger']).get_privilege_by_tg_id(message.from_user.id)
+    # user = await UserHandler(data['session_maker'], data['database_logger']).
+    # get_privilege_by_tg_id(message.from_user.id)
     # TODO заменить на запрос из employee
     # if user in config.PRIVILEGES[1:]:
     #     await message.delete()

@@ -12,11 +12,11 @@ from aiogram_dialog.widgets.text import Format, Const
 from src.dialogs.listening.menu import tracks_getter
 from src.dialogs.listening.new import other_type_handler_audio
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK, TXT_BACK
-from src.models.track import TrackHandler
+from src.models.tracks import TrackHandler
 from src.utils.fsm import ListeningEditTrack
 
 
-async def on_item_selected(callback: CallbackQuery, __, manager: DialogManager, selected_item: str):
+async def on_item_selected(_, __, manager: DialogManager, selected_item: str):
     items = eval(selected_item)
     manager.dialog_data["track_id"] = int(items[1])
     manager.dialog_data['title'] = items[0]
