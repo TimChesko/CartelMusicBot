@@ -76,6 +76,10 @@ async def confirm_album(callback: CallbackQuery, __, manager: DialogManager):
                            'Ваша обложка и название одобрены, перейдите в меню для дальнейших действий')
 
 
+async def reject_template(callback: CallbackQuery, __, manager: DialogManager):
+    await callback.answer('В разработке. Coming soon')
+
+
 async def cancel_task(_, __, manager: DialogManager):
     data = manager.middleware_data
     await AlbumHandler(data['session_maker'], data['database_logger']).set_task_state(manager.dialog_data['album_id'],
@@ -120,6 +124,7 @@ task_page = Window(
              default=True),
     Back(Const(TXT_CONFIRM), id='approve_album', on_click=confirm_album),
     Back(Const('✘ Отклонить'), id='reject_album', on_click=reject),
+    Button(Const('✘ Шаблон'), id='reject_album_template', on_click=reject),
     SwitchTo(Const('✘ Свой ответ'), id='reject_album_custom', state=AdminReleaseLvl1.custom),
     Cancel(Const(TXT_BACK), on_click=cancel_task),
     state=AdminReleaseLvl1.info,

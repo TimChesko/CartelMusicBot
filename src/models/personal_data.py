@@ -15,6 +15,7 @@ class PersonalDataHandler:
     async def get_all_personal_data(self, tg_id: int):
         async with self.session_maker() as session:
             try:
+                # noinspection PyTypeChecker
                 query = select(PersonalData).where(PersonalData.tg_id == tg_id)
                 result = await session.execute(query)
                 return result.scalar()

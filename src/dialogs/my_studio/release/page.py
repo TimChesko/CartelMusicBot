@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 
@@ -9,11 +10,14 @@ from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, SwitchTo, Group
 from aiogram_dialog.widgets.media import DynamicMedia
-from aiogram_dialog.widgets.text import Const, Format
+from aiogram_dialog.widgets.text import Const, Format, Case
 from docxtpl import DocxTemplate
 
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, TXT_BACK
+from src.dialogs.utils.common import format_date
 from src.models.album import AlbumHandler
+from src.models.personal_data import PersonalDataHandler
+from src.models.tables import PersonalData
 from src.utils.fsm import AlbumPage, AlbumTracks
 
 
@@ -80,7 +84,7 @@ async def getter(dialog_manager: DialogManager, **_kwargs):
         'text_cover': '✓ Обложка' if album.album_cover else 'Прикрепить обложку',
         'text_tracks': '✓ Треки' if tracks is not None else 'Прикрепить треки',
         'when_clear': tracks is not None,
-        'when_process': album.unsigned_state != 'process',
+        'unsigned': not album.unsigned_state or album.unsigned_state == 'reject',
         'wait': album.unsigned_state == 'process'
     }
 
@@ -102,22 +106,43 @@ async def delete_release(__, _, manager: DialogManager):
     await manager.done()
 
 
-async def on_click(callback: CallbackQuery, _, manager: DialogManager):
+async def on_approvement(callback: CallbackQuery, _, manager: DialogManager):
     data = manager.middleware_data
+    personal: PersonalData = await PersonalDataHandler(data['session_maker'],
+                                                       data['database_logger']).get_all_personal_data(
+        callback.from_user.id)
     bot: Bot = data['bot']
     doc = DocxTemplate("/home/af1s/Рабочий стол/template.docx")
     context = {
-        'name': 'Михаил Васильевич Залупин'
+        'licensor_name': f'{personal.surname} {personal.first_name[0]}.{personal.middle_name[0]}.',
+        'name': f'{personal.surname} {personal.first_name} {personal.middle_name}',
+        'inn_code': f'{personal.tin_self}',
+        'passport': f'{personal.passport_series} {personal.passport_number}',
+        'who_issued_it': f'{personal.who_issued_it}',
+        'unit_code': f'{personal.unit_code}',
+        'registration_address': f'{personal.registration_address}',
+        'date_of_issue': f'{personal.date_of_issue}',
+        'recipient': f'{personal.recipient}',
+        'account_code': f'{personal.account_code}',
+        'bank_recipient': f'{personal.bank_recipient}',
+        'bik_code': f'{personal.bik_code}',
+        'correct_code': f'{personal.correct_code}',
+        'bank_inn_code': f'{personal.tin_bank}',
+        'kpp_code': f'{personal.kpp_code}',
+        'email': f'{personal.email}',
+        'release_title': f'{personal}',
+        'ld_number': f'{datetime.datetime.now().strftime("%d%m%Y%h%M%s")}',
+        'date': f'{format_date()}',
     }
     temp_file = f"/home/af1s/Рабочий стол/{callback.from_user.id}.docx"
     doc.render(context)
     doc.save(temp_file)
     image_from_pc = FSInputFile(temp_file)
     msg = await callback.message.answer_document(image_from_pc)
-    await bot.delete_message(callback.from_user.id, msg.message_id)
-    await AlbumHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
-        manager.start_data['album_id'],
-        msg.document.file_id)
+    # await bot.delete_message(callback.from_user.id, msg.message_id)
+    # await AlbumHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
+    #     manager.start_data['album_id'],
+    #     msg.document.file_id)
 
     os.remove(temp_file)
 
@@ -133,15 +158,18 @@ main = Dialog(
             SwitchTo(Format('{text_cover}'), id='create_album_cover', state=AlbumPage.cover),
             Button(Format('{text_tracks}'), id='add_tracks_to_album', on_click=choose_track),
             width=2,
-            when='when_process'
+            when='unsigned'
         ),
         Group(
             Button(Const('Очистить треки'), on_click=clear_tracks, id='clear_tracks', when='when_clear'),
-            Button(Const('Удалить'), on_click=delete_release, id='delete_release'),
-            Button(Const('Лиц Согл'), id='on_process_album', on_click=on_click),
+            Button(Const('Отправить на проверку'), id='on_process_album', on_click=on_approvement),
             width=2,
-            when='when_process'
+            when='unsigned'
         ),
+        Group(
+
+        ),
+        Button(Const('Удалить'), on_click=delete_release, id='delete_release'),
         BTN_CANCEL_BACK,
         state=AlbumPage.main,
         getter=getter
