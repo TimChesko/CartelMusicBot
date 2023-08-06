@@ -56,6 +56,9 @@ class AdminRelease(StatesGroup):
 class AdminReleaseLvl1(StatesGroup):
     start = State()
     info = State()
+    reject = State()
+    custom = State()
+    confirm = State()
 
 
 class AdminReleaseLvl2(StatesGroup):

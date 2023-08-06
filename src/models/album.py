@@ -135,6 +135,36 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
+    async def approve(self, album_id, employee_id, state) -> bool:
+        async with self.session_maker() as session:
+            try:
+                if state == 'unsigned':
+                    await session.execute(
+                        update(Album).where(Album.id == album_id).values(checker=None,
+                                                                         unsigned_state='approve',
+                                                                         approver_unsigned=employee_id)
+                    )
+                    await session.commit()
+                    return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
+                return False
+
+    async def reject(self, album_id, employee_id, state) -> bool:
+        async with self.session_maker() as session:
+            try:
+                if state == 'unsigned':
+                    await session.execute(
+                        update(Album).where(Album.id == album_id).values(checker=None,
+                                                                         unsigned_state='reject',
+                                                                         approver_unsigned=employee_id)
+                    )
+                    await session.commit()
+                    return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
+                return False
+
     async def set_title(self, album_id: int, title: str) -> bool:
         async with self.session_maker() as session:
             try:

@@ -131,7 +131,10 @@ class Album(Base):
     signed_license = Column(String)  # Подписанное ЛС на проверку
     unsigned_license = Column(String)  # Неподписанное ЛС на проверку
     mail_track_photo = Column(String)  # трек номер отправленного письма с ЛС
-    id_who_approve = Column(String)
+
+    approver_unsigned = Column(BigInteger)
+    approver_signed = Column(BigInteger)
+    approver_mail = Column(BigInteger)
 
     create_datetime = Column(DateTime)
     sort_datetime = Column(DateTime)

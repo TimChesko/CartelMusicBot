@@ -1,16 +1,93 @@
 import logging
 
+from aiogram import Bot
 from aiogram.enums import ContentType
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Back, Cancel, Checkbox
+from aiogram_dialog.widgets.input import MessageInput
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Back, Cancel, Checkbox, Next, SwitchTo, Row, Button
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format, List
 
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, TXT_CONFIRM, TXT_REJECT, BTN_BACK, TXT_BACK
 from src.models.album import AlbumHandler
 from src.utils.fsm import AdminReleaseLvl1
+
+
+async def reject(callback: CallbackQuery, __, manager: DialogManager):
+    data = manager.middleware_data
+    bot: Bot = manager.middleware_data['bot']
+    await AlbumHandler(data['session_maker'], data['database_logger']).reject(manager.dialog_data['album_id'],
+                                                                              callback.from_user.id,
+                                                                              state='unsigned')
+    await bot.send_message(manager.dialog_data['user_id'],
+                           f'Ваша обложка или название отклонены с комментарием:\n'
+                           f'{manager.dialog_data.get("reason") if manager.dialog_data.get("reason") else "Комментарий отсутствует"}'
+                           f' \n перейдите в меню для дальнейших действий')
+
+
+async def reason_getter(dialog_manager: DialogManager, **kwargs):
+    return {
+        'custom_reason': dialog_manager.dialog_data['reason']
+    }
+
+
+async def set_reject_reason(msg: Message, _, manager: DialogManager):
+    manager.dialog_data["reason"] = msg.text
+    await msg.delete()
+    manager.show_mode = ShowMode.EDIT
+    await manager.next()
+
+
+async def other_type_handler_text(msg: Message, _, __):
+    await msg.answer("Напишите причину в виде текста")
+
+
+reason_window = Window(
+    Const('Введи причину отказа'),
+    MessageInput(set_reject_reason, content_types=[ContentType.TEXT]),
+    MessageInput(other_type_handler_text),
+    SwitchTo(Const(TXT_BACK), state=AdminReleaseLvl1.info, id='bck_to_info'),
+    state=AdminReleaseLvl1.custom,
+    getter={}
+)
+confirm_reason_window = Window(
+    Format('Подтвердите текст:\n'
+           '{custom_reason}'),
+    Row(
+        Cancel(Const("Подтверждаю"), on_click=reject, id="approve_reason"),
+        Back(Const("Изменить"), id="bck_reason"),
+    ),
+    SwitchTo(Const(TXT_BACK), state=AdminReleaseLvl1.info, id='bck_to_info'),
+    state=AdminReleaseLvl1.confirm,
+    getter=reason_getter
+)
+
+
+async def confirm_album(callback: CallbackQuery, __, manager: DialogManager):
+    data = manager.middleware_data
+    bot: Bot = manager.middleware_data['bot']
+    await AlbumHandler(data['session_maker'], data['database_logger']).approve(manager.dialog_data['album_id'],
+                                                                               callback.from_user.id,
+                                                                               state='unsigned')
+    await bot.send_message(manager.dialog_data['user_id'],
+                           'Ваша обложка и название одобрены, перейдите в меню для дальнейших действий')
+
+
+async def cancel_task(_, __, manager: DialogManager):
+    data = manager.middleware_data
+    await AlbumHandler(data['session_maker'], data['database_logger']).set_task_state(manager.dialog_data['album_id'],
+                                                                                      None)
+    manager.show_mode = ShowMode.EDIT
+
+
+async def change_state(_, __, manager: DialogManager):
+    state = manager.dialog_data['doc_state']
+    if state is True:
+        manager.dialog_data['doc_state'] = False
+    else:
+        manager.dialog_data['doc_state'] = True
 
 
 async def task_page_getter(dialog_manager: DialogManager, **_kwargs):
@@ -30,20 +107,6 @@ async def task_page_getter(dialog_manager: DialogManager, **_kwargs):
     }
 
 
-async def cancel_task(_, __, manager: DialogManager):
-    data = manager.middleware_data
-    await AlbumHandler(data['session_maker'], data['database_logger']).set_task_state(manager.dialog_data['album_id'],
-                                                                                      None)
-    manager.show_mode = ShowMode.EDIT
-
-
-async def change_state(_, __, manager: DialogManager):
-    state = manager.dialog_data['doc_state']
-    if state is True:
-        manager.dialog_data['doc_state'] = False
-    else:
-        manager.dialog_data['doc_state'] = True
-
 task_page = Window(
     DynamicMedia('doc'),
     Format('Название релиза:{title}'),
@@ -54,8 +117,9 @@ task_page = Window(
              id='swap_docs',
              on_click=change_state,
              default=True),
-    Back(Const(TXT_CONFIRM), id='approve_album', on_click=...),
-    Back(Const(TXT_REJECT), id='reject_album', on_click=...),
+    Back(Const(TXT_CONFIRM), id='approve_album', on_click=confirm_album),
+    Back(Const('✘ Отклонить'), id='reject_album', on_click=reject),
+    SwitchTo(Const('✘ Свой ответ'), id='reject_album_custom', state=AdminReleaseLvl1.custom),
     Cancel(Const(TXT_BACK), on_click=cancel_task),
     state=AdminReleaseLvl1.info,
     getter=task_page_getter
@@ -109,4 +173,6 @@ choose = Dialog(
         getter=lvl1_getter
     ),
     task_page,
+    reason_window,
+    confirm_reason_window
 )
