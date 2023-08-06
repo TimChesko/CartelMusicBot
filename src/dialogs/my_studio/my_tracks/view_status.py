@@ -1,17 +1,19 @@
 from operator import itemgetter
+from operator import itemgetter
 from typing import Any
 
 from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.api.entities import MediaId, MediaAttachment
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Button, Back, SwitchTo, Start
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Button, Back, SwitchTo
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.dialogs.utils.common import on_start_copy_start_data
+from src.models.track_info import TrackInfoHandler
 from src.models.tracks import TrackHandler
-from src.utils.fsm import ViewStatus, ListeningNewTrack, TrackApprove
+from src.utils.fsm import ViewStatus, TrackApprove
 
 
 # LIST MENU
@@ -42,19 +44,32 @@ async def get_data_track(dialog_manager: DialogManager, **_kwargs):
     dialog_data = dialog_manager.dialog_data
     track = await TrackHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
         get_track_by_id(int(dialog_data['track_id']))
-    text = await create_text(track, dialog_data['status_text'])
+    track_info = await TrackInfoHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
+        get_docs_by_id(int(dialog_data['track_id']))
+    new_data = track_info.status == "process" and track.status == "approve"
+    edit_data = track_info.status == "reject" and track.status == "approve"
+    text = await create_text(track, track_info.status)
     return {
         "text": text,
         "audio": MediaAttachment(ContentType.AUDIO, file_id=MediaId(track.file_id_audio)),
-        track.status: True,
+        "new_data": new_data,
+        "edit_data": edit_data,
         "delete": True if track.status == "process" or track.status == "reject" else False
     }
 
 
-async def create_text(track, status_text: str) -> str:
-    text = f"Трек: {track.track_title}\nСтатус: {status_text}"
-    if track.status == "reject":
-        text += f"\n\nКомментарий: {track.reject_reason}"
+async def create_text(track, track_info: str) -> str:
+    text = f"Трек: {track.track_title}\n\n"
+    template_status = {
+        "approve": "принят",
+        "reject": "отклонен",
+        "process": "в процессе"
+    }
+    status_track = template_status[track.status]
+    status_info = template_status[track_info]
+    text += f"Статус трека: {status_track}\n"
+    if track.status != "process":
+        text += f"Статус информации по треку: {status_info}"
     return text
 
 
@@ -112,13 +127,13 @@ dialog = Dialog(
             Const("Заполнить данные"),
             id="my_studio_status_approve",
             on_click=start_form,
-            when="approve"
+            when="new_data"
         ),
-        Start(
-            Const("Отправить новый трек"),
+        Button(
+            Const("Заполнить заново данные"),
             id="my_studio_status_reject",
-            state=ListeningNewTrack.start,
-            when="reject"
+            on_click=start_form,
+            when="edit_data"
         ),
         SwitchTo(
             Const("Удалить трек"),

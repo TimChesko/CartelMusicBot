@@ -28,7 +28,7 @@ class TrackInfoHandler:
     async def set_status_approve(self, track_id: int):
         async with self.session_maker() as session:
             try:
-                query = update(TrackInfo).where(TrackInfo.track_id == track_id).values(status='approve')
+                query = update(TrackInfo).where(TrackInfo.track_id == track_id).values(status='done')
                 await session.execute(query)
                 await session.commit()
                 return True

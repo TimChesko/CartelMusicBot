@@ -218,7 +218,7 @@ class TrackInfo(Base):
     tiktok_time = Column(String)
     explicit_lyrics = Column(Boolean)
 
-    status = Column(Enum("wait_feat", "wait_docs_feat", "process", "approve", "reject",
+    status = Column(Enum("wait_feat", "wait_docs_feat", "process", "approve", "reject", "done",
                          name='track_info_status'))
     comment = Column(String)
 
