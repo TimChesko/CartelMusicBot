@@ -142,8 +142,8 @@ async def on_track_selected(callback: CallbackQuery, __, manager: DialogManager,
 
 choose = Dialog(
     Window(
-        Const('Список тасков 1 уровень: \n'
-              'Обложка + название + список треков + первичное ЛД'),
+        Const('Список тасков 2 уровень: \n'
+              'Подписанное ЛД, проверяй подпись'),
         ScrollingGroup(
             Select(
                 Format("{item.id}) {item.album_title}"),
