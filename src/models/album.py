@@ -48,6 +48,19 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
+    async def get_signed_state(self, state):
+        async with self.session_maker() as session:
+            try:
+                result = await session.execute(
+                    select(Album).where(Album.signed_state == state).order_by(
+                        asc(Album.sort_datetime))
+                )
+                track_info = result.scalars().all()
+                return track_info
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
     async def get_album_scalar(self, album_id) -> Album:
         async with self.session_maker() as session:
             try:
