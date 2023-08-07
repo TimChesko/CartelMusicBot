@@ -5,8 +5,5 @@ from . import moderator, menu
 
 router = Router()
 
-router.message.middleware(
-    EmployeeCheck()
-)
-
+router.message.filter(EmployeeCheck())
 router.include_routers(menu.router)

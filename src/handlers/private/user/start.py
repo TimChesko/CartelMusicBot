@@ -1,3 +1,5 @@
+import logging
+
 from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
@@ -15,7 +17,8 @@ router = Router()
 
 @router.message(CommandStart(), flags={'chat_action': 'typing'})
 async def cmd_start(msg: Message,
-                    session_maker: async_sessionmaker, database_logger: BoundLoggerFilteringAtDebug,
+                    session_maker: async_sessionmaker,
+                    database_logger: BoundLoggerFilteringAtDebug,
                     dialog_manager: DialogManager):
     user = await UserHandler(session_maker, database_logger).get_user_by_tg_id(msg.from_user.id)
     args = msg.text.split(" ")
