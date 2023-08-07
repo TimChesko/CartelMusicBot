@@ -156,6 +156,8 @@ class AlbumPage(StatesGroup):
     main = State()
     title = State()
     cover = State()
+    ld = State()
+    mail = State()
 
 
 class AlbumTitle(StatesGroup):

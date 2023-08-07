@@ -7,9 +7,9 @@ from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Button, SwitchTo, Group
+from aiogram_dialog.widgets.kbd import Button, SwitchTo, Group, StubScroll, NumberedPager, Checkbox
 from aiogram_dialog.widgets.media import DynamicMedia
-from aiogram_dialog.widgets.text import Const, Format, Case
+from aiogram_dialog.widgets.text import Const, Format, Case, List
 from docxtpl import DocxTemplate
 
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, TXT_BACK
@@ -18,6 +18,29 @@ from src.models.album import AlbumHandler
 from src.models.personal_data import PersonalDataHandler
 from src.models.tables import PersonalData
 from src.utils.fsm import AlbumPage, AlbumTracks
+
+
+async def other_type_handler_ld(msg: Message, _, __):
+    await msg.delete()
+    await msg.answer("Пришлите лицензионный договор в виде файла")
+
+
+async def set_album_ld(msg: Message, _, manager: DialogManager):
+    data = manager.middleware_data
+    await AlbumHandler(data['session_maker'], data['database_logger']).set_ld(manager.start_data['album_id'],
+                                                                              msg.document.file_id)
+    await msg.delete()
+    manager.show_mode = ShowMode.EDIT
+    await manager.switch_to(AlbumPage.main)
+
+
+ld = Window(
+    Const("Прикрепите лицензионное соглашение в виде документа"),
+    MessageInput(set_album_ld, content_types=[ContentType.DOCUMENT]),
+    MessageInput(other_type_handler_ld),
+    SwitchTo(TXT_BACK, 'from_cover', AlbumPage.main),
+    state=AlbumPage.ld
+)
 
 
 async def set_album_cover(msg: Message, _, manager: DialogManager):
@@ -65,27 +88,6 @@ title = Window(
     SwitchTo(TXT_BACK, 'from_title', AlbumPage.main),
     state=AlbumPage.title
 )
-
-
-async def getter(dialog_manager: DialogManager, **_kwargs):
-    data = dialog_manager.middleware_data
-    album, tracks = await AlbumHandler(data['session_maker'], data['database_logger']).get_album_scalar(
-        dialog_manager.start_data['album_id'])
-    is_cover = None
-    if album.album_cover:
-        is_cover = MediaAttachment(ContentType.DOCUMENT, file_id=MediaId(album.album_cover))
-    return {
-        'data': dialog_manager.start_data,
-        'title': dialog_manager.start_data['title'],
-        'cover': is_cover,
-        'tracks': '\n'.join(tracks) if tracks is not None else "",
-        'text_title': '✓ Название' if album.album_title else 'Дать название',
-        'text_cover': '✓ Обложка' if album.album_cover else 'Прикрепить обложку',
-        'text_tracks': '✓ Треки' if tracks is not None else 'Прикрепить треки',
-        'when_clear': tracks is not None,
-        'unsigned': not album.unsigned_state or album.unsigned_state == 'reject',
-        'wait': album.unsigned_state == 'process'
-    }
 
 
 async def choose_track(__, _, manager: DialogManager):
@@ -138,20 +140,56 @@ async def on_approvement(callback: CallbackQuery, _, manager: DialogManager):
     doc.save(temp_file)
     image_from_pc = FSInputFile(temp_file)
     msg = await callback.message.answer_document(image_from_pc)
-    # await bot.delete_message(callback.from_user.id, msg.message_id)
-    # await AlbumHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
-    #     manager.start_data['album_id'],
-    #     msg.document.file_id)
+    await bot.delete_message(callback.from_user.id, msg.message_id)
+    await AlbumHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
+        manager.start_data['album_id'],
+        msg.document.file_id)
 
     os.remove(temp_file)
 
 
+async def getter(dialog_manager: DialogManager, **_kwargs):
+    data = dialog_manager.middleware_data
+    album, tracks = await AlbumHandler(data['session_maker'], data['database_logger']).get_album_scalar(
+        dialog_manager.start_data['album_id'])
+    is_cover = None
+    if album.album_cover:
+        doc_id = album.album_cover if dialog_manager.dialog_data['doc_state'] is True else album.unsigned_license
+        is_cover = MediaAttachment(ContentType.DOCUMENT, file_id=MediaId(doc_id))
+    return {
+        'data': dialog_manager.start_data,
+        'title': dialog_manager.start_data['title'],
+        'doc': is_cover,
+        'tracks': tracks if tracks is not None else "",
+        'text_title': '✓ Название' if album.album_title else 'Дать название',
+        'text_cover': '✓ Обложка' if album.album_cover else 'Прикрепить обложку',
+        'text_tracks': '✓ Треки' if tracks else 'Прикрепить треки',
+        'ld': '✓ Лиц. Договор' if album.signed_license else 'Лиц. Договор',
+        'when_clear': tracks is not None,
+        'unsigned': not album.unsigned_state or album.unsigned_state == 'reject',
+        'wait': album.unsigned_state == 'process' or album.signed_state == 'process' or album.mail_track_state == 'process',
+        'signed': album.unsigned_state == 'approve' and not album.signed_state or album.signed_state == 'reject'
+    }
+
+
+async def on_start(_, dialog_manager: DialogManager):
+    dialog_manager.dialog_data['doc_state'] = True
+
+
+async def change_state(_, __, manager: DialogManager):
+    state = manager.dialog_data['doc_state']
+    if state is True:
+        manager.dialog_data['doc_state'] = False
+    else:
+        manager.dialog_data['doc_state'] = True
+
+
 main = Dialog(
     Window(
-        Format("Релиз: '{title}' "),
-        Format("Треки в этом релизе: \n{tracks}"),
+        Format("Релиз: '{title}' \n Треки в релизе:"),
+        List(Format('--- "{item.track_title}"'), items='tracks'),
         Const("\n ОЖИДАЙТЕ ПРОВЕРКУ", when='wait'),
-        DynamicMedia('cover'),
+        DynamicMedia('doc'),
         Group(
             SwitchTo(Format('{text_title}'), id='create_album_title', state=AlbumPage.title),
             SwitchTo(Format('{text_cover}'), id='create_album_cover', state=AlbumPage.cover),
@@ -166,7 +204,13 @@ main = Dialog(
             when='unsigned'
         ),
         Group(
-
+            Checkbox(Const("🔘 Обложка/Договор"),
+                     Const("Обложка/Договор 🔘"),
+                     id='swap_docs',
+                     on_click=change_state,
+                     default=True),
+            SwitchTo(Format('{ld}'), 'users_ld', state=AlbumPage.ld),
+            when='signed'
         ),
         Button(Const('Удалить'), on_click=delete_release, id='delete_release'),
         BTN_CANCEL_BACK,
@@ -174,5 +218,7 @@ main = Dialog(
         getter=getter
     ),
     title,
-    cover
+    cover,
+    ld,
+    on_start=on_start
 )
