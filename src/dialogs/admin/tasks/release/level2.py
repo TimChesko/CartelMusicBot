@@ -10,9 +10,10 @@ from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Back, Cancel, Che
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format, List
 
+from src.dialogs.admin.tasks.release.level1 import reject_template
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, TXT_CONFIRM, TXT_BACK
 from src.models.album import AlbumHandler
-from src.utils.fsm import AdminReleaseLvl1
+from src.utils.fsm import AdminReleaseLvl1, AdminReleaseLvl2
 
 
 async def reject(callback: CallbackQuery, __, manager: DialogManager):
@@ -20,10 +21,10 @@ async def reject(callback: CallbackQuery, __, manager: DialogManager):
     bot: Bot = manager.middleware_data['bot']
     await AlbumHandler(data['session_maker'], data['database_logger']).reject(manager.dialog_data['album_id'],
                                                                               callback.from_user.id,
-                                                                              state='unsigned')
+                                                                              state='signed')
     text = manager.dialog_data.get("reason") if manager.dialog_data.get("reason") else "Комментарий отсутствует"
     await bot.send_message(manager.dialog_data['user_id'],
-                           f'Ваша обложка или название отклонены с комментарием:\n'
+                           f'Ваш Лиц. Договор отклонен с комментарием:\n'
                            f'{text}'
                            f' \n перейдите в меню для дальнейших действий')
 
@@ -49,8 +50,8 @@ reason_window = Window(
     Const('Введи причину отказа'),
     MessageInput(set_reject_reason, content_types=[ContentType.TEXT]),
     MessageInput(other_type_handler_text),
-    SwitchTo(TXT_BACK, state=AdminReleaseLvl1.info, id='bck_to_info'),
-    state=AdminReleaseLvl1.custom,
+    SwitchTo(TXT_BACK, state=AdminReleaseLvl2.info, id='bck_to_info'),
+    state=AdminReleaseLvl2.custom,
     getter={}
 )
 confirm_reason_window = Window(
@@ -60,8 +61,8 @@ confirm_reason_window = Window(
         Cancel(Const("Подтверждаю"), on_click=reject, id="approve_reason"),
         Back(Const("Изменить"), id="bck_reason"),
     ),
-    SwitchTo(TXT_BACK, state=AdminReleaseLvl1.info, id='bck_to_info'),
-    state=AdminReleaseLvl1.confirm,
+    SwitchTo(TXT_BACK, state=AdminReleaseLvl2.info, id='bck_to_info'),
+    state=AdminReleaseLvl2.confirm,
     getter=reason_getter
 )
 
@@ -71,13 +72,9 @@ async def confirm_album(callback: CallbackQuery, __, manager: DialogManager):
     bot: Bot = manager.middleware_data['bot']
     await AlbumHandler(data['session_maker'], data['database_logger']).approve(manager.dialog_data['album_id'],
                                                                                callback.from_user.id,
-                                                                               state='unsigned')
+                                                                               state='signed')
     await bot.send_message(manager.dialog_data['user_id'],
-                           'Ваша обложка и название одобрены, перейдите в меню для дальнейших действий')
-
-
-async def reject_template(callback: CallbackQuery, __, manager: DialogManager):
-    await callback.answer('В разработке. Coming soon')
+                           'Ваш Лиц. Договор одобрен, перейдите в меню для дальнейших действий')
 
 
 async def cancel_task(_, __, manager: DialogManager):
@@ -87,22 +84,13 @@ async def cancel_task(_, __, manager: DialogManager):
     manager.show_mode = ShowMode.EDIT
 
 
-async def change_state(_, __, manager: DialogManager):
-    state = manager.dialog_data['doc_state']
-    if state is True:
-        manager.dialog_data['doc_state'] = False
-    else:
-        manager.dialog_data['doc_state'] = True
-
-
 async def task_page_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     user, track, album = await AlbumHandler(data['session_maker'],
                                             data['database_logger']).get_tracks_and_personal_data(
         dialog_manager.dialog_data['user_id'],
         dialog_manager.dialog_data['album_id'])
-    doc_id = album.unsigned_license if dialog_manager.dialog_data['doc_state'] is True else album.album_cover
-    doc = MediaAttachment(ContentType.DOCUMENT, file_id=MediaId(doc_id))
+    doc = MediaAttachment(ContentType.DOCUMENT, file_id=MediaId(album.signed_license))
     return {
         'username': user.tg_username if user.tg_username else user.tg_id,
         'nickname': user.nickname,
@@ -117,19 +105,23 @@ task_page = Window(
     Format('Название релиза:{title}'),
     Format('Артист: {username} / {nickname}'),
     List(Format('{item.id})  "{item.track_title}"'), items='tracks'),
-    Checkbox(Const("🔘 Договор/Обложка"),
-             Const("Договор/Обложка 🔘"),
-             id='swap_docs',
-             on_click=change_state,
-             default=True),
     Back(TXT_CONFIRM, id='approve_album', on_click=confirm_album),
     Back(Const('✘ Отклонить'), id='reject_album', on_click=reject),
-    Button(Const('✘ Шаблон'), id='reject_album_template', on_click=reject),
-    SwitchTo(Const('✘ Свой ответ'), id='reject_album_custom', state=AdminReleaseLvl1.custom),
+    Button(Const('✘ Шаблон'), id='reject_album_template', on_click=reject_template),
+    SwitchTo(Const('✘ Свой ответ'), id='reject_album_custom', state=AdminReleaseLvl2.custom),
     Cancel(TXT_BACK, on_click=cancel_task),
-    state=AdminReleaseLvl1.info,
+    state=AdminReleaseLvl2.info,
     getter=task_page_getter
 )
+
+
+async def lvl2_getter(dialog_manager: DialogManager, **_kwargs):
+    data = dialog_manager.middleware_data
+    album = await AlbumHandler(data['session_maker'], data['database_logger']).get_signed_state('process')
+    logging.info(album)
+    return {
+        'album': album
+    }
 
 
 async def on_track_selected(callback: CallbackQuery, __, manager: DialogManager, selected_item):
@@ -145,16 +137,7 @@ async def on_track_selected(callback: CallbackQuery, __, manager: DialogManager,
         await manager.next()
     else:
         await callback.answer('Этот трек уже в работе!')
-        await manager.switch_to(AdminReleaseLvl1.start)
-
-
-async def lvl1_getter(dialog_manager: DialogManager, **_kwargs):
-    data = dialog_manager.middleware_data
-    album = await AlbumHandler(data['session_maker'], data['database_logger']).get_unsigned_state('process')
-    logging.info(album)
-    return {
-        'album': album
-    }
+        await manager.switch_to(AdminReleaseLvl2.start)
 
 
 choose = Dialog(
@@ -171,12 +154,12 @@ choose = Dialog(
             ),
             width=1,
             height=5,
-            id='scroll_albums_lvl1',
+            id='scroll_albums_lvl2',
             hide_on_single_page=True
         ),
         BTN_CANCEL_BACK,
-        state=AdminReleaseLvl1.start,
-        getter=lvl1_getter
+        state=AdminReleaseLvl2.start,
+        getter=lvl2_getter
     ),
     task_page,
     reason_window,

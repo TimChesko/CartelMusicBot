@@ -13,6 +13,7 @@ from src.utils.fsm import AdminListening
 
 
 async def on_item_selected(callback: CallbackQuery, __, manager: DialogManager, selected_item: str):
+    items = eval(selected_item)
     data = manager.middleware_data
     local = manager.dialog_data
     track_id = int(selected_item)

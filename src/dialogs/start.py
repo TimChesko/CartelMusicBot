@@ -57,7 +57,7 @@ start_menu = Dialog(
             Const("Выпустить трек в продакшн"),
             id='public_track',
             state=ReleaseTrack.list,
-            when='track_check'
+            # when='track_check'
         ),
         Button(
             Format("{text}"),

@@ -48,14 +48,40 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
+    async def get_signed_state(self, state):
+        async with self.session_maker() as session:
+            try:
+                result = await session.execute(
+                    select(Album).where(Album.signed_state == state).order_by(
+                        asc(Album.sort_datetime))
+                )
+                track_info = result.scalars().all()
+                return track_info
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
+    async def get_mail_state(self, state):
+        async with self.session_maker() as session:
+            try:
+                result = await session.execute(
+                    select(Album).where(Album.mail_track_state == state).order_by(
+                        asc(Album.sort_datetime))
+                )
+                track_info = result.scalars().all()
+                return track_info
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
     async def get_album_scalar(self, album_id) -> Album:
         async with self.session_maker() as session:
             try:
                 album = await session.execute(select(Album).where(Album.id == album_id))
                 album_info = album.scalar_one_or_none()
-                tracks = await session.execute(select(Track.track_title).where(Track.album_id == album_id))
+                tracks = await session.execute(select(Track).where(Track.album_id == album_id))
                 tracks_info = tracks.scalars().all()
-                return album_info, tracks_info if len(tracks_info) > 0 else None
+                return album_info, tracks_info
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
@@ -146,6 +172,22 @@ class AlbumHandler:
                     )
                     await session.commit()
                     return True
+                if state == 'signed':
+                    await session.execute(
+                        update(Album).where(Album.id == album_id).values(checker=None,
+                                                                         signed_state='approve',
+                                                                         approver_signed=employee_id)
+                    )
+                    await session.commit()
+                    return True
+                if state == 'mail_track':
+                    await session.execute(
+                        update(Album).where(Album.id == album_id).values(checker=None,
+                                                                         mail_track_state='approve',
+                                                                         approver_mail=employee_id)
+                    )
+                    await session.commit()
+                    return True
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
@@ -158,6 +200,22 @@ class AlbumHandler:
                         update(Album).where(Album.id == album_id).values(checker=None,
                                                                          unsigned_state='reject',
                                                                          approver_unsigned=employee_id)
+                    )
+                    await session.commit()
+                    return True
+                if state == 'signed':
+                    await session.execute(
+                        update(Album).where(Album.id == album_id).values(checker=None,
+                                                                         signed_state='reject',
+                                                                         approver_signed=employee_id)
+                    )
+                    await session.commit()
+                    return True
+                if state == 'mail_track':
+                    await session.execute(
+                        update(Album).where(Album.id == album_id).values(checker=None,
+                                                                         mail_track_state='reject',
+                                                                         approver_mail=employee_id)
                     )
                     await session.commit()
                     return True
@@ -201,12 +259,50 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
+    async def set_mail_track(self, album_id: int, photo) -> bool:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(
+                    update(Album).where(Album.id == album_id).values(mail_track_photo=photo)
+                )
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
+                return False
+
     async def update_unsigned_state(self, album_id: int, file_id) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(
                     update(Album).where(Album.id == album_id).values(unsigned_license=file_id,
                                                                      unsigned_state='process',
+                                                                     sort_datetime=datetime.datetime.now())
+                )
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
+                return False
+
+    async def update_signed_state(self, album_id: int) -> bool:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(
+                    update(Album).where(Album.id == album_id).values(signed_state='process',
+                                                                     sort_datetime=datetime.datetime.now())
+                )
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
+                return False
+
+    async def update_mail_state(self, album_id: int) -> bool:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(
+                    update(Album).where(Album.id == album_id).values(mail_track_state='process',
                                                                      sort_datetime=datetime.datetime.now())
                 )
                 await session.commit()
