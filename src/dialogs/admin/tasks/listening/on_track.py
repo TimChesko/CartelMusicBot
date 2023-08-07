@@ -10,7 +10,7 @@ from aiogram_dialog.widgets.kbd import SwitchTo, Back, Next, Button, ScrollingGr
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.dialogs.utils.buttons import TXT_BACK, BTN_BACK
+from src.dialogs.utils.buttons import TXT_BACK, BTN_BACK, coming_soon
 from src.models.approvement import ApprovementHandler
 from src.models.listening_templates import ListeningTemplatesHandler
 from src.models.tracks import TrackHandler
@@ -102,7 +102,7 @@ info_window = Window(
          on_click=approve,
          id='approve'),
     Back(Const('Одобрить промо'),
-         on_click=approve,
+         on_click=coming_soon,
          id='approve_promo'),
     Next(Const('Отклонить шаблоны'),
          id='reject'),

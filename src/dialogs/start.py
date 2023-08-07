@@ -49,7 +49,7 @@ start_menu = Dialog(
             on_click=start_listening
         ),
         Start(
-            Const("Мои студия"),
+            Const("Моя студия"),
             id='my_studio',
             state=MyStudio.menu
         ),

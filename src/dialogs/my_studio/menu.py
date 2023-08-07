@@ -3,7 +3,7 @@ from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.kbd import SwitchTo, Button, Start
 from aiogram_dialog.widgets.text import Const
 
-from src.dialogs.utils.buttons import BTN_BACK, BTN_CANCEL_BACK
+from src.dialogs.utils.buttons import BTN_BACK, BTN_CANCEL_BACK, coming_soon
 from src.utils.fsm import ViewStatus, MyStudio
 
 
@@ -20,7 +20,7 @@ async def view_status(callback: CallbackQuery, button: Button, manager: DialogMa
 dialog = Dialog(
     Window(
         Const("Выберете категорию"),
-        Start(Const("Список релизов"), id="studio_status_public", state=...),
+        SwitchTo(Const("Список релизов"), id="studio_status_public", state=MyStudio.menu, on_click=coming_soon),
         SwitchTo(Const("Список треков"), id="studio_my_tracks", state=MyStudio.my_tracks),
         BTN_CANCEL_BACK,
         state=MyStudio.menu
