@@ -6,6 +6,8 @@ from src.dialogs.utils.buttons import BTN_CANCEL_BACK
 from src.utils.fsm import AdminRelease, AdminReleaseLvl1, \
     AdminReleaseLvl2, AdminReleaseLvl3
 
+# TODO сделать в названии отображение кол-ва заявок
+
 main = Dialog(
     Window(
         Const("Выберите уровень"),
