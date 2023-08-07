@@ -38,7 +38,7 @@ async def get_data_list(dialog_manager: DialogManager, **_kwargs) -> dict:
                 (track.status == status or (track_info is not None and track_info.status == status)):
             buttons.append([track.id, track.track_title[:20]])
     return {
-        "status": status,
+        "status": dialog_data['status_text'],
         "status_list": buttons
     }
 
