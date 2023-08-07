@@ -10,7 +10,7 @@ dialog = Dialog(
         Const("Выберете категорию для проверки"),
         Start(Const("Конфиденциальные данные"), id="check_passport", state=AdminCheckPassport.menu),
         Start(Const("Документы к треку"), id="check_track_info", state=AdminListTracks.menu),
-        Start(Const("Документы к треку"), id="check_release_info", state=AdminRelease.menu),
+        Start(Const("Документы к релизу"), id="check_release_info", state=AdminRelease.menu),
         BTN_CANCEL_BACK,
         state=AdminViewTypeDocs.menu
     )
