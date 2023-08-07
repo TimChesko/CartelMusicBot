@@ -1,20 +1,20 @@
-from typing import Any, Awaitable, Callable, Dict
+from typing import Any
 
-from aiogram.types import TelegramObject, Message
+from aiogram.filters import BaseFilter
+from aiogram.types import Message
+from sqlalchemy.ext.asyncio import async_sessionmaker
+from structlog._log_levels import BoundLoggerFilteringAtDebug
 
 from src.data import config
 from src.models.employee import EmployeeHandler
 
 
-class EmployeeCheck:
+class EmployeeCheck(BaseFilter):
 
     async def __call__(self,
-                       handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-                       event: Message,
-                       data: Dict[str, Any]
-                       ) -> Any:
-        privilege = await (EmployeeHandler(data['session_maker'], data['database_logger'])
-                           .check_employee_by_tg_id(event.from_user.id))
-        if privilege or event.from_user.id in config.DEVELOPERS:
-            return await handler(event, data)
-        return
+                       message: Message,
+                       session_maker: async_sessionmaker,
+                       database_logger: BoundLoggerFilteringAtDebug) -> Any:
+        privilege = await (EmployeeHandler(session_maker, database_logger)
+                           .check_employee_by_tg_id(message.from_user.id))
+        return privilege or message.from_user.id in config.DEVELOPERS

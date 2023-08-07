@@ -16,7 +16,7 @@ async def on_item_selected(callback: CallbackQuery, __, manager: DialogManager, 
     items = eval(selected_item)
     data = manager.middleware_data
     local = manager.dialog_data
-    track_id = items[0]
+    track_id = int(selected_item)
     checker, file, title, user = await TrackHandler(data['session_maker'], data['database_logger']).get_listening_info(
         track_id)
     if checker is None or checker == callback.from_user.id:
