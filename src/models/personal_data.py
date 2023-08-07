@@ -1,7 +1,7 @@
 import datetime
 import logging
 
-from sqlalchemy import select, delete, or_, func, and_
+from sqlalchemy import select, delete, or_, func, and_, update
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.models.tables import PersonalData, Social, PersonalDataTemplate, TrackInfo
@@ -82,12 +82,12 @@ class PersonalDataHandler:
                     return False
 
                 if user.all_passport_data == "approve" and user.all_bank_data == "approve":
-                    query = select(TrackInfo).where(and_(TrackInfo.feat_tg_id == str(user_id),
-                                                         TrackInfo.status == "wait_docs_feat"))
-                    result = await session.execute(query)
-                    result = result.scalar_one_or_none()
-                    if result:
-                        result.status = "process"
+                    update_query = (
+                        update(TrackInfo)
+                        .where(and_(TrackInfo.feat_tg_id == str(user_id), TrackInfo.status == "wait_docs_feat"))
+                        .values(status="process")
+                    )
+                    await session.execute(update_query)
 
                 await session.commit()
                 return True
