@@ -1,3 +1,4 @@
+import logging
 from operator import itemgetter
 from typing import Any
 
@@ -23,10 +24,21 @@ async def get_data_list(dialog_manager: DialogManager, **_kwargs) -> dict:
     user_id = middleware_data['event_from_user'].id
     dialog_data = dialog_manager.dialog_data
     tracks = await TrackHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
-        get_tracks_by_status(user_id, dialog_data['status'])
-    buttons = [[track.id, track.track_title] for track in tracks]
+        get_tracks_and_info_by_status(user_id, dialog_data['status'])
+    logging.debug(tracks)
+    buttons = []
+    status = dialog_data['status']
+    logging.debug(status)
+    for track, track_info in tracks:
+        logging.debug(track)
+        if status == "approve" and track.status == status and \
+                (track_info.status is None or track_info.status == status):
+            buttons.append([track.id, track.track_title[:20]])
+        elif status in ["reject", "process"] and \
+                (track.status == status or (track_info is not None and track_info.status == status)):
+            buttons.append([track.id, track.track_title[:20]])
     return {
-        "status": dialog_data['status_text'],
+        "status": status,
         "status_list": buttons
     }
 
@@ -46,9 +58,9 @@ async def get_data_track(dialog_manager: DialogManager, **_kwargs):
         get_track_by_id(int(dialog_data['track_id']))
     track_info = await TrackInfoHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
         get_docs_by_id(int(dialog_data['track_id']))
-    new_data = track_info.status == "process" and track.status == "approve"
-    edit_data = track_info.status == "reject" and track.status == "approve"
-    text = await create_text(track, track_info.status)
+    new_data = track.status == "approve" and track_info.status is None
+    edit_data = track.status == "approve" and track_info.status == "reject"
+    text = await create_text(track, track_info)
     return {
         "text": text,
         "audio": MediaAttachment(ContentType.AUDIO, file_id=MediaId(track.file_id_audio)),
@@ -58,7 +70,7 @@ async def get_data_track(dialog_manager: DialogManager, **_kwargs):
     }
 
 
-async def create_text(track, track_info: str) -> str:
+async def create_text(track, track_info) -> str:
     text = f"Трек: {track.track_title}\n\n"
     template_status = {
         "approve": "принят",
@@ -66,9 +78,9 @@ async def create_text(track, track_info: str) -> str:
         "process": "в процессе"
     }
     status_track = template_status[track.status]
-    status_info = template_status[track_info]
     text += f"Статус трека: {status_track}\n"
-    if track.status != "process":
+    if track_info.status and track.status != "process":
+        status_info = template_status[track_info.status]
         text += f"Статус информации по треку: {status_info}"
     return text
 

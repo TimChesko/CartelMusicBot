@@ -24,7 +24,7 @@ async def on_item_selected(callback: CallbackQuery, __, manager: DialogManager, 
     track_id = manager.dialog_data['getter_info']['track_id']
     user_id = manager.dialog_data['getter_info']['user_id']
     track = await (ListeningTemplatesHandler(data['session_maker'], data['database_logger']).
-                   get_all_scalar('reject', id=template_id))
+                   get_all_scalar(type_name='reject', num_id=template_id))
     await ApprovementHandler(data['session_maker'], data['database_logger']).add_reject(callback.from_user.id,
                                                                                         track_id,
                                                                                         template_id)

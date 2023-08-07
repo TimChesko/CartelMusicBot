@@ -46,7 +46,7 @@ class ListeningTemplatesHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def get_all_scalar(self, type_name, num_id=None) -> str | bool:
+    async def get_all_scalar(self, type_name, num_id=None):
         async with self.session_maker() as session:
             try:
                 if num_id is None:

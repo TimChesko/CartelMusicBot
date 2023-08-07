@@ -18,7 +18,8 @@ from src.utils.fsm import TrackApprove, StudioEdit
 
 async def on_start(data: Any, manager: DialogManager):
     await on_start_copy_start_data(data, manager)
-    manager.dialog_data['track'] = {"track_id": int(manager.dialog_data['track_id'])}
+
+    manager.dialog_data['track'] = {}
 
 
 async def add_title(callback: CallbackQuery, _, manager: DialogManager):
@@ -88,7 +89,7 @@ async def finish(callback: CallbackQuery, __, manager: DialogManager):
         data.update({"status": "process"})
     middleware_data = manager.middleware_data
     track_id_info = await TrackInfoHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
-        add_track_info(data)
+        add_track_info(int(manager.dialog_data['track_id']), data)
     if manager.dialog_data['feat']:
         link = create_deep_link("DurakTonBot",
                                 link_type="start",

@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy import select, update, or_, asc, and_
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.tables import Track, User
+from src.models.tables import Track, User, TrackInfo
 
 
 class TrackHandler:
@@ -21,6 +21,21 @@ class TrackHandler:
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса get_tracks_by_status: {e}")
                 return False
+
+
+    async def get_tracks_and_info_by_status(self, user_id: int, status: str):
+        async with self.session_maker() as session:
+            try:
+                # Присоединяем trackinfo к track по какому-то условию (например, по id)
+                query = select(Track, TrackInfo).join(TrackInfo, Track.id == TrackInfo.track_id).where(
+                    (Track.user_id == user_id) &
+                    (or_(Track.status == status, TrackInfo.status == status))
+                )
+                result = await session.execute(query)
+                return result.all()
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return []
 
     async def get_track_by_id(self, track_id: int):
         async with self.session_maker() as session:
@@ -85,6 +100,9 @@ class TrackHandler:
                 new_track = Track(user_id=user_id, track_title=track_title, file_id_audio=file_id_audio,
                                   add_datetime=datetime.datetime.now(), sort_datetime=datetime.datetime.now())
                 session.add(new_track)
+                await session.flush()  # Это обновит new_track.id после добавления в базу данных
+                new_info = TrackInfo(track_id=new_track.id)
+                session.add(new_info)
                 await session.commit()
                 return True
             except SQLAlchemyError as e:

@@ -10,7 +10,7 @@ from src.utils.fsm import StudioEdit
 
 
 async def save_text(msg: Message, _, manager: DialogManager, __):
-    manager.dialog_data['result'] = {"track_title": msg.text}
+    manager.dialog_data['result'] = {"title": msg.text}
     await manager.switch_to(StudioEdit.confirm)
 
 

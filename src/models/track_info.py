@@ -28,7 +28,7 @@ class TrackInfoHandler:
     async def set_status_approve(self, track_id: int):
         async with self.session_maker() as session:
             try:
-                query = update(TrackInfo).where(TrackInfo.track_id == track_id).values(status='done')
+                query = update(TrackInfo).where(TrackInfo.track_id == track_id).values(status='approve')
                 await session.execute(query)
                 await session.commit()
                 return True
@@ -41,16 +41,21 @@ class TrackInfoHandler:
             try:
                 query = select(TrackInfo).where(TrackInfo.track_id == track_id)
                 result = await session.execute(query)
-                return result.scalar()
+                result = result.scalar_one_or_none()
+                if result is None:
+                    result = TrackInfo(track_id=track_id)
+                    session.add(result)
+                    await session.commit()
+                return result
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return None
 
-    async def add_track_info(self, data: dict) -> bool:
+    async def add_track_info(self, track_id: int, data: dict) -> bool:
         async with self.session_maker() as session:
             try:
-                new_track_info = TrackInfo(**data)
-                session.add(new_track_info)
+                query = update(TrackInfo).where(TrackInfo.track_id == track_id).values(**data)
+                await session.execute(query)
                 await session.commit()
                 return True
             except SQLAlchemyError as e:
