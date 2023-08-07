@@ -1,9 +1,10 @@
 import datetime
+import logging
 
-from sqlalchemy import select, delete, or_, func
+from sqlalchemy import select, delete, or_, func, and_
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.tables import PersonalData, Social, PersonalDataTemplate
+from src.models.tables import PersonalData, Social, PersonalDataTemplate, TrackInfo
 
 
 class PersonalDataHandler:
@@ -65,19 +66,32 @@ class PersonalDataHandler:
         async with self.session_maker() as session:
             try:
                 user = await session.get(PersonalData, user_id)
-                if user:
-                    if header_name == "passport":
-                        user.all_passport_data = "approve"
-                    elif header_name == "bank":
-                        user.all_bank_data = "approve"
-                    else:
-                        self.logger.error("Неправильный header_name: %s", header_name)
-                        return False
-                    await session.commit()
-                    return True
-                else:
+                if not user:
                     self.logger.error("Данного user(%s) не существует в таблице personal_data", str(user_id))
                     return False
+
+                headers_map = {
+                    "passport": "all_passport_data",
+                    "bank": "all_bank_data"
+                }
+
+                if header_name in headers_map:
+                    setattr(user, headers_map[header_name], "approve")
+                else:
+                    self.logger.error("Неправильный header_name: %s", header_name)
+                    return False
+
+                if user.all_passport_data == "approve" and user.all_bank_data == "approve":
+                    query = select(TrackInfo).where(and_(TrackInfo.feat_tg_id == str(user_id),
+                                                         TrackInfo.status == "wait_docs_feat"))
+                    result = await session.execute(query)
+                    result = result.scalar_one_or_none()
+                    if result:
+                        result.status = "process"
+
+                await session.commit()
+                return True
+
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при обновлении данных в: %s", e)
                 await session.rollback()
