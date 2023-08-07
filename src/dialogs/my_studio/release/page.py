@@ -138,7 +138,9 @@ async def on_approvement1lvl(callback: CallbackQuery, _, manager: DialogManager)
                                                        data['database_logger']).get_all_personal_data(
         callback.from_user.id)
     bot: Bot = data['bot']
-    doc = DocxTemplate("/home/af1s/Рабочий стол/template.docx")
+    current_directory = os.path.dirname(os.path.abspath(__file__))  # Получаем путь к текущему файлу
+    file_path = os.path.join(current_directory, 'files', 'template.docx')
+    doc = DocxTemplate(file_path)
     context = {
         'licensor_name': f'{personal.surname} {personal.first_name[0]}.{personal.middle_name[0]}.',
         'name': f'{personal.surname} {personal.first_name} {personal.middle_name}',
@@ -160,7 +162,7 @@ async def on_approvement1lvl(callback: CallbackQuery, _, manager: DialogManager)
         'ld_number': f'{datetime.datetime.now().strftime("%d%m%Y%h%M%s")}',
         'date': f'{format_date()}',
     }
-    temp_file = f"/home/af1s/Рабочий стол/{callback.from_user.id}.docx"
+    temp_file = os.path.join(current_directory, 'files', f"{callback.from_user.id}.docx")
     doc.render(context)
     doc.save(temp_file)
     image_from_pc = FSInputFile(temp_file)
@@ -169,7 +171,6 @@ async def on_approvement1lvl(callback: CallbackQuery, _, manager: DialogManager)
     await AlbumHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
         manager.start_data['album_id'],
         msg.document.file_id)
-
     os.remove(temp_file)
 
 

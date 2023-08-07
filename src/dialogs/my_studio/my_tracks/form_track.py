@@ -78,12 +78,12 @@ async def save_data_callback(callback: CallbackQuery, _, manager: DialogManager)
 
 
 async def save_data_feat(_, __, manager: DialogManager):
-    manager.dialog_data['feat_status'] = False
+    manager.dialog_data['track'].update({'feat_status': False})
     await manager.next()
 
 
 async def finish(callback: CallbackQuery, __, manager: DialogManager):
-    data = manager.dialog_data['track']
+    data = manager.dialog_data.get('track')
     middleware_data = manager.middleware_data
     if data['feat_status']:
         data.update({"status": "wait_feat"})
