@@ -8,7 +8,7 @@ from src.data import config
 from src.dialogs.admin.dashboard.employee.delete import delete_window
 from src.dialogs.admin.dashboard.employee.info import info_window
 from src.dialogs.admin.dashboard.employee.privilege import privilege_window
-from src.dialogs.utils.buttons import BTN_BACK
+from src.dialogs.utils.buttons import BTN_BACK, BTN_CANCEL_BACK
 from src.models.employee import EmployeeHandler
 from src.utils.fsm import AdminEmployee, AdminAddEmployee
 
@@ -84,7 +84,7 @@ employees = Dialog(
             Start(Const('Добавить'),
                   id='employee_add',
                   state=AdminAddEmployee.start),
-            BTN_BACK,
+            BTN_CANCEL_BACK,
             width=2
         ),
         state=AdminEmployee.start,
