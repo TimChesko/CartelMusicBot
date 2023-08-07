@@ -191,7 +191,7 @@ class TrackHandler:
     async def get_process_tracks(self):
         async with self.session_maker() as session:
             try:
-                query = select(Track.id, Track.track_title).where(
+                query = select(Track.id).where(
                     and_(Track.status == 'process', Track.checker == None)).order_by(asc(Track.sort_datetime))
                 result = await session.execute(query)
                 tracks = result.all()
@@ -217,7 +217,7 @@ class TrackHandler:
     async def get_listening_info(self, track_id: int):
         async with self.session_maker() as session:
             try:
-                query = select(Track.checker, Track.file_id_audio, User).join(User).where(Track.id == track_id)
+                query = select(Track.checker, Track.file_id_audio, Track.track_title, User).join(User).where(Track.id == track_id)
                 result = await session.execute(query)
                 tracks = result.first()
                 return tracks
