@@ -25,9 +25,10 @@ async def cmd_start(msg: Message,
     if len(args) > 1:
         arg = decode_payload(args[1]).split("_")
         match arg:
-            case "track", "feat", int(track_id_info):
-                await TrackInfoHandler(session_maker, database_logger). \
+            case "track", "feat", track_id_info:
+                answer = await TrackInfoHandler(session_maker, database_logger). \
                     update_track_info_feat(int(track_id_info), msg.from_user.id)
+                await msg.answer(text=answer)
     if not user:
         await UserHandler(session_maker, database_logger).add_new_user(msg)
         user = await UserHandler(session_maker, database_logger).get_user_by_tg_id(msg.from_user.id)

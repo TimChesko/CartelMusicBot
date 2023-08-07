@@ -46,7 +46,7 @@ async def save_percentage_beat(msg: Message, _, manager: DialogManager, __):
 
 
 async def save_percentage_feat(msg: Message, _, manager: DialogManager, __):
-    manager.dialog_data['result'].update({"feat_percent": int(msg.text)})
+    manager.dialog_data['result'] = {"feat_status": True, "feat_percent": int(msg.text)}
     await manager.done(manager.dialog_data['result'])
 
 

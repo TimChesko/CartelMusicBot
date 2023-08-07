@@ -1,9 +1,9 @@
 import datetime
 
-from sqlalchemy import select, update, or_, asc, and_
+from sqlalchemy import select, update, or_, asc, and_, delete
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.tables import Track, User, TrackInfo
+from src.models.tables import Track, User, TrackInfo, TrackApprovement
 
 
 class TrackHandler:
@@ -50,16 +50,21 @@ class TrackHandler:
     async def delete_track_by_id(self, track_id: int):
         async with self.session_maker() as session:
             try:
+                # Получаем экземпляр трека для удаления
                 query = select(Track).where(Track.id == track_id)
                 result = await session.execute(query)
-                if result is not None:
-                    session.delete(result)
-                    session.commit()
+                track_instance = result.scalar()
+                if track_instance:
+                    await session.execute(delete(TrackInfo).where(TrackInfo.track_id == track_id))
+                    await session.execute(delete(TrackApprovement).where(TrackApprovement.track_id == track_id))
+                    await session.execute(delete(Track).where(Track.id == track_id))
+                    await session.commit()
                     return True
                 else:
                     return False
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса delete_track_by_id: {e}")
+                await session.rollback()
                 return False
 
     async def has_tracks_by_tg_id(self, tg_id: int) -> bool:

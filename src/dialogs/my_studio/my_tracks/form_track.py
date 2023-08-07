@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Any
 
+from aiogram import Bot
 from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.deep_linking import create_deep_link
@@ -77,23 +78,25 @@ async def save_data_callback(callback: CallbackQuery, _, manager: DialogManager)
 
 
 async def save_data_feat(_, __, manager: DialogManager):
-    manager.dialog_data['feat'] = False
+    manager.dialog_data['feat_status'] = False
     await manager.next()
 
 
 async def finish(callback: CallbackQuery, __, manager: DialogManager):
     data = manager.dialog_data['track']
-    if manager.dialog_data['feat']:
+    middleware_data = manager.middleware_data
+    if data['feat_status']:
         data.update({"status": "wait_feat"})
     else:
         data.update({"status": "process"})
-    middleware_data = manager.middleware_data
-    track_id_info = await TrackInfoHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
+    await TrackInfoHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
         add_track_info(int(manager.dialog_data['track_id']), data)
-    if manager.dialog_data['feat']:
-        link = create_deep_link("DurakTonBot",
+    if data['feat_status']:
+        bot: Bot = manager.middleware_data['bot']
+        bot_info = await bot.me()
+        link = create_deep_link(bot_info.username,
                                 link_type="start",
-                                payload=f"track_feat_{track_id_info}",
+                                payload=f"track_feat_{manager.dialog_data['track_id']}",
                                 encode=True)
         await callback.message.answer("Данные занесены в базу данных. Чтобы они отправились на модерацию, "
                                       "пригласите по данной ссылке участника фита.\n"
