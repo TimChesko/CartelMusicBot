@@ -18,7 +18,7 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
         get_all_by_tg(user_id)
     return {
         "library_check": library,
-        'track_check': tracks,
+        'verif_check': all((personal_data.all_passport_data == 'approve', personal_data.all_bank_data == 'approve')),
         'data': data,
         "text": "Профиль" if personal_data.all_passport_data and personal_data.all_bank_data else "Пройти верификацию"
     }
@@ -51,13 +51,14 @@ start_menu = Dialog(
         Start(
             Const("Моя студия"),
             id='my_studio',
-            state=MyStudio.menu
+            state=MyStudio.menu,
+            when='verif_check'
         ),
         Start(
             Const("Выпустить трек в продакшн"),
             id='public_track',
             state=ReleaseTrack.list,
-            # when='track_check'
+            when='verif_check'
         ),
         Button(
             Format("{text}"),
