@@ -10,6 +10,7 @@ TXT_CONFIRM = Const("✓ Принять")
 TXT_FALSE = Const("✘ Нет")
 TXT_TRUE = Const("✓ Да")
 TXT_CANCEL = Const("✘ Отменить")
+TXT_APPROVE = Const("✓ Подтвердить")
 TXT_EDIT = Const("✍ Изменить")
 
 # BUTTONS

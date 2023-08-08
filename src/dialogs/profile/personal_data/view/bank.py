@@ -1,9 +1,9 @@
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, ShowMode, Window
-from aiogram_dialog.widgets.kbd import Button, Cancel
+from aiogram_dialog.widgets.kbd import Button, Cancel, Row
 from aiogram_dialog.widgets.text import Const
 
-from src.dialogs.utils.buttons import TXT_CONFIRM, BTN_BACK
+from src.dialogs.utils.buttons import TXT_CONFIRM, BTN_BACK, TXT_NEXT, BTN_CANCEL_BACK, TXT_APPROVE
 from src.dialogs.utils.widgets.input_forms.process_input import process_input_result, InputForm
 from src.dialogs.utils.widgets.input_forms.utils import convert_data_types, get_data_from_db
 from src.models.personal_data import PersonalDataHandler
@@ -35,19 +35,21 @@ add_full_data = Dialog(
     Window(
         Const("Перед началом заполнения данных, подготовьте банковские данные."),
         Button(
-            Const("Продолжить"),
+            TXT_NEXT,
             id="bank_start",
             on_click=create_form
         ),
-        Cancel(Const("Вернуться в профиль")),
+        BTN_CANCEL_BACK,
         state=Bank.add_data
     ),
     Window(
         Const("Проверьте и подтвердите правильность всех данных."
               "В целях безопасности, в дальнейшем у вас не будет возможности просмотреть"
               " внесенные данные без помощи модераторов."),
-        Button(TXT_CONFIRM, id="bank_confirm", on_click=on_finally_bank),
-        BTN_BACK,
+        Row(
+            BTN_BACK,
+            Button(TXT_APPROVE, id="bank_confirm", on_click=on_finally_bank),
+        ),
         state=Bank.confirm
     ),
     on_process_result=process_input_result,

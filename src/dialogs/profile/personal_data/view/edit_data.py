@@ -2,10 +2,10 @@ from operator import itemgetter
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Button
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Button, Row
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.dialogs.utils.buttons import TXT_CONFIRM, BTN_BACK
+from src.dialogs.utils.buttons import TXT_CONFIRM, BTN_BACK, BTN_CANCEL_BACK
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.dialogs.utils.widgets.input_forms.process_input import process_input_result, InputForm
 from src.dialogs.utils.widgets.input_forms.utils import convert_database_to_data
@@ -86,7 +86,7 @@ dialog = Dialog(
             hide_on_single_page=True,
             id='scroll_profile_data_edit',
         ),
-        Cancel(Const("< Вернуться в профиль")),
+        BTN_CANCEL_BACK,
         getter=profile_edit_getter,
         state=ProfileEdit.menu,
     ),
@@ -94,8 +94,10 @@ dialog = Dialog(
         Const("Проверьте и подтвердите правильность всех данных."
               "В целях безопасности, в дальнейшем у вас не будет возможности просмотреть"
               " внесенные данные без помощи модераторов."),
-        Button(TXT_CONFIRM, id="edit_confirm", on_click=on_finally),
-        BTN_BACK,
+        Row(
+            BTN_BACK,
+            Button(TXT_CONFIRM, id="edit_confirm", on_click=on_finally),
+        ),
         state=ProfileEdit.confirm
     ),
     on_process_result=process_input_result,

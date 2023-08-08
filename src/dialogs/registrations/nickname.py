@@ -6,6 +6,7 @@ from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Back, Button, Row
 from aiogram_dialog.widgets.text import Const, Format, Multi
 
+from src.dialogs.utils.buttons import TXT_EDIT, TXT_NEXT
 from src.models.user import UserHandler
 from src.utils.fsm import RegNickname, StartMenu
 
@@ -39,11 +40,11 @@ reg_nickname = Dialog(
     ),
     Window(
         Multi(
-            Format("Ваш псевдоним: {nickname}")
+            Format("Ваш псевдоним: <b>{nickname}</b>")
         ),
         Row(
-            Back(Const("Изменить")),
-            Button(Const("Продолжить"), on_click=on_finish, id="finish"),
+            Back(TXT_EDIT),
+            Button(TXT_NEXT, on_click=on_finish, id="finish"),
         ),
         getter=get_data,
         state=RegNickname.finish
