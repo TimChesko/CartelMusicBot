@@ -4,7 +4,7 @@ from aiogram_dialog.widgets.text import Const
 
 # TEXT
 TXT_BACK = Const("‹ Назад")
-TXT_NEXT = Const("Дальше ›")
+TXT_NEXT = Const("Продолжить ›")
 TXT_REJECT = Const("✘ Отклонить")
 TXT_CONFIRM = Const("✓ Принять")
 TXT_FALSE = Const("✘ Нет")

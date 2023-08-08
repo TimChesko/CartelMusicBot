@@ -1,4 +1,3 @@
-import dataclasses
 from operator import itemgetter
 
 from aiogram.types import CallbackQuery, InputMediaPhoto
@@ -6,17 +5,10 @@ from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo, Multiselect, ScrollingGroup
 from aiogram_dialog.widgets.text import Format, Const
 
-from src.dialogs.utils.buttons import TXT_CONFIRM, TXT_REJECT, TXT_BACK, BTN_BACK
+from src.dialogs.admin.tasks.personal_data.factory.model import Task
+from src.dialogs.utils.buttons import TXT_CONFIRM, TXT_REJECT, TXT_BACK, BTN_BACK, TXT_NEXT
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.utils.fsm import PersonalDataCheck
-
-
-@dataclasses.dataclass
-class Task:
-    column_id: int
-    column_name: str
-    title: str
-    value: str
 
 
 async def start_dialog_check_docs(manager: DialogManager, text: list, photo: list, callback: CallbackQuery):
@@ -65,8 +57,7 @@ async def on_confirm(_, __, manager: DialogManager):
 
 
 async def on_pre_reject(_, __, manager: DialogManager):
-    widget = manager.find("ms_passport")
-    manager.dialog_data['result'] = widget.get_checked()
+    manager.dialog_data['result'] = manager.find("ms_passport").get_checked()
     await manager.next()
 
 
@@ -103,14 +94,14 @@ dialog = Dialog(
             id="scroll_with_pager_personal_data",
             hide_on_single_page=True
         ),
-        Button(Const("Продолжить"), id="finish_check", on_click=on_pre_reject),
+        Button(TXT_NEXT, id="finish_check", on_click=on_pre_reject),
         BTN_BACK,
         state=PersonalDataCheck.reject_data,
         getter=get_buttons
     ),
     Window(
         Format("{finish_text}"),
-        Button(Const("Закончить проверку"), id="finish", on_click=on_reject),
+        Button(Const("✓ Закончить проверку"), id="finish", on_click=on_reject),
         BTN_BACK,
         state=PersonalDataCheck.finish,
         getter=get_finish_text

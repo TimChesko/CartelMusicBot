@@ -36,7 +36,7 @@ async def on_finish(callback: CallbackQuery, _, manager: DialogManager):
 reg_fullname = Dialog(
     Window(
         Const('Перед тем как работать через бота, нужно пройти короткую регистрацию.'),
-        Const('Введите свое имя:'),
+        Const('Введите своё имя:'),
         TextInput(id='first_name', on_success=set_info),
         state=AdminRegistration.first_name
     ),
@@ -46,7 +46,7 @@ reg_fullname = Dialog(
         state=AdminRegistration.surname
     ),
     Window(
-        Const('Введите свою отчество:'),
+        Const('Введите своё отчество:'),
         TextInput(id='middle_name', on_success=set_info),
         state=AdminRegistration.middle_name
     ),
@@ -58,5 +58,5 @@ reg_fullname = Dialog(
         ),
         state=AdminRegistration.confirm,
         getter=fullname_getter
-    ),
+    )
 )
