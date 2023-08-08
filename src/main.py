@@ -1,5 +1,4 @@
 import asyncio
-import logging
 
 from aiogram import Dispatcher, Bot
 from aiogram.filters import ExceptionTypeFilter
@@ -7,6 +6,7 @@ from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
 from aiogram_dialog import setup_dialogs
 from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 from redis.asyncio.client import Redis
+from sulguk import AiogramSulgukMiddleware
 
 from src import handlers, dialogs
 from src import utils
@@ -72,6 +72,7 @@ async def on_shutdown_polling(dispatcher: Dispatcher, bot: Bot) -> None:
 
 async def main() -> None:
     bot = Bot(config.BOT_TOKEN, parse_mode="HTML")
+    bot.session.middleware(AiogramSulgukMiddleware())
     storage = RedisStorage(
         redis=Redis(
             host=config.FSM_HOST,
@@ -85,7 +86,6 @@ async def main() -> None:
         storage=storage,
         events_isolation=storage.create_isolation()
     )
-
     dp['config'] = config
     dp.errors.register(
         on_unknown_intent,

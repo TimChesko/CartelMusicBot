@@ -18,7 +18,7 @@ async def create_form(_, __, manager: DialogManager):
 
 async def on_finally_passport(callback: CallbackQuery, _, manager: DialogManager):
     middleware_data = manager.middleware_data
-    user_id = middleware_data['event_from_user'].id
+    user_id = manager.event.from_user.id
     data = await convert_data_types(manager.dialog_data['save_input'])
     await PersonalDataHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
         update_all_personal_data(user_id, "passport", data)

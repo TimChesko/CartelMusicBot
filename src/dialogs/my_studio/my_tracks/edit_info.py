@@ -90,7 +90,7 @@ dialog = Dialog(
     Window(
         Const("Какой процент от трека берет автор бита ?\nЦелое значение"),
         TextInput(
-            id="input_edit_percentage_beat",
+            id="input_edit_beatmaker_percent",
             type_factory=int,
             on_success=save_percentage_beat
         ),

@@ -1,4 +1,3 @@
-import logging
 from operator import itemgetter
 from typing import Any
 
@@ -6,41 +5,61 @@ from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.api.entities import MediaId, MediaAttachment
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Button, Back, SwitchTo
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Button, SwitchTo
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
-from src.dialogs.utils.buttons import TXT_CONFIRM
+from src.dialogs.utils.buttons import TXT_CONFIRM, BTN_BACK, BTN_CANCEL_BACK, TXT_REJECT
 from src.dialogs.utils.common import on_start_copy_start_data
+from src.models.tables import Track, TrackInfo
 from src.models.track_info import TrackInfoHandler
 from src.models.tracks import TrackHandler
 from src.utils.fsm import ViewStatus, TrackApprove
 
+APPROVE = "approve"
+REJECT = "reject"
+PROCESS = "process"
 
-# LIST MENU
+STATUS_TEMPLATES = {
+    APPROVE: "принят",
+    REJECT: "отклонен",
+    PROCESS: "в процессе"
+}
 
-async def get_data_list(dialog_manager: DialogManager, **_kwargs) -> dict:
-    middleware_data = dialog_manager.middleware_data
-    user_id = middleware_data['event_from_user'].id
-    dialog_data = dialog_manager.dialog_data
-    tracks = await TrackHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
-        get_tracks_and_info_by_status(user_id, dialog_data['status'])
-    logging.debug(tracks)
-    buttons = []
-    status = dialog_data['status']
-    logging.debug(status)
-    for track, track_info in tracks:
-        logging.debug(track)
-        if status == "approve" and track.status == status and \
-                (track_info.status is None or track_info.status == status):
-            buttons.append([track.id, track.track_title[:20]])
-        elif status in ["reject", "process"] and \
-                (track.status == status or (track_info is not None and track_info.status == status)):
-            buttons.append([track.id, track.track_title[:20]])
-    return {
-        "status": dialog_data['status_text'],
-        "status_list": buttons
-    }
+
+class DialogManagerOptimized:
+    def __init__(self, session_maker, database_logger):
+        self.track_handler = TrackHandler(session_maker, database_logger)
+        self.track_info_handler = TrackInfoHandler(session_maker, database_logger)
+
+    async def generate_list_buttons(self, dialog_manager: DialogManager) -> dict:
+        user_id = dialog_manager.event.from_user.id
+        dialog_data = dialog_manager.dialog_data
+        tracks = await self.track_handler.get_tracks_and_info_by_status(user_id, dialog_data['status'])
+
+        status = dialog_data['status']
+        buttons = []
+
+        for track, track_info in tracks:
+            if status == APPROVE and track.status == APPROVE and \
+                    (track_info.status is None or track_info.status == APPROVE):
+                buttons.append([track.id, track.track_title[:20]])
+            elif status in [REJECT, PROCESS] and \
+                    (track.status == status or (track_info is not None and track_info.status == status)):
+                buttons.append([track.id, track.track_title[:20]])
+
+        return {
+            "status": dialog_data['status_text'],
+            "status_list": buttons
+        }
+
+
+async def get_buttons(dialog_manager: DialogManager, **_kwargs) -> dict:
+    dm_optimized = DialogManagerOptimized(
+        dialog_manager.middleware_data['session_maker'],
+        dialog_manager.middleware_data['database_logger']
+    )
+    return await dm_optimized.generate_list_buttons(dialog_manager)
 
 
 async def on_click(callback: CallbackQuery, _, manager: DialogManager, __) -> None:
@@ -48,49 +67,44 @@ async def on_click(callback: CallbackQuery, _, manager: DialogManager, __) -> No
     await manager.switch_to(state=ViewStatus.track)
 
 
-# TRACK INFO
-
-
 async def get_data_track(dialog_manager: DialogManager, **_kwargs):
-    middleware_data = dialog_manager.middleware_data
-    dialog_data = dialog_manager.dialog_data
-    track = await TrackHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
-        get_track_by_id(int(dialog_data['track_id']))
-    track_info = await TrackInfoHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
-        get_docs_by_id(int(dialog_data['track_id']))
-    new_data = track.status == "approve" and track_info.status is None
-    edit_data = track.status == "approve" and track_info.status == "reject"
+    session_maker = dialog_manager.middleware_data['session_maker']
+    database_logger = dialog_manager.middleware_data['database_logger']
+
+    track_handler = TrackHandler(session_maker, database_logger)
+    track_info_handler = TrackInfoHandler(session_maker, database_logger)
+
+    track_id = int(dialog_manager.dialog_data['track_id'])
+    track = await track_handler.get_track_by_id(track_id)
+    track_info = await track_info_handler.get_docs_by_id(track_id)
+
     text = await create_text(track, track_info)
+
     return {
         "text": text,
         "audio": MediaAttachment(ContentType.AUDIO, file_id=MediaId(track.file_id_audio)),
-        "new_data": new_data,
-        "edit_data": edit_data,
-        "delete": True if track.status == "process" or track.status == "reject" else False
+        "new_data": track.status == APPROVE and track_info.status is None,
+        "edit_data": track.status == APPROVE and track_info.status == REJECT,
+        "delete": track.status in [PROCESS, REJECT]
     }
 
 
-async def create_text(track, track_info) -> str:
+async def create_text(track: Track, track_info: TrackInfo) -> str:
     text = f"Трек: {track.track_title}\n\n"
-    template_status = {
-        "approve": "принят",
-        "reject": "отклонен",
-        "process": "в процессе"
-    }
-    status_track = template_status[track.status]
-    text += f"Статус трека: {status_track}\n"
-    if track_info.status and track.status != "process":
-        status_info = template_status[track_info.status]
-        text += f"Статус информации по треку: {status_info}"
+    status_track = STATUS_TEMPLATES[track.status]
+    text += f"Статус трека: <b>{status_track}</b>\n"
+    if track_info.status and track.status != PROCESS:
+        status_info = STATUS_TEMPLATES[track_info.status]
+        text += f"Статус информации по треку: <b>{status_info}</b>"
     return text
 
 
-async def delete_track(_, __, manager: DialogManager):
-    middleware_data = manager.middleware_data
-    track_id = manager.dialog_data['track_id']
-    await TrackHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
-        delete_track_by_id(int(track_id))
-    await manager.switch_to(ViewStatus.menu)
+async def delete_track(_, __, dialog_manager: DialogManager):
+    session_maker = dialog_manager.middleware_data['session_maker']
+    database_logger = dialog_manager.middleware_data['database_logger']
+    track_id = dialog_manager.dialog_data['track_id']
+    await TrackHandler(session_maker, database_logger).delete_track_by_id(int(track_id))
+    await dialog_manager.switch_to(ViewStatus.menu)
 
 
 async def start_form(_, __, manager: DialogManager):
@@ -98,23 +112,27 @@ async def start_form(_, __, manager: DialogManager):
     await manager.start(state=TrackApprove.title, data=data)
 
 
-# UTILS
-
 async def on_process(_, result: Any, manager: DialogManager):
-    middleware_data = manager.middleware_data
-    dialog_data = manager.dialog_data
-    user_id = middleware_data['event_from_user'].id
-    track_handler = TrackHandler(middleware_data['session_maker'], middleware_data['database_logger'])
-    if result is not None and result[0] is True:
-        await track_handler.delete_track_by_id(int(manager.dialog_data['track_id']))
-    elif len(await track_handler.get_tracks_by_status(user_id, dialog_data['status'])) == 0:
+    session_maker = manager.middleware_data['session_maker']
+    database_logger = manager.middleware_data['database_logger']
+    track_handler = TrackHandler(session_maker, database_logger)
+
+    track_id = int(manager.dialog_data['track_id'])
+    user_id = manager.event.from_user.id
+    status = manager.dialog_data['status']
+
+    if result is not None and result[0]:
+        await track_handler.delete_track_by_id(track_id)
+    elif not await track_handler.get_tracks_by_status(user_id, status):
         return await manager.done()
+
     return await manager.switch_to(ViewStatus.menu)
 
 
 dialog = Dialog(
     Window(
-        Format("Список треков: {status}"),
+        Const("Список треков:"),
+        Format("<b>{status}</b>"),
         ScrollingGroup(
             Select(
                 Format("{item[1]}"),
@@ -128,9 +146,9 @@ dialog = Dialog(
             hide_on_single_page=True,
             id='scroll_my_studio_status',
         ),
-        Cancel(Const("< Назад")),
+        BTN_CANCEL_BACK,
         state=ViewStatus.menu,
-        getter=get_data_list,
+        getter=get_buttons,
     ),
     Window(
         Format("{text}"),
@@ -153,14 +171,14 @@ dialog = Dialog(
             state=ViewStatus.accept,
             when="delete"
         ),
-        Back(Const("< Назад")),
+        BTN_BACK,
         getter=get_data_track,
         state=ViewStatus.track
     ),
     Window(
         Const("Подтвердите действие"),
+        SwitchTo(TXT_REJECT, id="my_studio_cancel", state=ViewStatus.menu),
         Button(TXT_CONFIRM, id="my_studio_accept", on_click=delete_track),
-        SwitchTo(Const("Отменить"), id="my_studio_cancel", state=ViewStatus.menu),
         state=ViewStatus.accept
     ),
     on_process_result=on_process,
