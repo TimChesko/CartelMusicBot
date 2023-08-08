@@ -1,20 +1,12 @@
-import dataclasses
 from typing import Any
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
 
+from src.dialogs.admin.tasks.personal_data.factory.model import Task
 from src.dialogs.admin.tasks.personal_data.factory.window import start_dialog_check_docs
 from src.models.personal_data import PersonalDataHandler
 from src.utils.fsm import AdminCheckPassport
-
-
-@dataclasses.dataclass
-class Task:
-    column_id: int
-    column_name: str
-    title: str
-    value: str
 
 
 class CheckDocs:

@@ -6,35 +6,40 @@ from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.kbd import Row, Button, ScrollingGroup, Multiselect, SwitchTo, Next
 from aiogram_dialog.widgets.text import Const, Format
-from sqlalchemy.orm.state import InstanceState
 
-from src.dialogs.utils.buttons import BTN_CANCEL_BACK, TXT_CONFIRM, TXT_REJECT, BTN_BACK
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK, TXT_CONFIRM, TXT_REJECT, BTN_BACK, TXT_NEXT
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.track_info import TrackInfoHandler
-from src.models.tracks import TrackHandler
 from src.utils.fsm import AdminCheckTrack
 
 
-async def on_close(_, dialog_manager: DialogManager):
-    middleware = dialog_manager.middleware_data
-    user_id = middleware['event_from_user'].id
-    bot: Bot = middleware.get("bot", None)
-    list_msg = dialog_manager.dialog_data['send_msg']
-    for msg in list_msg:
+async def delete_messages(dialog_manager: DialogManager):
+    bot = dialog_manager.middleware_data.get("bot", None)
+    user_id = dialog_manager.middleware_data['event_from_user'].id
+    message_ids = dialog_manager.dialog_data.get('send_msg', [])
+
+    for message_id in message_ids:
         try:
-            await bot.delete_message(chat_id=user_id, message_id=msg)
+            await bot.delete_message(chat_id=user_id, message_id=message_id)
         except Exception:
             pass
 
 
+async def on_close(_, dialog_manager: DialogManager):
+    await delete_messages(dialog_manager)
+
+
+def is_file_key(key: str):
+    return key in ("track_id", "text_file_id", "beat_alienation", "words_alienation")
+
+
+def is_text_key(key: str):
+    return key in template.keys()
+
+
 async def get_struct_data(docs: dict):
-    files, text = {}, {}
-    for key, value in vars(docs).items():
-        if not isinstance(value, InstanceState) and value is not None:
-            if key in ("track_id", "text_file_id", "beat_alienation", "words_alienation"):
-                files[key] = value
-            elif key in template.keys():
-                text[key] = value
+    files = {key: value for key, value in vars(docs).items() if is_file_key(key) and value is not None}
+    text = {key: value for key, value in vars(docs).items() if is_text_key(key) and value is not None}
     return files, text
 
 
@@ -53,35 +58,32 @@ template = {
 
 
 async def create_text(text: dict):
-    result = ""
-    for key, value in text.items():
-        result += f"{template[key]}: {value}\n"
-    return result
+    return "\n".join([f"{template[key]}: {value}" for key, value in text.items()])
 
 
 async def send_files(dialog_manager: DialogManager, user_id: int, files: dict):
     middleware = dialog_manager.middleware_data
-    dialog_data = dialog_manager.dialog_data
-    bot: Bot = middleware.get("bot", None)
-    if bot:
-        dialog_data['send_msg'] = []
-        if files.get("track_id"):
-            track = await (TrackHandler(middleware['session_maker'], middleware['database_logger']).
-                           get_track_by_id(files.get("track_id")))
-            msg = await bot.send_audio(chat_id=user_id, audio=track.file_id_audio)
-            dialog_data['send_msg'].append(msg.message_id)
-        if files.get("text_file_id"):
-            msg = await bot.send_document(chat_id=user_id, document=files.get("text_file_id"))
-            dialog_data['send_msg'].append(msg.message_id)
-        if files.get("beat_alienation"):
-            msg = await bot.send_document(chat_id=user_id, document=files.get("beat_alienation"))
-            dialog_data['send_msg'].append(msg.message_id)
-        if files.get("words_alienation"):
-            msg = await bot.send_document(chat_id=user_id, document=files.get("words_alienation"))
-            dialog_data['send_msg'].append(msg.message_id)
-        return True
-    else:
+    bot = middleware.get("bot", None)
+
+    if not bot:
         return False
+
+    file_types = {
+        "track_id": bot.send_audio,
+        "text_file_id": bot.send_document,
+        "beat_alienation": bot.send_document,
+        "words_alienation": bot.send_document
+    }
+
+    dialog_manager.dialog_data['send_msg'] = []
+
+    for file_key, send_method in file_types.items():
+        file_data = files.get(file_key)
+        if file_data:
+            msg = await send_method(chat_id=user_id, **{file_key: file_data})
+            dialog_manager.dialog_data['send_msg'].append(msg.message_id)
+
+    return True
 
 
 async def get_data(dialog_manager: DialogManager, **_kwargs):
@@ -93,25 +95,19 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
 async def on_start(_, dialog_manager: DialogManager):
     await on_start_copy_start_data(None, dialog_manager)
     middleware = dialog_manager.middleware_data
-    dialog_data = dialog_manager.dialog_data
-    user_id = middleware['event_from_user'].id
+    user_id = dialog_manager.event.from_user.id
     docs = await (TrackInfoHandler(middleware['session_maker'], middleware['database_logger']).
-                  get_docs_by_id(dialog_data['track_id']))
+                  get_docs_by_id(dialog_manager.dialog_data['track_id']))
     files, text = await get_struct_data(docs)
-    dialog_data['files'] = files
-    dialog_data['text'] = text
-    dialog_data['converted_text'] = await create_text(text)
+    dialog_manager.dialog_data.update({'files': files, 'text': text, 'converted_text': await create_text(text)})
     await send_files(dialog_manager, user_id, files)
     dialog_manager.show_mode = ShowMode.SEND
 
 
 async def get_buttons(dialog_manager: DialogManager, **_kwargs):
     dict_text = dialog_manager.dialog_data['text']
-    buttons = []
-    for key in dict_text.keys():
-        buttons.append([template[key], key])
     return {
-        "data": buttons,
+        "data": [[template[key], key] for key in dict_text.keys()],
         "result": True if dialog_manager.find("ms_track").get_checked() else False
     }
 
@@ -138,7 +134,7 @@ async def get_finish_text(dialog_manager: DialogManager, **_kwargs):
 async def on_reject(_, __, manager: DialogManager):
     middleware = manager.middleware_data
     dialog_data = manager.dialog_data
-    user_id = middleware['event_from_user'].id
+    user_id = manager.event.from_user.id
     comment = dialog_data.get("comment", None)
     await (TrackInfoHandler(middleware['session_maker'], middleware['database_logger']).
            set_status_reject(dialog_data['track_id'], dialog_data['result'], comment))
@@ -152,7 +148,7 @@ async def on_reject(_, __, manager: DialogManager):
 async def on_approve(_, __, manager: DialogManager):
     middleware = manager.middleware_data
     dialog_data = manager.dialog_data
-    user_id = middleware['event_from_user'].id
+    user_id = manager.event.from_user.id
     await (TrackInfoHandler(middleware['session_maker'], middleware['database_logger']).
            set_status_approve(dialog_data['track_id']))
     bot: Bot = middleware.get("bot", None)
@@ -192,17 +188,17 @@ dialog = Dialog(
             id="scroll_with_pager_personal_data",
             hide_on_single_page=True
         ),
-        Next(Const("Написать комментарий"), when='result'),
+        Next(Const("✍ Написать комментарий"), when='result'),
         Row(
             BTN_BACK,
-            SwitchTo(Const("Продолжить"), id="finish_check", state=AdminCheckTrack.finish),
+            SwitchTo(TXT_NEXT, id="finish_check", state=AdminCheckTrack.finish),
         ),
         state=AdminCheckTrack.reject_data,
         getter=get_buttons
     ),
     Window(
-        Format("{finish_text}"),
-        Const("\nПришлите комментарий, который вы хотите оставить:"),
+        Format("{finish_text}\n"),
+        Const("Пришлите комментарий, который вы хотите оставить:"),
         TextInput(id="input_text_comment", on_success=set_comment),
         BTN_BACK,
         getter=get_finish_text,
@@ -210,7 +206,7 @@ dialog = Dialog(
     ),
     Window(
         Format("{finish_text}"),
-        Button(Const("Закончить проверку"), id="finish", on_click=on_reject),
+        Button(Const("✓ Закончить проверку"), id="finish", on_click=on_reject),
         BTN_BACK,
         state=AdminCheckTrack.finish,
         getter=get_finish_text

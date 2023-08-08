@@ -40,13 +40,12 @@ async def incorrect_type(message: Message, _, __, ___):
 
 
 async def set_privilege(_, button: Button, manager: DialogManager):
-    # manager.dialog_data['privilege_name'] = button.text
     manager.dialog_data['privilege'] = button.widget_id
     await manager.next()
 
 
 async def developer_getter(dialog_manager: DialogManager, **_kwargs):
-    user_id = dialog_manager.middleware_data['event_from_user'].id
+    user_id = dialog_manager.event.from_user.id
     logging.info(user_id)
     return {
         'developer': user_id in config.DEVELOPERS

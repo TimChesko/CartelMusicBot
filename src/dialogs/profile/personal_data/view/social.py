@@ -5,7 +5,7 @@ from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Button, Row, Url, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.dialogs.utils.buttons import TXT_CONFIRM, BTN_BACK
+from src.dialogs.utils.buttons import TXT_CONFIRM, BTN_BACK, TXT_BACK, TXT_APPROVE, BTN_CANCEL_BACK
 from src.dialogs.utils.widgets.input_forms.process_input import process_input_result, InputForm
 from src.dialogs.utils.widgets.input_forms.utils import get_data_from_db
 from src.models.personal_data import PersonalDataHandler
@@ -81,7 +81,7 @@ dialog = Dialog(
             id='scroll_profile_social',
         ),
         Row(
-            Cancel(Const("< Вернуться")),
+            BTN_CANCEL_BACK,
             Button(Const("Добавить +"), id="social_add", on_click=add_new),
         ),
         getter=get_data,
@@ -89,7 +89,7 @@ dialog = Dialog(
     ),
     Window(
         Const("Подтвердите добавление ссылки"),
-        Button(TXT_CONFIRM, id="social_confirm", on_click=on_finally),
+        Button(TXT_APPROVE, id="social_confirm", on_click=on_finally),
         BTN_BACK,
         state=Social.confirm
     ),
@@ -100,8 +100,8 @@ dialog = Dialog(
             Format("{link}")
         ),
         Row(
+            SwitchTo(TXT_BACK, id="social_view_back", state=Social.view_data),
             Button(Const("Удалить"), id="social_delete", on_click=on_delete),
-            SwitchTo(Const("Назад"), id="social_view_back", state=Social.view_data),
         ),
         getter=get_info,
         state=Social.view_link

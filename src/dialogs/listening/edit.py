@@ -11,7 +11,7 @@ from aiogram_dialog.widgets.text import Format, Const
 
 from src.dialogs.listening.menu import tracks_getter
 from src.dialogs.listening.new import other_type_handler_audio
-from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK, TXT_BACK
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK, TXT_EDIT, TXT_CANCEL, TXT_APPROVE
 from src.models.tracks import TrackHandler
 from src.utils.fsm import ListeningEditTrack
 
@@ -85,11 +85,11 @@ edit_track = Dialog(
         Format('Подтверждение отправки трека "{title}"'),
         DynamicMedia('audio'),
         Row(
-            Button(Const("Подтверждаю"), on_click=on_finish_old_track, id="approve_old_track"),
-            Back(Const("Изменить"), id="edit_old_track"),
+            Button(TXT_APPROVE, on_click=on_finish_old_track, id="approve_old_track"),
+            Back(TXT_EDIT, id="edit_old_track"),
         ),
-        SwitchTo(TXT_BACK, state=ListeningEditTrack.start, id='bck_to_list_start'),
+        SwitchTo(TXT_CANCEL, state=ListeningEditTrack.start, id='bck_to_list_start'),
         state=ListeningEditTrack.finish,
         getter=on_finish_getter
-    ),
+    )
 )

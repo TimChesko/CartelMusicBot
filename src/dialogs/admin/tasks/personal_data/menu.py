@@ -80,7 +80,8 @@ dialog = Dialog(
         state=AdminCheckPassport.menu
     ),
     Window(
-        Format("Никнейм: {nickname}\nUser_id: {user_id}\n"),
+        Format("Никнейм: <b>{nickname}</b>"),
+        Format("Телеграм id: <code>{user_id}</code>\n"),
         Const("Выберете данные для проверки:"),
         Button(Const("Паспортные данные"), id="passport_data_check", on_click=start_passport, when="passport"),
         Button(Const("Банковские данные"), id="bank_data_check", on_click=start_bank, when="bank"),
