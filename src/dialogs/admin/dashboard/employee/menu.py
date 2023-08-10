@@ -1,5 +1,6 @@
 from _operator import itemgetter
 
+from aiogram import Bot
 from aiogram_dialog import Window, Dialog, DialogManager
 from aiogram_dialog.widgets.kbd import Start, ScrollingGroup, Select, Group, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format

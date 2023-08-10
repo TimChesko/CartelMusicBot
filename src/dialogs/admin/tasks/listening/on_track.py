@@ -17,6 +17,14 @@ from src.models.tracks import TrackHandler
 from src.utils.fsm import AdminListening
 
 
+async def info_getter(dialog_manager: DialogManager, **_kwargs):
+    audio = MediaAttachment(ContentType.AUDIO, file_id=MediaId(dialog_manager.dialog_data['file']))
+    return {
+        **dialog_manager.dialog_data['getter_info'],
+        'audio': audio
+    }
+
+
 async def on_item_selected(callback: CallbackQuery, __, manager: DialogManager, selected_item):
     template_id = int(selected_item)
     data = manager.middleware_data
@@ -46,6 +54,7 @@ async def reject_list_getter(dialog_manager: DialogManager, **_kwargs):
 
 reject_templates = Window(
     Const('Выберите шаблон'),
+    DynamicMedia('audio'),
     ScrollingGroup(
         Select(
             Format('"{item[1]}"'),
@@ -61,7 +70,7 @@ reject_templates = Window(
     ),
     BTN_BACK,
     state=AdminListening.templates,
-    getter=reject_list_getter
+    getter=(reject_list_getter, info_getter)
 )
 
 
@@ -83,14 +92,6 @@ async def approve(callback: CallbackQuery, btn: Button, manager: DialogManager):
                   get_approve_reason(btn.widget_id))
     logging.debug(text)
     await bot.send_message(chat_id=user_id, text=text)
-
-
-async def info_getter(dialog_manager: DialogManager, **_kwargs):
-    audio = MediaAttachment(ContentType.AUDIO, file_id=MediaId(dialog_manager.dialog_data['file']))
-    return {
-        **dialog_manager.dialog_data['getter_info'],
-        'audio': audio
-    }
 
 
 info_window = Window(

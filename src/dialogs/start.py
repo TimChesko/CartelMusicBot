@@ -19,6 +19,7 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
     return {
         "library_check": library,
         'verif_check': all((personal_data.all_passport_data == 'approve', personal_data.all_bank_data == 'approve')),
+        'track_check': tracks,
         'data': data,
         "text": "Профиль" if personal_data.all_passport_data and personal_data.all_bank_data else "Пройти верификацию"
     }
@@ -63,7 +64,8 @@ start_menu = Dialog(
         Button(
             Format("{text}"),
             id='profile',
-            on_click=start_profile
+            on_click=start_profile,
+            when='track_check'
         ),
         state=StartMenu.start,
         getter=get_data

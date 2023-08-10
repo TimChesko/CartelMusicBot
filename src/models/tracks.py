@@ -92,7 +92,7 @@ class TrackHandler:
         async with self.session_maker() as session:
             try:
                 result = await session.execute(
-                    select(Track).where(Track.user_id == tg_id, Track.status == "approve").limit(1))
+                    select(Track).where(Track.user_id == tg_id).limit(1))
                 track = result.scalar_one_or_none()
                 return track is not None
             except SQLAlchemyError as e:

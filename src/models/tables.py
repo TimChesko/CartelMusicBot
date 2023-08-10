@@ -255,3 +255,14 @@ class CommentsTemplate(Base):
     comment = Column(String)
     is_text = Column(Boolean)
     is_img = Column(Boolean)
+
+
+class SupportDialogs(Base):
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    topic_id = Column(Integer, nullable=False, autoincrement=True)
+    user_id = Column(String, nullable=False)
+    employee_id = Column(String, nullable=False)
+    message_id = Column(Integer, nullable=False)
+    type_msg = Column(String)
+    old_employees = Column(String)
+    status = Column(Boolean, default=True)
