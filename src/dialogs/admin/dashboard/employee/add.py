@@ -1,6 +1,5 @@
 import logging
 
-from aiogram import F
 from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Window, Dialog, DialogManager, ShowMode
@@ -8,7 +7,7 @@ from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, Row, Back
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.data import config
+from src.data.config import Config
 from src.dialogs.admin.common import translate_privilege
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK, TXT_CONFIRM
 from src.models.employee import EmployeeHandler
@@ -52,7 +51,7 @@ async def developer_getter(dialog_manager: DialogManager, **_kwargs):
     user_id = dialog_manager.event.from_user.id
     logging.info(user_id)
     return {
-        'developer': user_id in config.DEVELOPERS
+        'developer': user_id in Config.constant.developers
     }
 
 

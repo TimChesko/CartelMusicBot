@@ -1,15 +1,14 @@
 from _operator import itemgetter
 
-from aiogram import Bot
 from aiogram_dialog import Window, Dialog, DialogManager
 from aiogram_dialog.widgets.kbd import Start, ScrollingGroup, Select, Group, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.data import config
+from src.data.config import Config
 from src.dialogs.admin.dashboard.employee.delete import delete_window
 from src.dialogs.admin.dashboard.employee.info import info_window
 from src.dialogs.admin.dashboard.employee.privilege import privilege_window
-from src.dialogs.utils.buttons import BTN_BACK, BTN_CANCEL_BACK
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK
 from src.models.employee import EmployeeHandler
 from src.utils.fsm import AdminEmployee, AdminAddEmployee
 
@@ -42,7 +41,7 @@ async def employee_list_getter(dialog_manager: DialogManager, **_kwargs):
     return {
         'privilege': [(tg_id, firstname if firstname else tg_username, surname if surname else '', tg_username) for
                       tg_id, tg_username, firstname, surname in employees],
-        'developer': data['event_from_user'].id in config.DEVELOPERS,
+        'developer': data['event_from_user'].id in Config.constant.developers,
         **buttons
     }
 

@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import select, and_, update
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.data import config
+from src.data.config import Config
 from src.models.tables import Employee, User
 
 
@@ -39,7 +39,7 @@ class EmployeeHandler:
     async def get_privilege_by_tg_id(self, tg_id: int):
         async with self.session_maker() as session:
             try:
-                if tg_id in config.DEVELOPERS:
+                if tg_id in Config.constant.developers:
                     return None
                 query = select(Employee).where(and_(Employee.tg_id == tg_id))
                 result = await session.execute(query)
@@ -52,7 +52,7 @@ class EmployeeHandler:
     async def get_privilege_by_filter(self, privilege: str | None = None):
         async with self.session_maker() as session:
             try:
-                if privilege in config.PRIVILEGES:
+                if privilege in Config.constant.privileges:
                     query = select(Employee.tg_id, User.tg_username, Employee.first_name, Employee.surname).join(
                         User).where(and_(Employee.privilege == privilege, Employee.state != 'fired'))
                 elif privilege == 'regs' or privilege == 'fired':

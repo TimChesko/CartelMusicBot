@@ -1,4 +1,4 @@
-from src.data import config
+from src.data.config import Config
 
 
 def translate_privilege(privilege: str) -> str:
@@ -21,9 +21,10 @@ def privilege_level(privilege: str | None) -> dict:
     """
     if privilege is None:
         return {
-            privilege: True for privilege in config.PRIVILEGES
+            privilege: True for privilege in Config.constant.privileges
         }
-    user_privilege_index = config.PRIVILEGES.index(privilege)
+    user_privilege_index = Config.constant.privileges.index(privilege)
     return {
-        privilege: user_privilege_index >= config.PRIVILEGES.index(privilege) for privilege in config.PRIVILEGES
+        privilege: user_privilege_index >= Config.constant.privileges.index(privilege) for privilege in
+        Config.constant.privileges
     }
