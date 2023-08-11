@@ -209,11 +209,7 @@ async def on_start(_, dialog_manager: DialogManager):
 
 
 async def change_state(_, __, manager: DialogManager):
-    state = manager.dialog_data['doc_state']
-    if state is True:
-        manager.dialog_data['doc_state'] = False
-    else:
-        manager.dialog_data['doc_state'] = True
+    manager.dialog_data['doc_state'] = not manager.dialog_data['doc_state']
 
 
 async def on_approvement2lvl(_, __, manager: DialogManager):

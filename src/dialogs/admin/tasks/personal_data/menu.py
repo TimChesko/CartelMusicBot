@@ -49,14 +49,14 @@ async def get_data_user(dialog_manager: DialogManager, **_kwargs):
     }
 
 
-async def start_passport(callback: CallbackQuery, _, manager: DialogManager):
+async def start_passport(_, __, manager: DialogManager):
     user_id = manager.dialog_data['user_id']
-    await CheckDocs(manager, "passport").start_form(user_id, callback)
+    await CheckDocs(manager, "passport").start_form(user_id)
 
 
-async def start_bank(callback: CallbackQuery, _, manager: DialogManager):
+async def start_bank(_, __, manager: DialogManager):
     user_id = manager.dialog_data['user_id']
-    await CheckDocs(manager, "bank").start_form(user_id, callback)
+    await CheckDocs(manager, "bank").start_form(user_id)
 
 
 dialog = Dialog(

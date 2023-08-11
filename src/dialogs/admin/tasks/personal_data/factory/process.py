@@ -48,9 +48,9 @@ class CheckDocs:
         photo, text = await self.__find_photo(big_data)
         return photo, text
 
-    async def start_form(self, user_id: int, callback: CallbackQuery = None):
+    async def start_form(self, user_id: int):
         photo, text = await self.__load_form(user_id)
-        await start_dialog_check_docs(self.manager, text, photo, callback)
+        await start_dialog_check_docs(self.manager, text, photo)
 
 
 async def calc_exit(manager: DialogManager):
