@@ -21,7 +21,8 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
         'verif_check': all((personal_data.all_passport_data == 'approve', personal_data.all_bank_data == 'approve')),
         'track_check': tracks,
         'data': data,
-        "text": "Профиль" if personal_data.all_passport_data and personal_data.all_bank_data else "Пройти верификацию"
+        "text": "🙎‍♂️ Профиль" if personal_data.all_passport_data and personal_data.all_bank_data
+        else "✅ Пройти верификацию"
     }
 
 
@@ -31,7 +32,7 @@ async def start_listening(_, __, manager: DialogManager):
 
 async def start_profile(_, __, manager: DialogManager):
     data = manager.middleware_data
-    user_id = data['event_from_user'].id
+    user_id = manager.event.from_user.id
     personal_data = await PersonalDataHandler(data['session_maker'], data['database_logger']). \
         get_all_by_tg(user_id)
     if personal_data.confirm_use_personal_data:
@@ -44,19 +45,19 @@ start_menu = Dialog(
     Window(
         Const("Выберите нужную категорию"),
         Start(
-            Const("Трек на прослушивание"),
+            Const("🎙 Трек на прослушивание"),
             id='listening',
             state=Listening.start,
             on_click=start_listening
         ),
         Start(
-            Const("Моя студия"),
+            Const("💠 Моя студия"),
             id='my_studio',
             state=MyStudio.menu,
             when='verif_check'
         ),
         Start(
-            Const("Выпустить трек в продакшн"),
+            Const("📨 Выпустить трек в продакшн"),
             id='public_track',
             state=ReleaseTrack.list,
             when='verif_check'

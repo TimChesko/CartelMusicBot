@@ -329,28 +329,3 @@ class PersonalDataHandler:
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return None
-
-    async def set_edit_data(self, tg_id: int, data: dict):
-        async with self.session_maker() as session:
-            try:
-                # Get the personal data for the given tg_id
-                personal_data_query = select(PersonalData).where(PersonalData.tg_id == tg_id)
-                personal_data_result = await session.execute(personal_data_query)
-                personal_data = personal_data_result.scalar_one_or_none()
-
-                if personal_data is None:
-                    self.logger.error(f"No personal data found for tg_id: {tg_id}")
-                    return None
-
-                # Update the personal data with the new values
-                for key, value in data.items():
-                    if hasattr(personal_data, key):
-                        setattr(personal_data, key, value)
-
-                # Commit the changes
-                await session.commit()
-
-                return True
-            except SQLAlchemyError as e:
-                self.logger.error(f"Error occurred during query execution: {e}")
-                return None

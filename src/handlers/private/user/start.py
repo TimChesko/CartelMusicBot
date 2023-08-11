@@ -1,13 +1,10 @@
-import logging
-
-from aiogram import Router, Bot
+from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 from aiogram.utils.deep_linking import decode_payload
 from aiogram_dialog import DialogManager, StartMode
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from structlog._log_levels import BoundLoggerFilteringAtDebug
-from sulguk import transform_html, SULGUK_PARSE_MODE
 
 from src.models.track_info import TrackInfoHandler
 from src.models.user import UserHandler
@@ -20,7 +17,7 @@ router = Router()
 async def cmd_start(msg: Message,
                     session_maker: async_sessionmaker,
                     database_logger: BoundLoggerFilteringAtDebug,
-                    dialog_manager: DialogManager, bot: Bot):
+                    dialog_manager: DialogManager):
     user = await UserHandler(session_maker, database_logger).get_user_by_tg_id(msg.from_user.id)
     args = msg.text.split(" ")
     if len(args) > 1:

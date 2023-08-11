@@ -12,20 +12,6 @@ class ApprovementHandler:
         self.session_maker = session_maker
         self.logger = logger
 
-    async def add_approve(self, employee_id: int, track_id: int, status: str = 'approve') -> bool:
-        async with self.session_maker() as session:
-            try:
-                await session.execute(
-                    update(Track).where(Track.id == track_id).values(status=status,
-                                                                     id_who_approve=employee_id)
-                )
-                await session.commit()
-                return True
-            except SQLAlchemyError as e:
-                self.logger.error("Ошибка при добавлении нового пользователя: %s", e)
-                await session.rollback()
-                return False
-
     async def add_reject(self, employee_id: int, track_id: int, template_id: int) -> bool:
         async with self.session_maker() as session:
             try:
