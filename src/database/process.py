@@ -5,7 +5,8 @@ class DatabaseManager:
 
     @staticmethod
     async def create_engine(config):
-        uri = f"postgresql+asyncpg://{config.PG_USER}:{config.PG_PASSWORD}@{config.PG_HOST}/{config.PG_DATABASE}"
+        postgres = config.postgres
+        uri = f"postgresql+asyncpg://{postgres.user}:{postgres.password}@{postgres.host}/{postgres.database}"
         return create_async_engine(uri, echo=False)
 
     @staticmethod

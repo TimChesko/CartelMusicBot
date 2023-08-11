@@ -1,5 +1,6 @@
 import asyncio
 
+from adaptix import Retort
 from aiogram import Dispatcher, Bot
 from aiogram.filters import ExceptionTypeFilter
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
@@ -10,7 +11,7 @@ from sulguk import AiogramSulgukMiddleware
 
 from src import handlers, dialogs
 from src import utils
-from src.data import config
+from src.data.config import load_config, Config
 from src.database.process import DatabaseManager
 from src.dialogs.utils.common import on_unknown_intent, on_unknown_state
 from src.middlewares.ban import CheckBan
@@ -52,7 +53,8 @@ async def setup_aiogram(dp: Dispatcher) -> None:
 
 
 async def set_database(dp: Dispatcher) -> None:
-    dp['engine'] = await DatabaseManager.create_engine(dp['config'])
+    config_app: Config = dp['retort'].load(dp['config'], Config)
+    dp['engine'] = await DatabaseManager.create_engine(config_app)
     dp['session_maker'] = await DatabaseManager.create_session_maker(dp['engine'])
 
 
@@ -71,13 +73,14 @@ async def on_shutdown_polling(dispatcher: Dispatcher, bot: Bot) -> None:
 
 
 async def main() -> None:
-    bot = Bot(config.BOT_TOKEN, parse_mode="HTML")
+    config_bot = load_config()
+    bot = Bot(config_bot.tg.token, parse_mode="HTML")
     bot.session.middleware(AiogramSulgukMiddleware())
     storage = RedisStorage(
         redis=Redis(
-            host=config.FSM_HOST,
-            password=config.FSM_PASSWORD,
-            port=config.FSM_PORT,
+            host=config_bot.redis.host,
+            password=config_bot.redis.password,
+            port=config_bot.redis.port,
             db=0,
         ),
         key_builder=DefaultKeyBuilder(with_destiny=True)
@@ -86,7 +89,8 @@ async def main() -> None:
         storage=storage,
         events_isolation=storage.create_isolation()
     )
-    dp['config'] = config
+    dp['retort'] = retort = Retort()
+    dp['config'] = retort.dump(config_bot)
     dp.errors.register(
         on_unknown_intent,
         ExceptionTypeFilter(UnknownIntent),

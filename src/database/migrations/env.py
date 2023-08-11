@@ -12,9 +12,8 @@ from src.data import config as config_env
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-
-connection_string = (f"postgresql+asyncpg://{config_env.PG_USER}:{config_env.PG_PASSWORD}@{config_env.PG_HOST}/"
-                     f"{config_env.PG_DATABASE}")
+postgres = config_env.load_config().postgres
+connection_string = f"postgresql+asyncpg://{postgres.user}:{postgres.password}@{postgres.host}/{postgres.database}"
 config.set_main_option('sqlalchemy.url', connection_string)
 
 # Interpret the config file for Python logging.
