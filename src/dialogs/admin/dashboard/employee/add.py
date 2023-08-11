@@ -1,5 +1,6 @@
 import logging
 
+from aiogram import F
 from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Window, Dialog, DialogManager, ShowMode
@@ -11,6 +12,7 @@ from src.data import config
 from src.dialogs.admin.common import translate_privilege
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK, TXT_CONFIRM
 from src.models.employee import EmployeeHandler
+from src.models.tables import Employee
 from src.models.user import UserHandler
 from src.utils.fsm import AdminAddEmployee
 
@@ -18,18 +20,20 @@ from src.utils.fsm import AdminAddEmployee
 async def employee_id(
         message: Message,
         _, manager: DialogManager):
-    # user = await UserHandler(data['session_maker'], data['database_logger']).
-    # get_privilege_by_tg_id(message.from_user.id)
-    # TODO заменить на запрос из employee
-    # if user in config.PRIVILEGES[1:]:
-    #     await message.delete()
-    #     await message.answer('Вы уже добавили этого сотрудника!')
-    #  TODO убрать комментарий, поменять второй условие на elif
     if message.text.isdigit():
-        manager.dialog_data['employee_id'] = message.text
-        await message.delete()
-        manager.show_mode = ShowMode.EDIT
-        await manager.next()
+        tg_id = int(message.text)
+        data = manager.middleware_data
+        employee: Employee = await EmployeeHandler(data['session_maker'],
+                                                   data['database_logger']).get_privilege_by_tg_id(tg_id)
+        if employee:
+            # TODO когда объединим бота, добавить в вывод username и прочую tg инфу
+            await message.answer(f'Вы уже добавили сотрудника №{employee.tg_id}!')
+        else:
+            manager.dialog_data['employee_id'] = tg_id
+            await message.delete()
+            manager.show_mode = ShowMode.EDIT
+            await manager.next()
+
     else:
         await message.answer('Telegram id может состоять только из цифр!')
 
@@ -61,11 +65,11 @@ async def on_finish_getter(dialog_manager: DialogManager, **_kwargs):
 
 async def on_finish_privilege(callback: CallbackQuery, _, manager: DialogManager):
     data = manager.middleware_data
-    user_id = int(manager.dialog_data['employee_id'])
+    user_id = manager.dialog_data['employee_id']
     user = await UserHandler(data['session_maker'], data['database_logger']).get_user_by_tg_id(user_id)
     if not user:
-        await callback.answer('Ваш работник должен пройти первичную регистрацию по команде "/start",\n'
-                              ' на данный момент пользователь не найден!')
+        await callback.answer('Ваш работник должен пройти первичную регистрацию по команде "/start"\n'
+                              'На данный момент пользователь не найден!')
     else:
         privilege = manager.dialog_data['privilege']
         await EmployeeHandler(data['session_maker'], data['database_logger']).add_new_employee(user_id, privilege)

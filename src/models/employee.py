@@ -41,10 +41,10 @@ class EmployeeHandler:
             try:
                 if tg_id in config.DEVELOPERS:
                     return None
-                query = select(Employee.privilege).where(and_(Employee.tg_id == tg_id))
+                query = select(Employee).where(and_(Employee.tg_id == tg_id))
                 result = await session.execute(query)
-                user = result.scalar_one_or_none()
-                return user
+                employee = result.scalar_one_or_none()
+                return employee
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
