@@ -68,24 +68,6 @@ class EmployeeHandler:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
 
-    async def get_privileges_by_filter(self, privilege: str | None = None):
-        async with self.session_maker() as session:
-            try:
-                if privilege in config.PRIVILEGES:
-                    query = select(Employee).join(
-                        User).where(Employee.privilege == privilege)
-                elif privilege == 'regs':
-                    query = select(Employee).join(
-                        User).where(Employee.state == privilege)
-                else:
-                    query = select(Employee).join(User)
-                result = await session.execute(query)
-                employee = result.all()
-                return employee
-            except SQLAlchemyError as e:
-                self.logger.error("Ошибка при выполнении запроса: %s", e)
-                return False
-
     async def get_dialog_info_by_tg_id(self, tg_id: int):
         async with self.session_maker() as session:
             try:
