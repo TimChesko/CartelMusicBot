@@ -2,7 +2,7 @@ from operator import itemgetter
 
 from aiogram import Bot
 from aiogram.types import Message
-from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
+from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.kbd import Row, Button, ScrollingGroup, Multiselect, SwitchTo, Next, StubScroll, \
@@ -138,8 +138,7 @@ dialog = Dialog(
         DynamicMedia('attachment'),
         StubScroll(id="stub_scroll_track_info_check", pages="pages"),
         NumberedPager(
-            scroll="stub_scroll_track_info_check",
-            when="pages"
+            scroll="stub_scroll_track_info_check"
         ),
         Format("Выберете информацию, которую нужно отклонить:"),
         ScrollingGroup(

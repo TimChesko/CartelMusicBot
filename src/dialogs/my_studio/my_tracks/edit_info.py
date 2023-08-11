@@ -10,11 +10,13 @@ from src.utils.fsm import StudioEdit
 
 
 async def save_text(msg: Message, _, manager: DialogManager, __):
+    await msg.delete()
     manager.dialog_data['result'] = {"title": msg.text}
     await manager.switch_to(StudioEdit.confirm)
 
 
 async def save_document(msg: Message, _, manager: DialogManager):
+    await msg.delete()
     manager.dialog_data['result'] = {"text_file_id": msg.document.file_id}
     await manager.switch_to(StudioEdit.confirm)
 
@@ -25,27 +27,32 @@ async def finish(_, __, manager: DialogManager):
 
 # TEXT
 async def save_document_author_text(msg: Message, _, manager: DialogManager):
+    await msg.delete()
     manager.dialog_data['result'] = {"words_alienation": msg.document.file_id}
     await manager.next()
 
 
 async def save_percentage_text(msg: Message, _, manager: DialogManager, __):
+    await msg.delete()
     manager.dialog_data['result'].update({"words_author_percent": int(msg.text)})
     await manager.done(manager.dialog_data['result'])
 
 
 # BEAT
 async def save_document_author_beat(msg: Message, _, manager: DialogManager):
+    await msg.delete()
     manager.dialog_data['result'] = {"beat_alienation": msg.document.file_id}
     await manager.next()
 
 
 async def save_percentage_beat(msg: Message, _, manager: DialogManager, __):
+    await msg.delete()
     manager.dialog_data['result'].update({"beatmaker_percent": int(msg.text)})
     await manager.done(manager.dialog_data['result'])
 
 
 async def save_percentage_feat(msg: Message, _, manager: DialogManager, __):
+    await msg.delete()
     manager.dialog_data['result'] = {"feat_status": True, "feat_percent": int(msg.text)}
     await manager.done(manager.dialog_data['result'])
 

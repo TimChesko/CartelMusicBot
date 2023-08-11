@@ -14,8 +14,8 @@ from src.data.config import load_config, Config
 from src.database.process import DatabaseManager
 from src.dialogs.utils.common import on_unknown_intent, on_unknown_state
 from src.middlewares.ban import CheckBan
-from src.middlewares.throttling import ThrottlingMiddleware
 from src.middlewares.config_middleware import ConfigMiddleware
+from src.middlewares.throttling import ThrottlingMiddleware
 from src.utils.notify import notify_admins
 
 

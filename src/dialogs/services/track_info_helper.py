@@ -1,8 +1,6 @@
 import logging
 
-from aiogram import Bot
 from aiogram.enums import ContentType
-from aiogram_dialog import DialogManager
 
 template_track_info = {
     "title": "Название",

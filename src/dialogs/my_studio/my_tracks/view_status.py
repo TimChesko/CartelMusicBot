@@ -1,15 +1,12 @@
-import logging
 from operator import itemgetter
 from typing import Any
 
-from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.api.entities import MediaId, MediaAttachment
 from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Button, SwitchTo, StubScroll, NumberedPager
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
-from magic_filter import F
 
 from src.dialogs.services.track_info_helper import get_struct_data, get_struct_text, get_attachment_track
 from src.dialogs.utils.buttons import TXT_CONFIRM, BTN_BACK, BTN_CANCEL_BACK, TXT_REJECT

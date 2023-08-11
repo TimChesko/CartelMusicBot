@@ -59,6 +59,7 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
 
 async def save_data(message: Message, _, manager: DialogManager, __):
     start_data = manager.start_data
+    await message.delete()
     await manager.done(
         [message.text, start_data['data_name']]
     )
@@ -66,6 +67,7 @@ async def save_data(message: Message, _, manager: DialogManager, __):
 
 async def save_img(message: Message, _, manager: DialogManager):
     start_data = manager.start_data
+    await message.delete()
     await manager.done(
         [message.photo[0].file_id, start_data['data_name']]
     )
