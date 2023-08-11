@@ -1,5 +1,4 @@
 import datetime
-import logging
 import os
 
 from aiogram import Bot
@@ -8,9 +7,9 @@ from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Button, SwitchTo, Group, StubScroll, NumberedPager, Checkbox
+from aiogram_dialog.widgets.kbd import Button, SwitchTo, Group, Checkbox
 from aiogram_dialog.widgets.media import DynamicMedia
-from aiogram_dialog.widgets.text import Const, Format, Case, List
+from aiogram_dialog.widgets.text import Const, Format, List
 from docxtpl import DocxTemplate
 
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, TXT_BACK
@@ -217,13 +216,13 @@ async def change_state(_, __, manager: DialogManager):
         manager.dialog_data['doc_state'] = True
 
 
-async def on_approvement2lvl(callback: CallbackQuery, _, manager: DialogManager):
+async def on_approvement2lvl(_, __, manager: DialogManager):
     data = manager.middleware_data
     await AlbumHandler(data['session_maker'], data['database_logger']).update_signed_state(
         manager.start_data['album_id'])
 
 
-async def on_approvement3lvl(callback: CallbackQuery, _, manager: DialogManager):
+async def on_approvement3lvl(_, __, manager: DialogManager):
     data = manager.middleware_data
     await AlbumHandler(data['session_maker'], data['database_logger']).update_mail_state(
         manager.start_data['album_id'])

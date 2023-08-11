@@ -27,6 +27,7 @@ async def start_dialog_filling_profile(
                        1 - назад при вводе текста
                        2 - назад при выборе даты
     :param input_date: Тип формы - ввод текста или даты
+    :param input_img: bool
     :param data: Данные для формы
                  text - что будет написано в заголовке
                  correct_input - какие символы можно использовать

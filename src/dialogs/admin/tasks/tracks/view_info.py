@@ -19,6 +19,7 @@ async def delete_messages(dialog_manager: DialogManager):
     message_ids = dialog_manager.dialog_data.get('send_msg', [])
 
     for message_id in message_ids:
+        # noinspection PyBroadException
         try:
             await bot.delete_message(chat_id=user_id, message_id=message_id)
         except Exception:

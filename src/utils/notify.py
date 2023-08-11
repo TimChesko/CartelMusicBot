@@ -3,9 +3,9 @@ from aiogram import Dispatcher
 from src.data.config import Config
 
 
-async def notify_admins(dp: Dispatcher, config_bot: Config, msg_text: str):
-    if config_bot.constant.logging_level == 20:
-        for admin in config_bot.constant.developers:
+async def notify_admins(dp: Dispatcher, config: Config, msg_text: str):
+    if config.constant.logging_level == 20:
+        for admin in config.constant.developers:
             await dp['bot'].send_message(chat_id=admin, text=msg_text)
         dp['aiogram_logger'].info("Admins alert")
     else:

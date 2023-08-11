@@ -1,5 +1,3 @@
-import logging
-
 from sqlalchemy import select, update
 from sqlalchemy.exc import SQLAlchemyError
 

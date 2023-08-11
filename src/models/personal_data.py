@@ -1,5 +1,4 @@
 import datetime
-import logging
 
 from sqlalchemy import select, delete, or_, func, and_, update
 from sqlalchemy.exc import SQLAlchemyError

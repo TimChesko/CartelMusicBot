@@ -1,9 +1,9 @@
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, ShowMode, Window
-from aiogram_dialog.widgets.kbd import Button, Cancel, Row
+from aiogram_dialog.widgets.kbd import Button, Row
 from aiogram_dialog.widgets.text import Const
 
-from src.dialogs.utils.buttons import TXT_CONFIRM, BTN_BACK, TXT_NEXT, BTN_CANCEL_BACK, TXT_APPROVE
+from src.dialogs.utils.buttons import BTN_BACK, TXT_NEXT, BTN_CANCEL_BACK, TXT_APPROVE
 from src.dialogs.utils.widgets.input_forms.process_input import process_input_result, InputForm
 from src.dialogs.utils.widgets.input_forms.utils import convert_data_types, get_data_from_db
 from src.models.personal_data import PersonalDataHandler

@@ -1,9 +1,8 @@
 import datetime
 
-from sqlalchemy import update
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.tables import Track, TrackApprovement
+from src.models.tables import TrackApprovement
 
 
 class ApprovementHandler:

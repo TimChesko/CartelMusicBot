@@ -1,19 +1,17 @@
-import logging
-
 from aiogram import Bot
 from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Back, Cancel, Checkbox, SwitchTo, Row, Button
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Back, Cancel, SwitchTo, Row, Button
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format, List
 
 from src.dialogs.admin.tasks.release.level1 import reject_template
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, TXT_CONFIRM, TXT_BACK
 from src.models.album import AlbumHandler
-from src.utils.fsm import AdminReleaseLvl1, AdminReleaseLvl2, AdminReleaseLvl3
+from src.utils.fsm import AdminReleaseLvl2, AdminReleaseLvl3
 
 
 async def reject(callback: CallbackQuery, __, manager: DialogManager):

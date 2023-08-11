@@ -2,10 +2,10 @@ from operator import itemgetter
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Button, Row, Url, SwitchTo
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Button, Row, Url, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.dialogs.utils.buttons import TXT_CONFIRM, BTN_BACK, TXT_BACK, TXT_APPROVE, BTN_CANCEL_BACK
+from src.dialogs.utils.buttons import BTN_BACK, TXT_BACK, TXT_APPROVE, BTN_CANCEL_BACK
 from src.dialogs.utils.widgets.input_forms.process_input import process_input_result, InputForm
 from src.dialogs.utils.widgets.input_forms.utils import get_data_from_db
 from src.models.personal_data import PersonalDataHandler

@@ -7,6 +7,8 @@ from sqlalchemy.orm import relationship, declared_attr, as_declarative
 
 @as_declarative()
 class Base:
+    metadata = None
+
     @classmethod
     @declared_attr
     def __tablename__(cls) -> str:

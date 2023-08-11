@@ -76,7 +76,7 @@ async def confirm_album(callback: CallbackQuery, __, manager: DialogManager):
                            'Ваша обложка и название одобрены, перейдите в меню для дальнейших действий')
 
 
-async def reject_template(callback: CallbackQuery, __, manager: DialogManager):
+async def reject_template(callback: CallbackQuery, _, __):
     await callback.answer('В разработке. Coming soon')
 
 
