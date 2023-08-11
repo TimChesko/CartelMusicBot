@@ -22,7 +22,6 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при выполнении запроса get_tracks_by_status: {e}")
                 return False
 
-
     async def get_tracks_and_info_by_status(self, user_id: int, status: str):
         async with self.session_maker() as session:
             try:
@@ -240,7 +239,8 @@ class TrackHandler:
     async def get_listening_info(self, track_id: int):
         async with self.session_maker() as session:
             try:
-                query = select(Track.checker, Track.file_id_audio, Track.track_title, User).join(User).where(Track.id == track_id)
+                query = select(Track.checker, Track.file_id_audio, Track.track_title, User).join(User).where(
+                    Track.id == track_id)
                 result = await session.execute(query)
                 tracks = result.first()
                 return tracks

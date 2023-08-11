@@ -26,7 +26,7 @@ class RedisServer:
 
 
 @dataclass
-class AppConfig:
+class Constant:
     developers: List[int]
     privileges: List[str]
     chats_backup: List[int]
@@ -38,7 +38,7 @@ class Config:
     tg: TgBot
     postgres: Postgres
     redis: RedisServer
-    app: AppConfig
+    constant: Constant
 
 
 def load_config(path: str = None) -> Config:
@@ -61,7 +61,7 @@ def load_config(path: str = None) -> Config:
             port=env.int("FSM_PORT"),
             password=env.str("FSM_PASSWORD")
         ),
-        app=AppConfig(
+        constant=Constant(
             developers=list(map(int, env.list("DEVELOPERS"))),
             privileges=list(map(str, env.list("PRIVILEGES"))),
             chats_backup=list(map(int, env.list("CHATS_BACKUP"))),
