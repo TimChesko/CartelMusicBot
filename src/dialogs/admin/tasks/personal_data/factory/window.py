@@ -1,8 +1,11 @@
+import logging
 from operator import itemgetter
 
-from aiogram.types import CallbackQuery, InputMediaPhoto
+from aiogram.enums import ContentType
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
-from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo, Multiselect, ScrollingGroup
+from aiogram_dialog.api.entities import MediaAttachment, MediaId
+from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo, Multiselect, ScrollingGroup, Checkbox
+from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.dialogs.admin.tasks.personal_data.factory.model import Task
@@ -11,22 +14,30 @@ from src.dialogs.utils.common import on_start_copy_start_data
 from src.utils.fsm import PersonalDataCheck
 
 
-async def start_dialog_check_docs(manager: DialogManager, text: list, photo: list, callback: CallbackQuery):
+async def start_dialog_check_docs(manager: DialogManager, text: list, photo: list):
     data = {'text': text}
-    if photo and callback:
-        data['photo'] = photo
-        media = [InputMediaPhoto(media=Task(*item.values()).value) for item in photo]
-        await callback.message.answer_media_group(media=media)
+    if photo:
+        data["photo"] = []
+        for item in photo:
+            data['photo'].append(Task(*item.values()).value)
     await manager.start(state=PersonalDataCheck.text, data=data, show_mode=ShowMode.SEND)
 
 
 async def get_data_text(dialog_manager: DialogManager, **_kwargs):
     text = ""
+    photo = dialog_manager.dialog_data["photo"]
     for item in dialog_manager.dialog_data['text']:
         m_item = Task(*item.values())
         text += f"{m_item.title}: {m_item.value}\n"
+    if "img_state" in dialog_manager.dialog_data:
+        num_img = photo[0] if dialog_manager.dialog_data["img_state"] else photo[1]
+    else:
+        dialog_manager.dialog_data["img_state"] = True
+        num_img = photo[0]
+    img = MediaAttachment(ContentType.PHOTO, file_id=MediaId(num_img))
     return {
-        "text": text
+        "text": text,
+        "passport": img
     }
 
 
@@ -35,7 +46,9 @@ async def get_buttons(dialog_manager: DialogManager, **_kwargs):
     for item in dialog_manager.dialog_data['text']:
         m_item = Task(*item.values())
         buttons.append([m_item.title, m_item.column_name])
-    return {"data": buttons}
+    return {
+        "data": buttons,
+    }
 
 
 async def get_finish_text(dialog_manager: DialogManager, **_kwargs):
@@ -69,9 +82,23 @@ async def on_back(_, __, manager: DialogManager):
     await manager.done({"back": True})
 
 
+async def change_passport_img(_, __, manager: DialogManager):
+    manager.dialog_data['img_state'] = not manager.dialog_data['img_state']
+
+
+SWITCH_PHOTO = Checkbox(
+    Const("1️⃣ / 2 страница"),
+    Const("1 / 2️⃣ страница"),
+    id="swap_passport",
+    on_click=change_passport_img,
+    default=True
+)
+
 dialog = Dialog(
     Window(
+        DynamicMedia("passport"),
         Format("{text}"),
+        SWITCH_PHOTO,
         Row(
             SwitchTo(TXT_REJECT, id="personal_data_reject", state=PersonalDataCheck.reject_data),
             Button(TXT_CONFIRM, id="personal_data_confirm", on_click=on_confirm),
@@ -80,6 +107,7 @@ dialog = Dialog(
         state=PersonalDataCheck.text,
     ),
     Window(
+        DynamicMedia("passport"),
         Format("{text}\n\nВыберете информацию, которую нужно отклонить:"),
         ScrollingGroup(
             Multiselect(
@@ -94,13 +122,16 @@ dialog = Dialog(
             id="scroll_with_pager_personal_data",
             hide_on_single_page=True
         ),
+        SWITCH_PHOTO,
         Button(TXT_NEXT, id="finish_check", on_click=on_pre_reject),
         BTN_BACK,
         state=PersonalDataCheck.reject_data,
         getter=get_buttons
     ),
     Window(
+        DynamicMedia("passport"),
         Format("{finish_text}"),
+        SWITCH_PHOTO,
         Button(Const("✓ Закончить проверку"), id="finish", on_click=on_reject),
         BTN_BACK,
         state=PersonalDataCheck.finish,
