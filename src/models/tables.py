@@ -1,13 +1,13 @@
 import re
 from datetime import datetime
 
-from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger, Enum
+from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger, Enum, MetaData
 from sqlalchemy.orm import relationship, declared_attr, as_declarative
 
 
 @as_declarative()
 class Base:
-    metadata = None
+    metadata = MetaData()
 
     @classmethod
     @declared_attr
