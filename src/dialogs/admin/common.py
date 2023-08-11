@@ -13,18 +13,19 @@ def translate_privilege(privilege: str) -> str:
     return translations[privilege]
 
 
-def privilege_level(privilege: str | None) -> dict:
+def privilege_level(config: Config, privilege: str | None) -> dict:
     """
+    :param config: load_config() from func
     :param privilege: privilege from DB, for privilege levels list check .env PRIVILEGES
     None - developer access
     :return: dict for aiogram_dialog's Window getter, when=privilege level you need
     """
     if privilege is None:
         return {
-            privilege: True for privilege in Config.constant.privileges
+            privilege: True for privilege in config.constant.privileges
         }
-    user_privilege_index = Config.constant.privileges.index(privilege)
+    user_privilege_index = config.constant.privileges.index(privilege)
     return {
-        privilege: user_privilege_index >= Config.constant.privileges.index(privilege) for privilege in
-        Config.constant.privileges
+        privilege: user_privilege_index >= config.constant.privileges.index(privilege) for privilege in
+        config.constant.privileges
     }

@@ -10,7 +10,7 @@ def setup_logger() -> structlog.typing.FilteringBoundLogger:
     config = load_config()
 
     logging.basicConfig(
-        level=config.app.logging_level,
+        level=config.constant.logging_level,
         stream=sys.stdout
     )
 
@@ -26,7 +26,7 @@ def setup_logger() -> structlog.typing.FilteringBoundLogger:
     ]
     structlog.configure(
         processors=processors,
-        wrapper_class=structlog.make_filtering_bound_logger(config.app.logging_level)
+        wrapper_class=structlog.make_filtering_bound_logger(config.constant.logging_level)
     )
 
     logging.getLogger("aiogram.dispatcher").setLevel(logging.WARN)

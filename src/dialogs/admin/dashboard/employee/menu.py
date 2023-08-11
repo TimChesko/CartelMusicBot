@@ -4,7 +4,7 @@ from aiogram_dialog import Window, Dialog, DialogManager
 from aiogram_dialog.widgets.kbd import Start, ScrollingGroup, Select, Group, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.data.config import Config
+from src.data.config import load_config
 from src.dialogs.admin.dashboard.employee.delete import delete_window
 from src.dialogs.admin.dashboard.employee.info import info_window
 from src.dialogs.admin.dashboard.employee.privilege import privilege_window
@@ -23,10 +23,12 @@ async def privilege_filter(_, btn: SwitchTo, manager: DialogManager):
 
 
 async def employee_list_getter(dialog_manager: DialogManager, **_kwargs):
+    config = load_config()
     data = dialog_manager.middleware_data
     dialog_data = dialog_manager.dialog_data
     privilege = dialog_data['filter']
-    employees = await EmployeeHandler(data['session_maker'], data['database_logger']).get_privilege_by_filter(privilege)
+    employees = await EmployeeHandler(data['session_maker'], data['database_logger']).get_privilege_by_filter(config,
+                                                                                                              privilege)
     buttons = {
         "admin": "Админ",
         "manager": "Менеджер",
@@ -41,7 +43,7 @@ async def employee_list_getter(dialog_manager: DialogManager, **_kwargs):
     return {
         'privilege': [(tg_id, firstname if firstname else tg_username, surname if surname else '', tg_username) for
                       tg_id, tg_username, firstname, surname in employees],
-        'developer': data['event_from_user'].id in Config.constant.developers,
+        'developer': data['event_from_user'].id in config.constant.developers,
         **buttons
     }
 

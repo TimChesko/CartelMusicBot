@@ -7,7 +7,7 @@ from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, Row, Back
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.data.config import Config
+from src.data.config import load_config
 from src.dialogs.admin.common import translate_privilege
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK, TXT_CONFIRM
 from src.models.employee import EmployeeHandler
@@ -20,10 +20,11 @@ async def employee_id(
         message: Message,
         _, manager: DialogManager):
     if message.text.isdigit():
+        config = load_config()
         tg_id = int(message.text)
         data = manager.middleware_data
         employee: Employee = await EmployeeHandler(data['session_maker'],
-                                                   data['database_logger']).get_privilege_by_tg_id(tg_id)
+                                                   data['database_logger']).get_privilege_by_tg_id(tg_id, config)
         if employee:
             # TODO когда объединим бота, добавить в вывод username и прочую tg инфу
             await message.answer(f'Вы уже добавили сотрудника №{employee.tg_id}!')
@@ -48,10 +49,11 @@ async def set_privilege(_, button: Button, manager: DialogManager):
 
 
 async def developer_getter(dialog_manager: DialogManager, **_kwargs):
+    config = load_config()
     user_id = dialog_manager.event.from_user.id
     logging.info(user_id)
     return {
-        'developer': user_id in Config.constant.developers
+        'developer': user_id in config.constant.developers
     }
 
 
