@@ -1,3 +1,4 @@
+import logging
 from operator import itemgetter
 from typing import Any
 
@@ -5,10 +6,11 @@ from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.api.entities import MediaId, MediaAttachment
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Button, SwitchTo
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Button, SwitchTo, StubScroll, NumberedPager
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
+from src.dialogs.services.track_info_helper import get_struct_data, get_struct_text
 from src.dialogs.utils.buttons import TXT_CONFIRM, BTN_BACK, BTN_CANCEL_BACK, TXT_REJECT
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.tables import Track, TrackInfo
@@ -63,7 +65,7 @@ async def get_buttons(dialog_manager: DialogManager, **_kwargs) -> dict:
 
 
 async def on_click(callback: CallbackQuery, _, manager: DialogManager, __) -> None:
-    manager.dialog_data['track_id'] = callback.data.split(":")[-1]
+    manager.dialog_data['track_id'] = int(callback.data.split(":")[-1])
     await manager.switch_to(state=ViewStatus.track)
 
 
@@ -78,25 +80,47 @@ async def get_data_track(dialog_manager: DialogManager, **_kwargs):
     track = await track_handler.get_track_by_id(track_id)
     track_info = await track_info_handler.get_docs_by_id(track_id)
 
-    text = await create_text(track, track_info)
+    text, files = await create_text_and_files(track, track_info)
+    if files:
+
+        current_page = int(await dialog_manager.find("stub_scroll_track_info").get_page())
+        files_list = list(files.keys())
+        files.update({"track_id": track.file_id_audio})
+        file_types = {
+            "track_id": ContentType.AUDIO,
+            "text_file_id": ContentType.DOCUMENT,
+            "beat_alienation": ContentType.DOCUMENT,
+            "words_alienation": ContentType.DOCUMENT
+        }
+        file_type = file_types[files_list[current_page]]
+        file_id = files[files_list[current_page]]
+        MediaAttachment(file_type, file_id=MediaId(file_id))
+    else:
+        file_id = track.file_id_audio
 
     return {
+        "pages": len(files.keys()) if files else 0,
         "text": text,
-        "audio": MediaAttachment(ContentType.AUDIO, file_id=MediaId(track.file_id_audio)),
+        "attachment": MediaAttachment(ContentType.AUDIO, file_id=MediaId(file_id)),
         "new_data": track.status == APPROVE and track_info.status is None,
         "edit_data": track.status == APPROVE and track_info.status == REJECT,
         "delete": track.status in [PROCESS, REJECT]
     }
 
 
-async def create_text(track: Track, track_info: TrackInfo) -> str:
+async def create_text_and_files(track: Track, track_info: TrackInfo) -> tuple[str, dict | None]:
     text = f"Трек: {track.track_title}\n\n"
+    files = None
     status_track = STATUS_TEMPLATES[track.status]
     text += f"Статус трека: <b>{status_track}</b>\n"
-    if track_info.status and track.status != PROCESS:
-        status_info = STATUS_TEMPLATES[track_info.status]
-        text += f"Статус информации по треку: <b>{status_info}</b>"
-    return text
+    if track_info.status:
+        if track_info.status != PROCESS:
+            status_info = STATUS_TEMPLATES[track_info.status]
+            text += f"Статус информации по треку: <b>{status_info}</b>\n"
+        if track_info.status == APPROVE:
+            files, track_info_text = await get_struct_data(track_info)
+            text += await get_struct_text(track_info_text)
+    return text, files
 
 
 async def delete_track(_, __, dialog_manager: DialogManager):
@@ -152,7 +176,11 @@ dialog = Dialog(
     ),
     Window(
         Format("{text}"),
-        DynamicMedia('audio'),
+        DynamicMedia('attachment'),
+        StubScroll(id="stub_scroll_track_info", pages="pages"),
+        NumberedPager(
+            scroll="stub_scroll_track_info"
+        ),
         Button(
             Const("Заполнить данные"),
             id="my_studio_status_approve",
