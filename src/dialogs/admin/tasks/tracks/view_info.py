@@ -3,15 +3,19 @@ from operator import itemgetter
 from aiogram import Bot
 from aiogram.types import Message
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
+from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.kbd import Row, Button, ScrollingGroup, Multiselect, SwitchTo, Next
+from aiogram_dialog.widgets.kbd import Row, Button, ScrollingGroup, Multiselect, SwitchTo, Next, StubScroll, \
+    NumberedPager
+from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format
 
 from src.dialogs.services.track_info_helper import get_struct_data, get_struct_text, get_struct_buttons, \
-    get_checked_text
+    get_checked_text, get_attachment_track
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, TXT_CONFIRM, TXT_REJECT, BTN_BACK, TXT_NEXT
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.track_info import TrackInfoHandler
+from src.models.tracks import TrackHandler
 from src.utils.fsm import AdminCheckTrack
 
 
@@ -32,46 +36,33 @@ async def on_close(_, dialog_manager: DialogManager):
     await delete_messages(dialog_manager)
 
 
-async def send_files(dialog_manager: DialogManager, user_id: int, files: dict):
-    middleware = dialog_manager.middleware_data
-    bot = middleware.get("bot", None)
-
-    if not bot:
-        return False
-
-    file_types = {
-        "track_id": bot.send_audio,
-        "text_file_id": bot.send_document,
-        "beat_alienation": bot.send_document,
-        "words_alienation": bot.send_document
-    }
-
-    dialog_manager.dialog_data['send_msg'] = []
-
-    for file_key, send_method in file_types.items():
-        file_data = files.get(file_key)
-        if file_data:
-            msg = await send_method(chat_id=user_id, **{file_key: file_data})
-            dialog_manager.dialog_data['send_msg'].append(msg.message_id)
-    return True
-
-
 async def get_data(dialog_manager: DialogManager, **_kwargs):
     return {
         "text": dialog_manager.dialog_data.get("converted_text")
     }
 
 
+async def all_data(dialog_manager: DialogManager, **_kwargs):
+    files = dialog_manager.dialog_data['files']
+    track_id = dialog_manager.dialog_data['track_id']
+    session_maker = dialog_manager.middleware_data['session_maker']
+    database_logger = dialog_manager.middleware_data['database_logger']
+    track_handler = TrackHandler(session_maker, database_logger)
+    track = await track_handler.get_track_by_id(track_id)
+    file_type, file_id = await get_attachment_track(dialog_manager, files, track, "stub_scroll_track_info_check")
+    return {
+        "pages": len(files.keys()) if files else 0,
+        "attachment": MediaAttachment(file_type, file_id=MediaId(file_id))
+    }
+
+
 async def on_start(_, dialog_manager: DialogManager):
     await on_start_copy_start_data(None, dialog_manager)
     middleware = dialog_manager.middleware_data
-    user_id = dialog_manager.event.from_user.id
     docs = await (TrackInfoHandler(middleware['session_maker'], middleware['database_logger']).
                   get_docs_by_id(dialog_manager.dialog_data['track_id']))
     files, text = await get_struct_data(docs)
     dialog_manager.dialog_data.update({'files': files, 'text': text, 'converted_text': await get_struct_text(text)})
-    await send_files(dialog_manager, user_id, files)
-    dialog_manager.show_mode = ShowMode.SEND
 
 
 async def get_buttons(dialog_manager: DialogManager, **_kwargs):
@@ -128,6 +119,11 @@ async def set_comment(msg: Message, _, manager: DialogManager, __):
 
 dialog = Dialog(
     Window(
+        DynamicMedia('attachment'),
+        StubScroll(id="stub_scroll_track_info_check", pages="pages"),
+        NumberedPager(
+            scroll="stub_scroll_track_info_check"
+        ),
         Const("Информация по треку\n"),
         Format("{text}"),
         Row(
@@ -139,6 +135,12 @@ dialog = Dialog(
         state=AdminCheckTrack.menu,
     ),
     Window(
+        DynamicMedia('attachment'),
+        StubScroll(id="stub_scroll_track_info_check", pages="pages"),
+        NumberedPager(
+            scroll="stub_scroll_track_info_check",
+            when="pages"
+        ),
         Format("Выберете информацию, которую нужно отклонить:"),
         ScrollingGroup(
             Multiselect(
@@ -162,6 +164,11 @@ dialog = Dialog(
         getter=get_buttons
     ),
     Window(
+        DynamicMedia('attachment'),
+        StubScroll(id="stub_scroll_track_info_check", pages="pages"),
+        NumberedPager(
+            scroll="stub_scroll_track_info_check"
+        ),
         Format("{finish_text}\n"),
         Const("Пришлите комментарий, который вы хотите оставить:"),
         TextInput(id="input_text_comment", on_success=set_comment),
@@ -170,12 +177,18 @@ dialog = Dialog(
         state=AdminCheckTrack.comment
     ),
     Window(
+        DynamicMedia('attachment'),
+        StubScroll(id="stub_scroll_track_info_check", pages="pages"),
+        NumberedPager(
+            scroll="stub_scroll_track_info_check"
+        ),
         Format("{finish_text}"),
         Button(Const("✓ Закончить проверку"), id="finish", on_click=on_reject),
         BTN_BACK,
         state=AdminCheckTrack.finish,
         getter=get_finish_text
     ),
+    getter=all_data,
     on_start=on_start,
     on_close=on_close
 )

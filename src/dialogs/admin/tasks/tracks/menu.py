@@ -19,6 +19,7 @@ async def formatting_docs(docs: list) -> list:
 async def get_data(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     docs = await TrackInfoHandler(data['session_maker'], data['database_logger']).get_docs_by_status("process")
+    await dialog_manager.find("stub_scroll_track_info_check").set_page(0)
     return {
         "tasks": await formatting_docs(docs)
     }

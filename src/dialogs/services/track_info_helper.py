@@ -1,4 +1,7 @@
+import logging
+
 from aiogram import Bot
+from aiogram.enums import ContentType
 from aiogram_dialog import DialogManager
 
 template_track_info = {
@@ -45,3 +48,24 @@ async def get_checked_text(dict_text, checks):
 
 async def get_struct_buttons(dict_text):
     return [[template_track_info[key], key] for key in dict_text.keys()]
+
+
+async def get_attachment_track(dialog_manager, files, track, stub_scroll_id):
+    logging.debug(files)
+    if files:
+        current_page = int(await dialog_manager.find(stub_scroll_id).get_page())
+
+        files_list = list(files.keys())
+        files.update({"track_id": track.file_id_audio})
+        file_types = {
+            "track_id": ContentType.AUDIO,
+            "text_file_id": ContentType.DOCUMENT,
+            "beat_alienation": ContentType.DOCUMENT,
+            "words_alienation": ContentType.DOCUMENT
+        }
+        file_type = file_types[files_list[current_page]]
+        file_id = files[files_list[current_page]]
+    else:
+        file_type = ContentType.AUDIO
+        file_id = track.file_id_audio
+    return file_type, file_id

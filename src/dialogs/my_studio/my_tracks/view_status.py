@@ -9,8 +9,9 @@ from aiogram_dialog.api.entities import MediaId, MediaAttachment
 from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Button, SwitchTo, StubScroll, NumberedPager
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
+from magic_filter import F
 
-from src.dialogs.services.track_info_helper import get_struct_data, get_struct_text
+from src.dialogs.services.track_info_helper import get_struct_data, get_struct_text, get_attachment_track
 from src.dialogs.utils.buttons import TXT_CONFIRM, BTN_BACK, BTN_CANCEL_BACK, TXT_REJECT
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.tables import Track, TrackInfo
@@ -61,6 +62,7 @@ async def get_buttons(dialog_manager: DialogManager, **_kwargs) -> dict:
         dialog_manager.middleware_data['session_maker'],
         dialog_manager.middleware_data['database_logger']
     )
+    await dialog_manager.find("stub_scroll_track_info").set_page(0)
     return await dm_optimized.generate_list_buttons(dialog_manager)
 
 
@@ -81,27 +83,12 @@ async def get_data_track(dialog_manager: DialogManager, **_kwargs):
     track_info = await track_info_handler.get_docs_by_id(track_id)
 
     text, files = await create_text_and_files(track, track_info)
-    if files:
-
-        current_page = int(await dialog_manager.find("stub_scroll_track_info").get_page())
-        files_list = list(files.keys())
-        files.update({"track_id": track.file_id_audio})
-        file_types = {
-            "track_id": ContentType.AUDIO,
-            "text_file_id": ContentType.DOCUMENT,
-            "beat_alienation": ContentType.DOCUMENT,
-            "words_alienation": ContentType.DOCUMENT
-        }
-        file_type = file_types[files_list[current_page]]
-        file_id = files[files_list[current_page]]
-        MediaAttachment(file_type, file_id=MediaId(file_id))
-    else:
-        file_id = track.file_id_audio
+    file_type, file_id = await get_attachment_track(dialog_manager, files, track, "stub_scroll_track_info")
 
     return {
         "pages": len(files.keys()) if files else 0,
         "text": text,
-        "attachment": MediaAttachment(ContentType.AUDIO, file_id=MediaId(file_id)),
+        "attachment": MediaAttachment(file_type, file_id=MediaId(file_id)),
         "new_data": track.status == APPROVE and track_info.status is None,
         "edit_data": track.status == APPROVE and track_info.status == REJECT,
         "delete": track.status in [PROCESS, REJECT]
