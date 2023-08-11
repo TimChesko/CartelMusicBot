@@ -90,7 +90,6 @@ async def approve(callback: CallbackQuery, btn: Button, manager: DialogManager):
 
     text = await (ListeningTemplatesHandler(data['session_maker'], data['database_logger']).
                   get_approve_reason(btn.widget_id))
-    logging.debug(text)
     await bot.send_message(chat_id=user_id, text=text)
 
 

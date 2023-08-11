@@ -15,9 +15,9 @@ main = Dialog(
               "1) Проверка обложки, названия альбома, списка треков и первичного лицензионного договора\n"
               "2) Проверка подписи лицензионного договора\n"
               "2) Проверка трек номера CDEK"),
-        Start(Const('Первичная'), state=AdminReleaseLvl1.start, id='lvl1_start'),
-        Start(Const('Подпись'), state=AdminReleaseLvl2.start, id='lvl2_start'),
-        Start(Const('Трек номер'), state=AdminReleaseLvl3.start, id='lvl3_start'),
+        Start(Const('📝Первичная'), state=AdminReleaseLvl1.start, id='lvl1_start'),
+        Start(Const('✍Подпись'), state=AdminReleaseLvl2.start, id='lvl2_start'),
+        Start(Const('📩Трек номер'), state=AdminReleaseLvl3.start, id='lvl3_start'),
         BTN_CANCEL_BACK,
         state=AdminRelease.menu
     )

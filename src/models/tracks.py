@@ -285,7 +285,7 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def update_approve(self, track_id, employee_id) -> bool:
+    async def update_approve(self, track_id: int, employee_id: int) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(

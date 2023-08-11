@@ -180,7 +180,7 @@ class AlbumHandler:
                     )
                     await session.commit()
                     return True
-                if state == 'mail_track':
+                if state == 'mail':
                     await session.execute(
                         update(Album).where(Album.id == album_id).values(checker=None,
                                                                          mail_track_state='approve',
@@ -211,7 +211,7 @@ class AlbumHandler:
                     )
                     await session.commit()
                     return True
-                if state == 'mail_track':
+                if state == 'mail':
                     await session.execute(
                         update(Album).where(Album.id == album_id).values(checker=None,
                                                                          mail_track_state='reject',
