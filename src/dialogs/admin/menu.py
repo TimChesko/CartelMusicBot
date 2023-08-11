@@ -19,14 +19,14 @@ async def privilege_getter(dialog_manager: DialogManager, **_kwargs):
 menu = Dialog(
     Window(
         Const('ГЛАВНОЕ МЕНЮ'),
-        Start(Const('Прослушивание'),
+        Start(Const('🎙Прослушивание'),
               id='admin_listening',
               state=AdminListening.start,
               when='manager'),
-        Start(Const('Проверка документов'),
+        Start(Const('📨Проверка документов'),
               id='admin_documents',
               state=AdminViewTypeDocs.menu),
-        Start(Const('Админ панель'),
+        Start(Const('🔑Админ панель'),
               id='admin_panel',
               state=AdminDashboard.start,
               when='admin'),

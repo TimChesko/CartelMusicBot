@@ -25,7 +25,8 @@ async def employee_id(
         employee: Employee = await EmployeeHandler(data['session_maker'],
                                                    data['database_logger']).get_privilege_by_tg_id(tg_id, config)
         if employee:
-            # TODO когда объединим бота, добавить в вывод username и прочую tg инфу
+            # TODO когда разделим бота, добавить в вывод username и прочую tg инфу
+            # TODO убрать answer заменить на Format из getter'a
             await message.answer(f'Вы уже добавили сотрудника №{employee.tg_id}!')
         else:
             manager.dialog_data['employee_id'] = tg_id
@@ -88,16 +89,16 @@ new_employee = Dialog(
     ),
     Window(
         Const('Выберите роль, которую хотите выдать данному юзеру:'),
-        Button(Const('Менеджер'),
+        Button(Const('🧑‍💼Менеджер'),
                id='manager',
                on_click=set_privilege),
-        Button(Const('Модератор'),
+        Button(Const('👨🏼‍💻Модератор'),
                id='moderator',
                on_click=set_privilege),
-        Button(Const('Куратор'),
+        Button(Const('👨‍👦‍👦Куратор'),
                id='curator',
                on_click=set_privilege),
-        Button(Const('Администратор'),
+        Button(Const('🔐Администратор'),
                id='admin',
                on_click=set_privilege,
                when='developer'),
