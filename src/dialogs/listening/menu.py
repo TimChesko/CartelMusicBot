@@ -24,10 +24,11 @@ async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
 
 listening_menu = Dialog(
     Window(
-        Const('Удиви или скинь переделанное'),
-        Start(Const('Новый трек'), state=ListeningNewTrack.start, id='listening_new_track', when='process_check',
+        Const('Тут вы можете отправить нам новый трек на прослушивание,'
+              ' либо старый в исправленном виде, который по тем или иным причинам отклонили'),
+        Start(Const('🆕 Новый трек'), state=ListeningNewTrack.start, id='listening_new_track', when='process_check',
               data="data"),
-        Start(Const('Отклоненные'), state=ListeningEditTrack.start, id='listening_old_track', when='rejects_check'),
+        Start(Const('❗️ Отклоненные'), state=ListeningEditTrack.start, id='listening_old_track', when='rejects_check'),
         BTN_CANCEL_BACK,
         state=Listening.start,
         getter=tracks_getter

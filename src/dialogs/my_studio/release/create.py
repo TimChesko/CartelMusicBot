@@ -11,9 +11,8 @@ from src.utils.fsm import ReleaseTrack, AlbumPage
 
 
 async def on_album_selected(_, __, manager: DialogManager, selected_item: str):
-    items = eval(selected_item)
-    await manager.start(AlbumPage.main, data={'album_id': items[0],
-                                              'title': items[1]}, show_mode=ShowMode.EDIT)
+    album_id = int(selected_item)
+    await manager.start(AlbumPage.main, data={'album_id': album_id}, show_mode=ShowMode.EDIT)
 
 
 async def list_getter(dialog_manager: DialogManager, **_kwargs):
@@ -38,7 +37,7 @@ main = Dialog(
                 Format("🎵 {item[1]}"),
                 id="ms",
                 items="albums",
-                item_id_getter=itemgetter(0, 1),
+                item_id_getter=itemgetter(0),
                 on_click=on_album_selected
             ),
             width=1,
