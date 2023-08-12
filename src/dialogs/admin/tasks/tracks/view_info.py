@@ -58,6 +58,7 @@ async def all_data(dialog_manager: DialogManager, **_kwargs):
 
 async def on_start(_, dialog_manager: DialogManager):
     await on_start_copy_start_data(None, dialog_manager)
+    await dialog_manager.find("stub_scroll_track_info_check").set_page(0)
     middleware = dialog_manager.middleware_data
     docs = await (TrackInfoHandler(middleware['session_maker'], middleware['database_logger']).
                   get_docs_by_id(dialog_manager.dialog_data['track_id']))
