@@ -46,7 +46,7 @@ main = Dialog(
             id='scroll_tracks_with_pager',
             hide_on_single_page=True
         ),
-        Button(Const('➕ Создать'), on_click=create_album, id='create_new_album'),
+        Button(Const('❇️ Создать'), on_click=create_album, id='create_new_album'),
         BTN_CANCEL_BACK,
         getter=list_getter,
         state=ReleaseTrack.list
