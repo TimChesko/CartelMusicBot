@@ -1,6 +1,5 @@
 from typing import Any
 
-from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
 
 from src.dialogs.admin.tasks.personal_data.factory.model import Task
@@ -32,7 +31,7 @@ class CheckDocs:
         dialog['del_id_msg'] = []
 
     @staticmethod
-    async def __find_photo(big_data: list[dict]):
+    async def __find_photo_and_text(big_data: list[dict]):
         list_photo, list_text = [], []
         for item in big_data:
             converted_item = Task(*item.values())
@@ -45,7 +44,7 @@ class CheckDocs:
     async def __load_form(self, user_id: int):
         big_data = await self.__get_all_task(user_id)
         await self.__upload_dialog_data(user_id, big_data)
-        photo, text = await self.__find_photo(big_data)
+        photo, text = await self.__find_photo_and_text(big_data)
         return photo, text
 
     async def start_form(self, user_id: int):

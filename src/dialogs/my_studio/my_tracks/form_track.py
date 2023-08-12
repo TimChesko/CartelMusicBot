@@ -48,6 +48,7 @@ async def on_process(_, result: Any, manager: DialogManager):
 
 
 async def save_document(msg: Message, _, manager: DialogManager):
+    await msg.delete()
     manager.dialog_data['track'].update({"text_file_id": msg.document.file_id})
     await manager.next()
 
@@ -61,6 +62,7 @@ async def is_time_format(input_string):
 
 
 async def save_time_track(msg: Message, _, manager: DialogManager, __):
+    await msg.delete()
     if await is_time_format(msg.text):
         manager.dialog_data['track'].update({"tiktok_time": msg.text})
         await manager.next()

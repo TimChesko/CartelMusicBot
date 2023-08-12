@@ -11,14 +11,14 @@ from src.utils.fsm import StartMenu, Listening, Profile, \
 
 async def get_data(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    user_id = data['event_from_user']
+    user_id = dialog_manager.event.from_user.id
     library = await TrackHandler(data['session_maker'], data['database_logger']).has_tracks_by_tg_id(user_id)
     tracks = await TrackHandler(data['session_maker'], data['database_logger']).check_chat_exists(user_id)
     personal_data = await PersonalDataHandler(data['session_maker'], data['database_logger']). \
         get_all_by_tg(user_id)
     return {
         "library_check": library,
-        'verif_check': all((personal_data.all_passport_data == 'approve', personal_data.all_bank_data == 'approve')),
+        'verif_check': personal_data.all_passport_data == 'approve' and personal_data.all_bank_data == 'approve',
         'track_check': tracks,
         'data': data,
         "text": "🙎‍♂️ Профиль" if personal_data.all_passport_data and personal_data.all_bank_data
