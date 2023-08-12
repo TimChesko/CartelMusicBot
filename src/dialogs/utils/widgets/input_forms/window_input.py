@@ -1,3 +1,4 @@
+import datetime
 from datetime import date
 
 from aiogram.enums import ContentType
@@ -74,8 +75,7 @@ async def save_img(message: Message, _, manager: DialogManager):
 
 
 async def on_date_selected(_, __, manager: DialogManager, selected_date: date):
-    start_data = manager.start_data
-    await manager.done([selected_date, start_data['data_name']])
+    await manager.done([str(selected_date), manager.start_data['data_name']])
 
 
 async def on_back(_, __, manager: DialogManager):

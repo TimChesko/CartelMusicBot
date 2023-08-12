@@ -103,8 +103,7 @@ async def process_input_result(_, result: Any, manager: DialogManager):
         if validate['check']:
             old_item = task_list_process.pop(0)
             if "date" in input_type:
-                date = result[0]
-                save_input[old_item] = date.strftime("%Y-%m-%d")
+                save_input[old_item] = result[0]
             else:
                 save_input[old_item] = result[0]
             task_list_done.append(old_item)

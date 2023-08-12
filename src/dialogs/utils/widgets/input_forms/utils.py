@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import Any
 
@@ -30,7 +31,7 @@ async def convert_data_types(data: dict):
     for key, value in data.items():
         # Попытка конвертировать в дату формата %Y-%m-%d
         try:
-            converted_value = datetime.strptime(value, "%Y-%m-%d").date()
+            converted_value = datetime.strptime(str(value), "%Y-%m-%d")
         except ValueError:
             # Если не удалось выполнить конвертацию, оставляем значение без изменений
             converted_value = value

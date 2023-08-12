@@ -8,7 +8,7 @@ from aiogram_dialog.widgets.text import Const, Format
 from src.dialogs.utils.buttons import TXT_CONFIRM, BTN_BACK, BTN_CANCEL_BACK
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.dialogs.utils.widgets.input_forms.process_input import process_input_result, InputForm
-from src.dialogs.utils.widgets.input_forms.utils import convert_database_to_data
+from src.dialogs.utils.widgets.input_forms.utils import convert_database_to_data, convert_data_types
 from src.models.personal_data import PersonalDataHandler
 from src.utils.fsm import ProfileEdit
 
@@ -59,8 +59,8 @@ async def on_finally(callback: CallbackQuery, __, manager: DialogManager):
         manager.middleware_data['session_maker'],
         manager.middleware_data['database_logger']
     )
-    await dm_optimized.update_personal_data(user_id, manager.dialog_data['header_data'],
-                                            manager.dialog_data['save_input'])
+    data = await convert_data_types(manager.dialog_data['save_input'])
+    await dm_optimized.update_personal_data(user_id, manager.dialog_data['header_data'], data)
 
     await callback.message.answer("Вы успешно изменили данные !")
     manager.show_mode = ShowMode.SEND
