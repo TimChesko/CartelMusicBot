@@ -49,6 +49,19 @@ class EmployeeHandler:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
 
+    async def get_privilege_menu(self, tg_id: int, config: Config):
+        async with self.session_maker() as session:
+            try:
+                if tg_id in config.constant.developers:
+                    return None
+                query = select(Employee.privilege).where(and_(Employee.tg_id == tg_id))
+                result = await session.execute(query)
+                employee = result.scalar_one_or_none()
+                return employee
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при выполнении запроса: %s", e)
+                return False
+
     async def get_privilege_by_filter(self, config: Config, privilege: str | None = None):
         async with self.session_maker() as session:
             try:
