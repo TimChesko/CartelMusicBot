@@ -24,19 +24,25 @@ async def start_dialog_check_docs(manager: DialogManager, text: list, photo: lis
 
 async def get_data_text(dialog_manager: DialogManager, **_kwargs):
     text = ""
-    photo = dialog_manager.dialog_data["photo"]
     for item in dialog_manager.dialog_data['text']:
         m_item = Task(*item.values())
         text += f"{m_item.title}: {m_item.value}\n"
-    if "img_state" in dialog_manager.dialog_data:
-        num_img = photo[0] if dialog_manager.dialog_data["img_state"] else photo[1]
+    if "photo" in dialog_manager.dialog_data:
+        photo = dialog_manager.dialog_data["photo"]
+        if "img_state" in dialog_manager.dialog_data:
+            num_img = photo[0] if dialog_manager.dialog_data["img_state"] else photo[1]
+        else:
+            dialog_manager.dialog_data["img_state"] = True
+            num_img = photo[0]
+        img = MediaAttachment(ContentType.PHOTO, file_id=MediaId(num_img))
+        has_img = True
     else:
-        dialog_manager.dialog_data["img_state"] = True
-        num_img = photo[0]
-    img = MediaAttachment(ContentType.PHOTO, file_id=MediaId(num_img))
+        has_img = False
+        img = None
     return {
         "text": text,
-        "passport": img
+        "passport": img,
+        "has_img": has_img
     }
 
 
@@ -90,6 +96,7 @@ SWITCH_PHOTO = Checkbox(
     Const("1 / 2️⃣ страница"),
     id="swap_passport",
     on_click=change_passport_img,
+    when="has_img",
     default=True
 )
 

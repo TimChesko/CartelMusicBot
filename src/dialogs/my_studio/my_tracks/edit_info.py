@@ -1,6 +1,6 @@
 from aiogram.enums import ContentType
 from aiogram.types import Message
-from aiogram_dialog import Dialog, Window, DialogManager
+from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import TextInput, MessageInput
 from aiogram_dialog.widgets.kbd import Button, Row
 from aiogram_dialog.widgets.text import Const
@@ -11,12 +11,14 @@ from src.utils.fsm import StudioEdit
 
 async def save_text(msg: Message, _, manager: DialogManager, __):
     await msg.delete()
+    manager.show_mode = ShowMode.EDIT
     manager.dialog_data['result'] = {"title": msg.text}
     await manager.switch_to(StudioEdit.confirm)
 
 
 async def save_document(msg: Message, _, manager: DialogManager):
     await msg.delete()
+    manager.show_mode = ShowMode.EDIT
     manager.dialog_data['result'] = {"text_file_id": msg.document.file_id}
     await manager.switch_to(StudioEdit.confirm)
 
@@ -28,12 +30,14 @@ async def finish(_, __, manager: DialogManager):
 # TEXT
 async def save_document_author_text(msg: Message, _, manager: DialogManager):
     await msg.delete()
+    manager.show_mode = ShowMode.EDIT
     manager.dialog_data['result'] = {"words_alienation": msg.document.file_id}
     await manager.next()
 
 
 async def save_percentage_text(msg: Message, _, manager: DialogManager, __):
     await msg.delete()
+    manager.show_mode = ShowMode.EDIT
     manager.dialog_data['result'].update({"words_author_percent": int(msg.text)})
     await manager.done(manager.dialog_data['result'])
 
@@ -41,18 +45,21 @@ async def save_percentage_text(msg: Message, _, manager: DialogManager, __):
 # BEAT
 async def save_document_author_beat(msg: Message, _, manager: DialogManager):
     await msg.delete()
+    manager.show_mode = ShowMode.EDIT
     manager.dialog_data['result'] = {"beat_alienation": msg.document.file_id}
     await manager.next()
 
 
 async def save_percentage_beat(msg: Message, _, manager: DialogManager, __):
     await msg.delete()
+    manager.show_mode = ShowMode.EDIT
     manager.dialog_data['result'].update({"beatmaker_percent": int(msg.text)})
     await manager.done(manager.dialog_data['result'])
 
 
 async def save_percentage_feat(msg: Message, _, manager: DialogManager, __):
     await msg.delete()
+    manager.show_mode = ShowMode.EDIT
     manager.dialog_data['result'] = {"feat_status": True, "feat_percent": int(msg.text)}
     await manager.done(manager.dialog_data['result'])
 

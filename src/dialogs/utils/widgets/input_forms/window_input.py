@@ -3,7 +3,7 @@ from datetime import date
 
 from aiogram.enums import ContentType
 from aiogram.types import Message
-from aiogram_dialog import Dialog, Window, DialogManager
+from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import TextInput, MessageInput
 from aiogram_dialog.widgets.kbd import Button
 from aiogram_dialog.widgets.text import Format, Const
@@ -41,11 +41,11 @@ async def start_dialog_filling_profile(
     data['btn_back_date'] = btn_status[2]
     data['created_text'] = data['text'] if error is None else f"{error}\n\n{data['text']}"
     if input_date:
-        await manager.start(state=DialogInput.date, data=data)
+        await manager.start(state=DialogInput.date, data=data, show_mode=ShowMode.EDIT)
     elif input_img:
-        await manager.start(state=DialogInput.img, data=data)
+        await manager.start(state=DialogInput.img, data=data, show_mode=ShowMode.EDIT)
     else:
-        await manager.start(state=DialogInput.text, data=data)
+        await manager.start(state=DialogInput.text, data=data, show_mode=ShowMode.EDIT)
 
 
 async def get_data(dialog_manager: DialogManager, **_kwargs):
@@ -61,6 +61,7 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
 async def save_data(message: Message, _, manager: DialogManager, __):
     start_data = manager.start_data
     await message.delete()
+    manager.show_mode = ShowMode.EDIT
     await manager.done(
         [message.text, start_data['data_name']]
     )
@@ -69,6 +70,7 @@ async def save_data(message: Message, _, manager: DialogManager, __):
 async def save_img(message: Message, _, manager: DialogManager):
     start_data = manager.start_data
     await message.delete()
+    manager.show_mode = ShowMode.EDIT
     await manager.done(
         [message.photo[0].file_id, start_data['data_name']]
     )

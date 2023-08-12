@@ -10,7 +10,7 @@ from src.utils.fsm import AdminMenu, AdminListening, AdminDashboard, AdminViewTy
 async def privilege_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     config = data['config']
-    user_id = data['event_from_user'].id
+    user_id = dialog_manager.event.from_user.id
     privilege = await (EmployeeHandler(data['session_maker'], data['database_logger']).
                        get_privilege_by_tg_id(user_id, config))
     return privilege_level(config, privilege)
@@ -19,14 +19,14 @@ async def privilege_getter(dialog_manager: DialogManager, **_kwargs):
 menu = Dialog(
     Window(
         Const('ГЛАВНОЕ МЕНЮ'),
-        Start(Const('🎙Прослушивание'),
+        Start(Const('🎙 Прослушивание'),
               id='admin_listening',
               state=AdminListening.start,
               when='manager'),
-        Start(Const('📨Проверка документов'),
+        Start(Const('📨 Проверка документов'),
               id='admin_documents',
               state=AdminViewTypeDocs.menu),
-        Start(Const('🔑Админ панель'),
+        Start(Const('🔑 Админ панель'),
               id='admin_panel',
               state=AdminDashboard.start,
               when='admin'),

@@ -13,6 +13,7 @@ from src.utils.fsm import Passport
 async def create_form(_, __, manager: DialogManager):
     buttons = [False, True, True]
     task_list = await get_data_from_db("passport", manager)
+    manager.show_mode = ShowMode.EDIT
     await InputForm(manager).start_dialog(buttons, task_list)
 
 
