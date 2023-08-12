@@ -93,10 +93,3 @@ class CustomCalendar(Calendar):
             adjusted_date = new_offset
         data["current_offset"] = adjusted_date.isoformat()
         return adjusted_date
-
-    def get_offset(self, manager: DialogManager) -> Optional[date]:
-        calendar_data: CalendarData = self.get_widget_data(manager, {})
-        current_offset = calendar_data.get("current_offset")
-        if current_offset is None:
-            return None
-        return date.fromisoformat(current_offset)
