@@ -1,4 +1,3 @@
-import logging
 from _operator import itemgetter
 
 from aiogram_dialog import Dialog, Window, DialogManager
@@ -14,7 +13,6 @@ async def on_track_select(__, _, manager: DialogManager):
     data = manager.middleware_data
     widget = manager.find('album_tracklist')
     tracklist = widget.get_checked()
-    logging.info(manager.start_data['album_id'])
     await TrackHandler(data['session_maker'], data['database_logger']).update_album_id(list(map(int, tracklist)),
                                                                                        manager.start_data['album_id'])
     await manager.done()

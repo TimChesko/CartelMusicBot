@@ -1,4 +1,3 @@
-import logging
 from _operator import itemgetter
 
 from aiogram.types import CallbackQuery
@@ -19,7 +18,6 @@ async def on_album_selected(_, __, manager: DialogManager, selected_item: str):
 
 async def list_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    logging.info(dialog_manager.event.from_user.id)
     album = await AlbumHandler(data['session_maker'], data['database_logger']).get_album_by_user_id(
         dialog_manager.event.from_user.id)
     return {
@@ -37,7 +35,7 @@ main = Dialog(
         Const("Создайте или выберите работу"),
         ScrollingGroup(
             Select(
-                Format("🎵{item[1]}"),
+                Format("🎵 {item[1]}"),
                 id="ms",
                 items="albums",
                 item_id_getter=itemgetter(0, 1),
@@ -48,7 +46,7 @@ main = Dialog(
             id='scroll_tracks_with_pager',
             hide_on_single_page=True
         ),
-        Button(Const('Создать'), on_click=create_album, id='create_new_album'),
+        Button(Const('➕ Создать'), on_click=create_album, id='create_new_album'),
         BTN_CANCEL_BACK,
         getter=list_getter,
         state=ReleaseTrack.list

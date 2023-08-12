@@ -1,4 +1,3 @@
-import logging
 from _operator import itemgetter
 
 from aiogram.enums import ContentType
@@ -121,7 +120,6 @@ async def info_getter(dialog_manager: DialogManager, **_kwargs):
     info_id = dialog_manager.dialog_data['temp_id'] if 'temp_id' in dialog_manager.dialog_data else None
     reason = await ListeningTemplatesHandler(data['session_maker'], data['database_logger']).get_all_scalar(
         dialog_manager.dialog_data['type'], info_id)
-    logging.info(reason)
     return {
         'name': reason.name,
         'content': reason.content,

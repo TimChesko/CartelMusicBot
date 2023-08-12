@@ -1,5 +1,3 @@
-import logging
-
 from aiogram.enums import ContentType
 
 template_track_info = {
@@ -49,7 +47,6 @@ async def get_struct_buttons(dict_text):
 
 
 async def get_attachment_track(dialog_manager, files, track, stub_scroll_id):
-    logging.debug(files)
     if files:
         current_page = int(await dialog_manager.find(stub_scroll_id).get_page())
 

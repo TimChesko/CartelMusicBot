@@ -1,4 +1,3 @@
-import logging
 from _operator import itemgetter
 
 from aiogram import Bot

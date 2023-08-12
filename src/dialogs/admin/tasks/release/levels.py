@@ -1,5 +1,3 @@
-import logging
-
 from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.kbd import ScrollingGroup, Select
 from aiogram_dialog.widgets.text import Const, Format
@@ -15,7 +13,6 @@ from src.utils.fsm import AdminReleaseLvl1, AdminReleaseLvl3, AdminReleaseLvl2
 async def lvl1_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     album = await AlbumHandler(data['session_maker'], data['database_logger']).get_unsigned_state('process')
-    logging.info(dialog_manager.event.data)
     return {
         'album': album
     }
@@ -51,7 +48,6 @@ lvl1 = Dialog(
 async def lvl2_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     album = await AlbumHandler(data['session_maker'], data['database_logger']).get_signed_state('process')
-    logging.info(album)
     return {
         'album': album
     }

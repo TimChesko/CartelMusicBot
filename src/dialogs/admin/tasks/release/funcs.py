@@ -1,5 +1,3 @@
-import logging
-
 from aiogram import Bot
 from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message
@@ -35,7 +33,6 @@ async def task_page_getter(dialog_manager: DialogManager, **_kwargs):
         doc_id = album.mail_track_photo
         content_type = ContentType.PHOTO
     doc = MediaAttachment(content_type, file_id=MediaId(doc_id))
-    logging.info(dialog_manager.event)
     return {
         'username': user.tg_username if user.tg_username else user.tg_id,
         'nickname': user.nickname,

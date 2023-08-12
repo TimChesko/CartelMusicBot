@@ -1,5 +1,3 @@
-import logging
-
 from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Window, Dialog, DialogManager, ShowMode
@@ -51,7 +49,6 @@ async def set_privilege(_, button: Button, manager: DialogManager):
 async def developer_getter(dialog_manager: DialogManager, **_kwargs):
     config = dialog_manager.middleware_data['config']
     user_id = dialog_manager.event.from_user.id
-    logging.info(user_id)
     return {
         'developer': user_id in config.constant.developers
     }
