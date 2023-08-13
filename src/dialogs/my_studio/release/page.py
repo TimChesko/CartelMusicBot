@@ -137,7 +137,7 @@ async def on_approvement1lvl(callback: CallbackQuery, _, manager: DialogManager)
                                                        data['database_logger']).get_all_personal_data(
         callback.from_user.id)
     bot: Bot = data['bot']
-    current_directory = os.path.dirname(os.path.abspath(__file__))  # Получаем путь к текущему файлу
+    current_directory = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(current_directory, 'files', 'template.docx')
     doc = DocxTemplate(file_path)
     context = {
@@ -183,7 +183,7 @@ async def getter(dialog_manager: DialogManager, **_kwargs):
         is_cover = MediaAttachment(ContentType.DOCUMENT, file_id=MediaId(doc_id))
     return {
         'data': dialog_manager.start_data,
-        'title': dialog_manager.start_data['title'],
+        'title': album.album_title if album.album_title else f'Новый альбом №{album.id}',
         'doc': is_cover,
         'tracks': tracks,
         'text_title': '✓ Название' if album.album_title else 'Дать название',

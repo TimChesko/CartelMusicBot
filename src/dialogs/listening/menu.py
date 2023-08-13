@@ -33,7 +33,7 @@ listening_menu = Dialog(
         Const("Дождитесь проверки имеющихся треков на модерации", when=F["process_check"].is_(False)),
         Start(Const('❇️ Прислать трек'), state=ListeningNewTrack.start, id='listening_new_track', when='process_check',
               data="data"),
-        Start(Const('Отклоненные'), state=ListeningEditTrack.start, id='listening_old_track', when='rejects_check'),
+        Start(Const('❗️ Отклоненные'), state=ListeningEditTrack.start, id='listening_old_track', when='rejects_check'),
         BTN_CANCEL_BACK,
         state=Listening.start,
         getter=tracks_getter
