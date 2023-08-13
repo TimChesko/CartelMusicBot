@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime
 from typing import Any
 
@@ -17,10 +16,14 @@ async def get_data_from_db(header_data: str, manager: DialogManager):
 async def convert_database_to_data(data_list: list) -> dict:
     result_dict = {}
     for data in data_list:
+        if data["example"] is not None:
+            text = data["text"] + "\n\n" + "Пример: " + data["example"]
+        else:
+            text = data["text"]
         result_dict[data["name_data"]] = {
             'data_name': data["name_data"],
             'title': data["title"],
-            'text': data["text"] + "\n\n" + "Пример: " + data["example"],
+            'text': text,
             'input_type': data["input_type"].split(",")
         }
     return result_dict
@@ -28,26 +31,21 @@ async def convert_database_to_data(data_list: list) -> dict:
 
 async def convert_data_types(data: dict):
     converted_data = {}
-    for key, value in data.items():
-        # Попытка конвертировать в дату формата %Y-%m-%d
+    for key, items in data.items():
         try:
-            converted_value = datetime.strptime(str(value), "%Y-%m-%d")
+            converted_value = datetime.strptime(str(items), "%Y-%m-%d")
         except ValueError:
-            # Если не удалось выполнить конвертацию, оставляем значение без изменений
-            converted_value = value
+            converted_value = items
         converted_data[key] = converted_value
     return converted_data
 
 
 async def convert_data_type_one(value: Any):
-    # Попытка конвертировать в число
     try:
         converted_value = int(value)
     except ValueError:
-        # Попытка конвертировать в дату формата %Y-%m-%d
         try:
             converted_value = datetime.strptime(value, "%Y-%m-%d").date()
         except ValueError:
-            # Если не удалось выполнить конвертацию, оставляем значение без изменений
             converted_value = value
     return converted_value

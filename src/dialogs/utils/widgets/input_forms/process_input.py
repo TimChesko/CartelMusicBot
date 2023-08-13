@@ -88,7 +88,6 @@ async def process_input_result(_, result: Any, manager: DialogManager):
     task_list = manager.dialog_data['task_list_all']
     task_list_done = manager.dialog_data["task_list_done"]
     task_list_process = manager.dialog_data["task_list_process"]
-
     input_type = task_list[task_list_process[0]]['input_type']
 
     if "back" == result[0]:
@@ -102,10 +101,7 @@ async def process_input_result(_, result: Any, manager: DialogManager):
         validate = await InputForm(manager).validate_input(input_type, result[0])
         if validate['check']:
             old_item = task_list_process.pop(0)
-            if "date" in input_type:
-                save_input[old_item] = result[0]
-            else:
-                save_input[old_item] = result[0]
+            save_input[old_item] = {"value": result[0], "title": result[2], "data_name": result[1]}
             task_list_done.append(old_item)
             if len(manager.dialog_data["task_list_process"]) != 0:
                 await start_dialog_filling_profile(*(await InputForm(manager).get_args()))

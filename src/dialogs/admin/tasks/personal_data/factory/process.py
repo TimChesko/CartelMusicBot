@@ -10,10 +10,7 @@ from src.utils.fsm import AdminCheckPassport
 
 class CheckDocs:
 
-    def __init__(self,
-                 manager: DialogManager,
-                 header_name: str
-                 ):
+    def __init__(self, manager: DialogManager, header_name: str):
         self.manager = manager
         self.header_name = header_name
 
@@ -28,28 +25,27 @@ class CheckDocs:
         dialog['user_id'] = user_id
         dialog['header_name'] = self.header_name
         dialog['all_data'] = big_data
-        dialog['del_id_msg'] = []
 
-    @staticmethod
-    async def __find_photo_and_text(big_data: list[dict]):
-        list_photo, list_text = [], []
-        for item in big_data:
-            converted_item = Task(*item.values())
-            if converted_item.column_name.startswith("photo"):
-                list_photo.append(item)
-            else:
-                list_text.append(item)
-        return list_photo if list_photo else None, list_text
-
-    async def __load_form(self, user_id: int):
+    async def load_form(self, user_id: int):
         big_data = await self.__get_all_task(user_id)
         await self.__upload_dialog_data(user_id, big_data)
-        photo, text = await self.__find_photo_and_text(big_data)
+        photo, text = await find_photo_and_text(big_data)
         return photo, text
 
     async def start_form(self, user_id: int):
-        photo, text = await self.__load_form(user_id)
+        photo, text = await self.load_form(user_id)
         await start_dialog_check_docs(self.manager, text, photo)
+
+
+async def find_photo_and_text(big_data: list[dict]):
+    list_photo, list_text = [], []
+    for item in big_data:
+        converted_item = Task(*item.values())
+        if converted_item.column_name.startswith("photo"):
+            list_photo.append(item)
+        else:
+            list_text.append(item)
+    return list_photo if list_photo else None, list_text
 
 
 async def calc_exit(manager: DialogManager):
