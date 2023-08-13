@@ -35,10 +35,10 @@ async def save_document_author_text(msg: Message, _, manager: DialogManager):
     await manager.next()
 
 
-async def save_percentage_text(msg: Message, _, manager: DialogManager, __):
+async def save_fullname_text(msg: Message, _, manager: DialogManager, __):
     await msg.delete()
     manager.show_mode = ShowMode.EDIT
-    manager.dialog_data['result'].update({"words_author_percent": int(msg.text)})
+    manager.dialog_data['result'].update({"words_author_fullname": msg.text})
     await manager.done(manager.dialog_data['result'])
 
 
@@ -50,10 +50,10 @@ async def save_document_author_beat(msg: Message, _, manager: DialogManager):
     await manager.next()
 
 
-async def save_percentage_beat(msg: Message, _, manager: DialogManager, __):
+async def save_fullname_beat(msg: Message, _, manager: DialogManager, __):
     await msg.delete()
     manager.show_mode = ShowMode.EDIT
-    manager.dialog_data['result'].update({"beatmaker_percent": int(msg.text)})
+    manager.dialog_data['result'].update({"beatmaker_fullname": int(msg.text)})
     await manager.done(manager.dialog_data['result'])
 
 
@@ -83,11 +83,11 @@ dialog = Dialog(
         state=StudioEdit.author_text
     ),
     Window(
-        Const("Какой процент от трека берет автор текста ?\nЦелое значение"),
+        Const("Полное ФИО автора текста ?"),
         TextInput(
             id="input_edit_percentage",
             type_factory=int,
-            on_success=save_percentage_text
+            on_success=save_fullname_text
         ),
         BTN_BACK,
         state=StudioEdit.author_text_percent
@@ -102,11 +102,11 @@ dialog = Dialog(
         state=StudioEdit.author_beat
     ),
     Window(
-        Const("Какой процент от трека берет автор бита ?\nЦелое значение"),
+        Const("Полное ФИО автора бита ?"),
         TextInput(
             id="input_edit_beatmaker_percent",
             type_factory=int,
-            on_success=save_percentage_beat
+            on_success=save_fullname_beat
         ),
         BTN_BACK,
         state=StudioEdit.author_beat_percent

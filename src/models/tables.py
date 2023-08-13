@@ -33,7 +33,6 @@ class User(Base):
     # chats show how to realize one-to-many
     tracks = relationship("Track", back_populates="user")  # Добавить связь с Track
     albums = relationship("Album", back_populates="user")
-    employee = relationship("Employee", uselist=False, back_populates='user')
 
 
 class PersonalData(Base):
@@ -164,7 +163,6 @@ class Employee(Base):
     recovery_date = Column(DateTime)
 
     track = relationship("Track", back_populates='employee', uselist=True)
-    user = relationship("User", back_populates="employee")
     track_approvement = relationship('TrackApprovement', back_populates='employee')
 
 
@@ -204,12 +202,12 @@ class TrackInfo(Base):
     text_file_id = Column(String)
     words_status = Column(Boolean, default=False)
     words_alienation = Column(String)
-    words_author_percent = Column(Integer)
+    words_author_fullname = Column(String)
 
     # Beat
     beat_status = Column(Boolean, default=False)
     beat_alienation = Column(String)
-    beatmaker_percent = Column(Integer)
+    beatmaker_fullname = Column(String)
 
     # Feat
     feat_status = Column(Boolean, default=False)

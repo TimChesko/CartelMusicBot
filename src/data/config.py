@@ -31,6 +31,7 @@ class Constant:
     privileges: List[str]
     chats_backup: List[int]
     logging_level: int
+    support: str
 
 
 @dataclass
@@ -65,6 +66,7 @@ def load_config(path: str = None) -> Config:
             developers=list(map(int, env.list("DEVELOPERS"))),
             privileges=list(map(str, env.list("PRIVILEGES"))),
             chats_backup=list(map(int, env.list("CHATS_BACKUP"))),
-            logging_level=env.int("LOGGING_LEVEL")
+            logging_level=env.int("LOGGING_LEVEL"),
+            support="@CartelMusicSupport"
         )
     )

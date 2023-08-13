@@ -20,6 +20,7 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
         "library_check": library,
         'verif_check': personal_data.all_passport_data == 'approve' and personal_data.all_bank_data == 'approve',
         'track_check': tracks,
+        "has_btn": "\nВыберете категорию:" if tracks else "",
         'data': data,
         "text": "🙎‍♂️ Профиль" if personal_data.all_passport_data and personal_data.all_bank_data
         else "✅ Пройти верификацию"
@@ -39,7 +40,12 @@ async def start_profile(_, __, manager: DialogManager):
 
 start_menu = Dialog(
     Window(
-        Const("Выберите нужную категорию"),
+        Const("""<b>Главное меню</b>
+        
+🚀 Узнать все возможности бота - /info
+👨‍🚀 Поддержка - @CartelMusicSupport
+❓ Частые вопросы - /help"""),
+        Format("{has_btn}"),
         Start(
             Const("🎙 Трек на прослушивание"),
             id='listening',

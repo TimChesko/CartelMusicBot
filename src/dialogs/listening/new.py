@@ -47,27 +47,32 @@ async def nickname_getter(dialog_manager: DialogManager, **_kwargs):
 
 async def on_finish_new_track(callback: CallbackQuery, _, manager: DialogManager):
     data = manager.middleware_data
-    await TrackHandler(data['session_maker'], data['database_logger']).add_new_track(
+    support = data['config'].constant.support
+    answer = await TrackHandler(data['session_maker'], data['database_logger']).add_new_track(
         user_id=callback.from_user.id,
         track_title=manager.dialog_data["track_title"],
         file_id_audio=manager.dialog_data["track"]
     )
-    await callback.message.edit_caption(caption=f'Трек "{manager.dialog_data["track_title"]}" отправлен на модерацию')
+    if answer:
+        text = f'✅ Трек <b>{manager.dialog_data["track_title"]}</b> отправлен на модерацию'
+    else:
+        text = f'❌ Произошел сбой на стороне сервера. Обратитесь в поддержку {support}'
+    await callback.message.edit_caption(caption=text)
     manager.show_mode = ShowMode.SEND
     await manager.done()
 
 
 async def other_type_handler_audio(msg: Message, _, __):
-    await msg.answer("Пришлите трек в формате mp3")
+    await msg.answer("🎶 Пришлите трек в формате файла - <b>.mp3</b>")
 
 
 async def other_type_handler_text(msg: Message, _, __):
-    await msg.answer("Пришлите название трека")
+    await msg.answer("📝 Название трека в формате - текст\nПример: <b>Best of the best track</b>")
 
 
 new_track = Dialog(
     Window(
-        Format("{nickname}, скиньте ваш трек"),
+        Format("1️⃣ {nickname}, скиньте ваш трек"),
         BTN_CANCEL_BACK,
         MessageInput(set_music_file, content_types=[ContentType.AUDIO]),
         MessageInput(other_type_handler_audio),
@@ -75,14 +80,15 @@ new_track = Dialog(
         getter=nickname_getter
     ),
     Window(
-        Const("Дайте название вашему треку"),
+        Const("2️⃣ Дайте название вашему треку"),
         MessageInput(set_music_title, content_types=[ContentType.TEXT]),
         MessageInput(other_type_handler_text),
         BTN_BACK,
         state=ListeningNewTrack.title
     ),
     Window(
-        Format('Подтверждение отправки трека "{title}"'),
+        Const("Подтверждение отправки трека"),
+        Format("Название: <b>{title}</b>"),
         DynamicMedia('audio'),
         Row(
             Button(TXT_APPROVE, on_click=on_finish_new_track, id="approve_track"),
@@ -91,5 +97,5 @@ new_track = Dialog(
         BTN_CANCEL_BACK,
         state=ListeningNewTrack.finish,
         getter=on_finish_getter
-    ),
+    )
 )
