@@ -66,7 +66,8 @@ async def on_finally(callback: CallbackQuery, _, manager: DialogManager):
 
 dialog = Dialog(
     Window(
-        Const("Ваш список социальных сетей"),
+        Const("⭐️ Социальные сети\n"),
+        Const("❓ Данные соц. сети будут прикреплены к альбомам, которые Вы выпустите"),
         ScrollingGroup(
             Select(
                 Format("{item[1]}"),

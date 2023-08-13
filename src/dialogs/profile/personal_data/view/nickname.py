@@ -9,7 +9,7 @@ async def start_edit_nickname(manager: DialogManager):
         "edit_nickname": {
             "data_name": "edit_nickname",
             "title": "Никнейм",
-            "text": "Пришлите ваш новый никнейм\n\nПример: getxp",
+            "text": "📥 Пришлите ваш новый псевдоним",
             "input_type": ["any"],
             "comment": None
         }
