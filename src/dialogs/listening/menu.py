@@ -25,7 +25,7 @@ async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
 
 listening_menu = Dialog(
     Window(
-        Const("🎧 Прослушивание\n\n"
+        Const("🎧 <b>Прослушивание</b>\n\n"
               "❓ Первый этап выпуска ваших треков совместно с лейблом <b>CartelMusic</b>. "
               "На данным этапе вы присылаете свой трек на прослушивание модераторам, "
               "после чего ваш трек отправляется на стадию добавления информации о треке."),
@@ -33,7 +33,7 @@ listening_menu = Dialog(
         Const("Дождитесь проверки имеющихся треков на модерации", when=F["process_check"].is_(False)),
         Start(Const('❇️ Прислать трек'), state=ListeningNewTrack.start, id='listening_new_track', when='process_check',
               data="data"),
-        Start(Const('❗️ Отклоненные'), state=ListeningEditTrack.start, id='listening_old_track', when='rejects_check'),
+        Start(Const('❌ Отклоненные'), state=ListeningEditTrack.start, id='listening_old_track', when='rejects_check'),
         BTN_CANCEL_BACK,
         state=Listening.start,
         getter=tracks_getter

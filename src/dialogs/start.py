@@ -40,7 +40,7 @@ async def start_profile(_, __, manager: DialogManager):
 
 start_menu = Dialog(
     Window(
-        Const("""<b>Главное меню</b>
+        Const("""🏠 <b>Главное меню</b>
         
 🚀 Узнать все возможности бота - /info
 👨‍🚀 Поддержка - @CartelMusicSupport
