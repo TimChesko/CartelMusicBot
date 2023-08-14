@@ -49,3 +49,10 @@ async def convert_data_type_one(value: Any):
         except ValueError:
             converted_value = value
     return converted_value
+
+
+async def get_key_value(data):
+    data_values = {}
+    for name_data, items in data.items():
+        data_values[name_data] = items["value"]
+    return data_values

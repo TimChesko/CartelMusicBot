@@ -3,6 +3,7 @@ from typing import Any
 
 from aiogram_dialog import DialogManager
 
+from src.utils.fsm import Passport
 from .window_input import start_dialog_filling_profile
 
 
