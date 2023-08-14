@@ -6,7 +6,7 @@ from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Button, Row, Url, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.dialogs.utils.buttons import BTN_BACK, TXT_BACK, TXT_APPROVE, BTN_CANCEL_BACK
+from src.dialogs.utils.buttons import TXT_BACK, TXT_APPROVE, BTN_CANCEL_BACK
 from src.dialogs.utils.widgets.input_forms.process_input import process_input_result, InputForm
 from src.dialogs.utils.widgets.input_forms.utils import get_data_from_db
 from src.dialogs.utils.widgets.input_forms.window_input import start_dialog_filling_profile
@@ -126,7 +126,7 @@ dialog = Dialog(
         disable_web_page_preview=True
     ),
     Window(
-        Format("{title}"),
+        Format("Название соц сети: {title}"),
         Url(
             Const("Ссылка"),
             Format("{link}")
