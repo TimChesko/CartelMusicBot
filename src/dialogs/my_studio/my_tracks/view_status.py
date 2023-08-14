@@ -166,19 +166,19 @@ dialog = Dialog(
             scroll="stub_scroll_track_info"
         ),
         Button(
-            Const("Заполнить данные"),
+            Const("📝 Заполнить данные"),
             id="my_studio_status_approve",
             on_click=start_form,
             when="new_data"
         ),
         Button(
-            Const("Заполнить заново данные"),
+            Const("📝 Заполнить заново данные"),
             id="my_studio_status_reject",
             on_click=start_form,
             when="edit_data"
         ),
         SwitchTo(
-            Const("Удалить трек"),
+            Const("❌ Удалить трек"),
             id="my_studio_status_process_delete",
             state=ViewStatus.accept,
             when="delete"
