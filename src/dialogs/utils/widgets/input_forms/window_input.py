@@ -5,7 +5,7 @@ from aiogram.types import Message
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import TextInput, MessageInput
 from aiogram_dialog.widgets.kbd import Button
-from aiogram_dialog.widgets.text import Format, Const
+from aiogram_dialog.widgets.text import Format
 
 from src.dialogs.utils.buttons import TXT_BACK
 from src.dialogs.utils.calendar import CustomCalendar

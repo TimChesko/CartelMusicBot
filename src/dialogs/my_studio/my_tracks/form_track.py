@@ -84,24 +84,29 @@ async def save_data_feat(_, __, manager: DialogManager):
 async def finish(callback: CallbackQuery, __, manager: DialogManager):
     data = manager.dialog_data.get('track')
     middleware_data = manager.middleware_data
+    support = middleware_data['config'].constant.support
     if data['feat_status']:
         data.update({"status": "wait_feat"})
     else:
         data.update({"status": "process"})
-    await TrackInfoHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
+    answer = await TrackInfoHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
         add_track_info(int(manager.dialog_data['track_id']), data)
-    if data['feat_status']:
-        bot: Bot = manager.middleware_data['bot']
-        bot_info = await bot.me()
-        link = create_deep_link(bot_info.username,
-                                link_type="start",
-                                payload=f"track_feat_{manager.dialog_data['track_id']}",
-                                encode=True)
-        await callback.message.answer("Данные занесены в базу данных. Чтобы они отправились на модерацию, "
-                                      "пригласите по данной ссылке участника фита.\n"
-                                      f"Ссылка: {link}", disable_web_page_preview=True)
+    if answer:
+        if data['feat_status']:
+            bot: Bot = manager.middleware_data['bot']
+            bot_info = await bot.me()
+            link = create_deep_link(bot_info.username,
+                                    link_type="start",
+                                    payload=f"track_feat_{manager.dialog_data['track_id']}",
+                                    encode=True)
+            text = "✅ Данные занесены в базу данных. Чтобы они отправились на модерацию, " \
+                   "пригласите по данной ссылке участника фита.\n" \
+                   f"Ссылка: {link}"
+        else:
+            text = "✅ Данные отправлены на модерацию"
     else:
-        await callback.message.answer("Данные отправлены на модерацию")
+        text = f'❌ Произошел сбой на стороне сервера. Обратитесь в поддержку {support}'
+    await callback.message.answer(text, disable_web_page_preview=True)
     manager.show_mode = ShowMode.SEND
     await manager.done()
 
