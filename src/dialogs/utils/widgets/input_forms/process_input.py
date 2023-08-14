@@ -1,9 +1,8 @@
 import re
 from typing import Any
-
+import validators
 from aiogram_dialog import DialogManager
 
-from src.utils.fsm import Passport
 from .window_input import start_dialog_filling_profile
 
 
@@ -63,7 +62,8 @@ class InputForm:
             "space": [r"\s", "пробелы"],
             "any": [".*", "любые символы"],
             "date": [".*", "любые символы"],
-            "img": [".*", "фотография"]
+            "img": [".*", "фотографию"],
+            "link": ["", "ссылку"]
         }
 
         input_pattern = ''.join(template_input.get(item, [""])[0] for item in input_type)
@@ -73,12 +73,13 @@ class InputForm:
             regex_pattern = rf'{input_pattern}$'
         elif ("big_int" in input_type or "int" in input_type) and "minus" in input_type:
             regex_pattern = rf'[{template_input["big_int"][0]}{template_input["minus"][0]}]+$'
-        elif "big_int" in input_type or "int" in input_type:
+        elif "big_int" in input_type or "int" in input_type or "link" in input_type:
             regex_pattern = rf'^{input_pattern}$'
         else:
             regex_pattern = rf'^[{input_pattern}]+$'
 
-        if "img" in input_type or "date" in input_type or re.match(regex_pattern, input_result):
+        if (("link" in input_type and validators.url(input_result)) or "img" in input_type or "date" in input_type or
+                re.match(regex_pattern, input_result)):
             return {"value": input_result, "check": True}
         else:
             return {"value": f"Ответ может содержать {allowed_characters}\nПовторите попытку снова", "check": False}
