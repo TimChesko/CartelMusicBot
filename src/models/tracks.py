@@ -3,6 +3,7 @@ import datetime
 from sqlalchemy import select, update, or_, asc, and_, delete
 from sqlalchemy.exc import SQLAlchemyError
 
+from src.data.config import Config
 from src.models.tables import Track, User, TrackInfo, TrackApprovement
 
 
@@ -285,9 +286,11 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def update_approve(self, track_id: int, employee_id: int) -> bool:
+    async def update_approve(self, track_id: int, employee_id: int, config: Config) -> bool:
         async with self.session_maker() as session:
             try:
+                if employee_id in config.constant.developers:
+                    employee_id = None
                 await session.execute(
                     update(Track).where(Track.id == track_id).values(id_who_approve=employee_id,
                                                                      status='approve')
