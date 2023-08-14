@@ -1,4 +1,3 @@
-import datetime
 from datetime import date
 
 from aiogram.enums import ContentType
@@ -63,7 +62,7 @@ async def save_data(message: Message, _, manager: DialogManager, __):
     await message.delete()
     manager.show_mode = ShowMode.EDIT
     await manager.done(
-        [message.text, start_data['data_name']]
+        [message.text, start_data['data_name'], start_data['title']]
     )
 
 
@@ -72,22 +71,18 @@ async def save_img(message: Message, _, manager: DialogManager):
     await message.delete()
     manager.show_mode = ShowMode.EDIT
     await manager.done(
-        [message.photo[0].file_id, start_data['data_name']]
+        [message.photo[0].file_id, start_data['data_name'], start_data['title']]
     )
 
 
 async def on_date_selected(_, __, manager: DialogManager, selected_date: date):
-    await manager.done([str(selected_date), manager.start_data['data_name']])
+    start_data = manager.start_data
+    await manager.done([str(selected_date), manager.start_data['data_name'], start_data['title']])
 
 
 async def on_back(_, __, manager: DialogManager):
     start_data = manager.start_data
-    await manager.done(["back", start_data['data_name']])
-
-
-async def on_stop(_, __, manager: DialogManager):
-    start_data = manager.start_data
-    await manager.done(["stop", start_data['data_name']])
+    await manager.done(["back", start_data['data_name'], start_data['title']])
 
 
 dialog_input = Dialog(
@@ -102,12 +97,6 @@ dialog_input = Dialog(
             id="input_text_back",
             on_click=on_back,
             when="btn_back_text"
-        ),
-        Button(
-            Const("Сброс"),
-            id="input_text_stop",
-            on_click=on_stop,
-            when="btn_stop"
         ),
         disable_web_page_preview=True,
         state=DialogInput.text,
@@ -132,6 +121,12 @@ dialog_input = Dialog(
         MessageInput(
             func=save_img,
             content_types=ContentType.PHOTO
+        ),
+        Button(
+            TXT_BACK,
+            id="input_text_back",
+            on_click=on_back,
+            when="btn_back_text"
         ),
         state=DialogInput.img,
     ),

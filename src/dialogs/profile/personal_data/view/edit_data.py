@@ -8,7 +8,7 @@ from aiogram_dialog.widgets.text import Const, Format
 from src.dialogs.utils.buttons import TXT_CONFIRM, BTN_BACK, BTN_CANCEL_BACK
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.dialogs.utils.widgets.input_forms.process_input import process_input_result, InputForm
-from src.dialogs.utils.widgets.input_forms.utils import convert_database_to_data, convert_data_types
+from src.dialogs.utils.widgets.input_forms.utils import convert_database_to_data, convert_data_types, get_key_value
 from src.models.personal_data import PersonalDataHandler
 from src.utils.fsm import ProfileEdit
 
@@ -55,14 +55,19 @@ async def create_form(callback: CallbackQuery, _, manager: DialogManager, *_kwar
 
 async def on_finally(callback: CallbackQuery, __, manager: DialogManager):
     user_id = manager.event.from_user.id
+    support = manager.middleware_data['config'].constant.support
     dm_optimized = DialogManagerOptimized(
         manager.middleware_data['session_maker'],
         manager.middleware_data['database_logger']
     )
-    data = await convert_data_types(manager.dialog_data['save_input'])
-    await dm_optimized.update_personal_data(user_id, manager.dialog_data['header_data'], data)
-
-    await callback.message.answer("Вы успешно изменили данные !")
+    data_values = await get_key_value(manager.dialog_data['save_input'])
+    data = await convert_data_types(data_values)
+    answer = await dm_optimized.update_personal_data(user_id, manager.dialog_data['header_data'], data)
+    if answer:
+        text = "✅ Вы успешно изменили данные !"
+    else:
+        text = f'❌ Произошел сбой на стороне сервера. Обратитесь в поддержку {support}'
+    await callback.message.edit_text(text)
     manager.show_mode = ShowMode.SEND
     if not await get_data_list(manager):
         await manager.done()
@@ -91,9 +96,7 @@ dialog = Dialog(
         state=ProfileEdit.menu,
     ),
     Window(
-        Const("Проверьте и подтвердите правильность всех данных."
-              "В целях безопасности, в дальнейшем у вас не будет возможности просмотреть"
-              " внесенные данные без помощи модераторов."),
+        Const("🔰 Проверьте и подтвердите правильность всех данных"),
         Row(
             BTN_BACK,
             Button(TXT_CONFIRM, id="edit_confirm", on_click=on_finally),

@@ -1,3 +1,4 @@
+import logging
 from operator import itemgetter
 
 from aiogram.types import CallbackQuery
@@ -5,9 +6,10 @@ from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Button, Row, Url, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.dialogs.utils.buttons import BTN_BACK, TXT_BACK, TXT_APPROVE, BTN_CANCEL_BACK
+from src.dialogs.utils.buttons import TXT_BACK, TXT_APPROVE, BTN_CANCEL_BACK
 from src.dialogs.utils.widgets.input_forms.process_input import process_input_result, InputForm
 from src.dialogs.utils.widgets.input_forms.utils import get_data_from_db
+from src.dialogs.utils.widgets.input_forms.window_input import start_dialog_filling_profile
 from src.models.personal_data import PersonalDataHandler
 from src.utils.fsm import Social
 
@@ -54,14 +56,40 @@ async def on_delete(_, __, manager: DialogManager):
 
 async def on_finally(callback: CallbackQuery, _, manager: DialogManager):
     data = manager.middleware_data
+    support = data['config'].constant.support
     user_id = data['event_from_user'].id
     input_data = manager.dialog_data['save_input']
-    await PersonalDataHandler(data['session_maker'], data['database_logger']).add_social_data(
-        user_id, input_data['title'], input_data['link']
+    logging.debug(input_data)
+    answer = await PersonalDataHandler(data['session_maker'], data['database_logger']).add_social_data(
+        user_id, input_data['title']['value'], input_data['link']['value']
     )
-    await callback.message.answer(f"Вы успешно добавили соц сеть - {input_data['title']}!")
+    if answer:
+        text = f"✅ Вы успешно добавили соц сеть - {input_data['title']['value']}!"
+    else:
+        text = f'❌ Произошел сбой на стороне сервера. Обратитесь в поддержку {support}'
+    await callback.message.edit_text(text)
     manager.show_mode = ShowMode.SEND
     await manager.switch_to(state=Social.view_data)
+
+
+async def back_dialog(_, __, manager: DialogManager):
+    task_list_done = manager.dialog_data["task_list_done"]
+    task_list_process = manager.dialog_data["task_list_process"]
+    manager.current_context().state = Social.view_data
+    if len(task_list_done) != 0:
+        task_list_process.insert(0, task_list_done.pop())
+        await start_dialog_filling_profile(*(await InputForm(manager).get_args()))
+    else:
+        await manager.done()
+
+
+async def get_finish_data(dialog_manager: DialogManager, **_kwargs):
+    text = ""
+    for column, items in dialog_manager.dialog_data['save_input'].items():
+        text += f"{items['title']}: <b>{items['value']}</b>\n"
+    return {
+        "text": text,
+    }
 
 
 dialog = Dialog(
@@ -89,13 +117,16 @@ dialog = Dialog(
         state=Social.view_data
     ),
     Window(
-        Const("Подтвердите добавление ссылки"),
+        Format("{text}"),
+        Const("🔰 Проверьте и подтвердите правильность данных"),
         Button(TXT_APPROVE, id="social_confirm", on_click=on_finally),
-        BTN_BACK,
-        state=Social.confirm
+        Button(TXT_BACK, id="social_back", on_click=back_dialog),
+        state=Social.confirm,
+        getter=get_finish_data,
+        disable_web_page_preview=True
     ),
     Window(
-        Format("{title}"),
+        Format("Название соц сети: {title}"),
         Url(
             Const("Ссылка"),
             Format("{link}")
@@ -105,7 +136,8 @@ dialog = Dialog(
             Button(Const("Удалить"), id="social_delete", on_click=on_delete),
         ),
         getter=get_info,
-        state=Social.view_link
+        state=Social.view_link,
+        disable_web_page_preview=True
     ),
     on_process_result=process_input_result
 )
