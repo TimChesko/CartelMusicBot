@@ -1,4 +1,3 @@
-from aiogram import F
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import (
     Dialog, DialogManager, Window, StartMode, ShowMode,
@@ -50,12 +49,6 @@ async def on_finish(callback: CallbackQuery, _, manager: DialogManager):
 
 
 reg_fullname = Dialog(
-    Window(
-        Const('Ответь на секретный вопрос!\n'),
-        Const('<b>СЕКРЕТНЫЙ ВОПРОС</b>'),
-        TextInput(id='proof', on_success=answer, filter=F.text == 'Андрей лох'),
-        state=AdminRegistration.secret_answer
-    ),
     Window(
         Const('🔰 Перед тем как работать через бота, нужно пройти короткую регистрацию.\n'),
         Const('1️⃣ Пришлите своё - <b>имя</b>'),

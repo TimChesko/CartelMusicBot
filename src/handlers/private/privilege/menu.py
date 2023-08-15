@@ -1,5 +1,3 @@
-import logging
-
 from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
@@ -9,7 +7,6 @@ from structlog._log_levels import BoundLoggerFilteringAtDebug
 
 from src.models.employee import EmployeeHandler
 from src.models.tables import Employee
-from src.utils.enums import Privileges
 from src.utils.fsm import AdminMenu, AdminRegistration
 
 router = Router()
@@ -20,11 +17,8 @@ async def cmd_start(msg: Message,
                     session_maker: async_sessionmaker, database_logger: BoundLoggerFilteringAtDebug,
                     dialog_manager: DialogManager):
     await msg.delete()
-    logging.info(Privileges.ADMIN)
     employee: Employee = await EmployeeHandler(session_maker, database_logger).check_employee_by_tg_id(msg.from_user.id)
-    if not employee:
-        await dialog_manager.start(AdminRegistration.secret_answer, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND)
-    elif employee.fullname is None:
+    if employee and employee.fullname is None:
         await dialog_manager.start(AdminRegistration.first_name, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND)
     else:
         await dialog_manager.start(AdminMenu.start, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND)
