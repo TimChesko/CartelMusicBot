@@ -1,8 +1,6 @@
 from sqlalchemy import update, select, delete
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.tables import ListeningTemplates
-
 
 class ListeningTemplatesHandler:
 

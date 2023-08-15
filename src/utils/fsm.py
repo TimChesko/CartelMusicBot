@@ -16,6 +16,7 @@ class StartMenu(StatesGroup):
 
 
 class AdminRegistration(StatesGroup):
+    secret_answer = State()
     first_name = State()
     surname = State()
     middle_name = State()
@@ -160,7 +161,7 @@ class ReleaseTrack(StatesGroup):
     list = State()
 
 
-class AlbumPage(StatesGroup):
+class ReleasePage(StatesGroup):
     main = State()
     title = State()
     cover = State()
@@ -168,17 +169,17 @@ class AlbumPage(StatesGroup):
     mail = State()
 
 
-class AlbumTitle(StatesGroup):
+class ReleaseTitle(StatesGroup):
     start = State()
     finish = State()
 
 
-class AlbumCover(StatesGroup):
+class ReleaseCover(StatesGroup):
     start = State()
     finish = State()
 
 
-class AlbumTracks(StatesGroup):
+class ReleaseTracks(StatesGroup):
     start = State()
     finish = State()
 

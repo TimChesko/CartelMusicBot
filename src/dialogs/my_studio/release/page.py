@@ -14,19 +14,19 @@ from docxtpl import DocxTemplate
 
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, TXT_BACK
 from src.dialogs.utils.common import format_date
-from src.models.album import AlbumHandler
+from src.models.release import ReleaseHandler
 from src.models.personal_data import PersonalDataHandler
 from src.models.tables import PersonalData
-from src.utils.fsm import AlbumPage, AlbumTracks
+from src.utils.fsm import ReleasePage, ReleaseTracks
 
 
-async def set_album_mail(msg: Message, _, manager: DialogManager):
+async def set_release_mail(msg: Message, _, manager: DialogManager):
     data = manager.middleware_data
-    await AlbumHandler(data['session_maker'], data['database_logger']).set_mail_track(manager.start_data['album_id'],
+    await ReleaseHandler(data['session_maker'], data['database_logger']).set_mail_track(manager.start_data['release_id'],
                                                                                       msg.photo[0].file_id)
     await msg.delete()
     manager.show_mode = ShowMode.EDIT
-    await manager.switch_to(AlbumPage.main)
+    await manager.switch_to(ReleasePage.main)
 
 
 async def other_type_handler_mail(msg: Message, _, __):
@@ -36,10 +36,10 @@ async def other_type_handler_mail(msg: Message, _, __):
 
 mail = Window(
     Const("Прикрепите трек номер в виде фото с сжатием"),
-    MessageInput(set_album_mail, content_types=[ContentType.PHOTO]),
+    MessageInput(set_release_mail, content_types=[ContentType.PHOTO]),
     MessageInput(other_type_handler_mail),
-    SwitchTo(TXT_BACK, 'from_mail', AlbumPage.main),
-    state=AlbumPage.mail
+    SwitchTo(TXT_BACK, 'from_mail', ReleasePage.main),
+    state=ReleasePage.mail
 )
 
 
@@ -48,31 +48,31 @@ async def other_type_handler_ld(msg: Message, _, __):
     await msg.answer("Пришлите лицензионный договор в виде файла")
 
 
-async def set_album_ld(msg: Message, _, manager: DialogManager):
+async def set_release_ld(msg: Message, _, manager: DialogManager):
     data = manager.middleware_data
-    await AlbumHandler(data['session_maker'], data['database_logger']).set_ld(manager.start_data['album_id'],
+    await ReleaseHandler(data['session_maker'], data['database_logger']).set_ld(manager.start_data['release_id'],
                                                                               msg.document.file_id)
     await msg.delete()
     manager.show_mode = ShowMode.EDIT
-    await manager.switch_to(AlbumPage.main)
+    await manager.switch_to(ReleasePage.main)
 
 
 ld = Window(
     Const("Прикрепите лицензионное соглашение в виде документа"),
-    MessageInput(set_album_ld, content_types=[ContentType.DOCUMENT]),
+    MessageInput(set_release_ld, content_types=[ContentType.DOCUMENT]),
     MessageInput(other_type_handler_ld),
-    SwitchTo(TXT_BACK, 'from_ld', AlbumPage.main),
-    state=AlbumPage.ld
+    SwitchTo(TXT_BACK, 'from_ld', ReleasePage.main),
+    state=ReleasePage.ld
 )
 
 
-async def set_album_cover(msg: Message, _, manager: DialogManager):
+async def set_release_cover(msg: Message, _, manager: DialogManager):
     data = manager.middleware_data
-    await AlbumHandler(data['session_maker'], data['database_logger']).set_cover(manager.start_data['album_id'],
+    await ReleaseHandler(data['session_maker'], data['database_logger']).set_cover(manager.start_data['release_id'],
                                                                                  msg.document.file_id)
     await msg.delete()
     manager.show_mode = ShowMode.EDIT
-    await manager.switch_to(AlbumPage.main)
+    await manager.switch_to(ReleasePage.main)
 
 
 # TODO переделать other type в одну функцию для всего блока
@@ -83,16 +83,16 @@ async def other_type_handler_doc(msg: Message, _, __):
 
 cover = Window(
     Const("Прикрепите новую обложку в виде фото без сжатия"),
-    MessageInput(set_album_cover, content_types=[ContentType.DOCUMENT]),
+    MessageInput(set_release_cover, content_types=[ContentType.DOCUMENT]),
     MessageInput(other_type_handler_doc),
-    SwitchTo(TXT_BACK, 'from_cover', AlbumPage.main),
-    state=AlbumPage.cover
+    SwitchTo(TXT_BACK, 'from_cover', ReleasePage.main),
+    state=ReleasePage.cover
 )
 
 
-async def set_album_title(msg: Message, _, manager: DialogManager):
+async def set_release_title(msg: Message, _, manager: DialogManager):
     data = manager.middleware_data
-    await AlbumHandler(data['session_maker'], data['database_logger']).set_title(manager.start_data['album_id'],
+    await ReleaseHandler(data['session_maker'], data['database_logger']).set_title(manager.start_data['release_id'],
                                                                                  msg.text)
     manager.start_data['title'] = msg.text
     await msg.delete()
@@ -107,27 +107,27 @@ async def other_type_handler_text(msg: Message, _, __):
 
 title = Window(
     Const("Дайте название альбому"),
-    MessageInput(set_album_title, content_types=[ContentType.TEXT]),
+    MessageInput(set_release_title, content_types=[ContentType.TEXT]),
     MessageInput(other_type_handler_text),
-    SwitchTo(TXT_BACK, 'from_title', AlbumPage.main),
-    state=AlbumPage.title
+    SwitchTo(TXT_BACK, 'from_title', ReleasePage.main),
+    state=ReleasePage.title
 )
 
 
 async def choose_track(__, _, manager: DialogManager):
-    await manager.start(state=AlbumTracks.start, data={'album_id': manager.start_data['album_id']},
+    await manager.start(state=ReleaseTracks.start, data={'release_id': manager.start_data['release_id']},
                         show_mode=ShowMode.EDIT)
 
 
 async def clear_tracks(__, _, manager: DialogManager):
     data = manager.middleware_data
-    await AlbumHandler(data['session_maker'], data['database_logger']).delete_album_id_from_tracks(
-        manager.start_data['album_id'])
+    await ReleaseHandler(data['session_maker'], data['database_logger']).delete_release_id_from_tracks(
+        manager.start_data['release_id'])
 
 
 async def delete_release(__, _, manager: DialogManager):
     data = manager.middleware_data
-    await AlbumHandler(data['session_maker'], data['database_logger']).delete_release(manager.start_data['album_id'])
+    await ReleaseHandler(data['session_maker'], data['database_logger']).delete_release(manager.start_data['release_id'])
     await manager.done()
 
 
@@ -167,40 +167,40 @@ async def on_approvement1lvl(callback: CallbackQuery, _, manager: DialogManager)
     image_from_pc = FSInputFile(temp_file)
     msg = await callback.message.answer_document(image_from_pc)
     await bot.delete_message(callback.from_user.id, msg.message_id)
-    await AlbumHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
-        manager.start_data['album_id'],
+    await ReleaseHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
+        manager.start_data['release_id'],
         msg.document.file_id)
     os.remove(temp_file)
 
 
 async def getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    album, tracks = await AlbumHandler(data['session_maker'], data['database_logger']).get_album_scalar(
-        dialog_manager.start_data['album_id'])
+    release, tracks = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release_scalar(
+        dialog_manager.start_data['release_id'])
     is_cover = None
-    if album.album_cover:
-        doc_id = album.album_cover if dialog_manager.dialog_data['doc_state'] is True else album.unsigned_license
+    if release.release_cover:
+        doc_id = release.release_cover if dialog_manager.dialog_data['doc_state'] is True else release.unsigned_license
         is_cover = MediaAttachment(ContentType.DOCUMENT, file_id=MediaId(doc_id))
     return {
         'data': dialog_manager.start_data,
-        'title': album.album_title if album.album_title else f'Новый альбом №{album.id}',
+        'title': release.release_title if release.release_title else f'Новый альбом №{release.id}',
         'doc': is_cover,
         'tracks': tracks,
-        'text_title': '✓ Название' if album.album_title else 'Дать название',
-        'text_cover': '✓ Обложка' if album.album_cover else 'Прикрепить обложку',
+        'text_title': '✓ Название' if release.release_title else 'Дать название',
+        'text_cover': '✓ Обложка' if release.release_cover else 'Прикрепить обложку',
         'text_tracks': '✓ Треки' if tracks else 'Прикрепить треки',
-        'ld': '✓ Лиц. Договор' if album.signed_license else 'Лиц. Договор',
-        'mail_track': '✓ Трек номер' if album.mail_track_photo else 'Трек номер',
+        'ld': '✓ Лиц. Договор' if release.signed_license else 'Лиц. Договор',
+        'mail_track': '✓ Трек номер' if release.mail_track_photo else 'Трек номер',
         'when_clear': tracks is not None,
-        'unsigned': not album.unsigned_state or album.unsigned_state == 'reject',
-        'unsigned_when': all((album.album_title, album.album_cover, tracks)),
-        'wait': album.unsigned_state == 'process' or album.signed_state == 'process' or album.mail_track_state == 'process',
-        'signed': album.unsigned_state == 'approve' and not album.signed_state or album.signed_state == 'reject',
-        'signed_when': album.signed_license is not None,
-        'mail': album.signed_state == 'approve' and not album.mail_track_state or album.mail_track_state == 'reject',
-        'mail_when': album.mail_track_photo is not None,
-        'aggregate': album.mail_track_state == 'approve',
-        'end': album.mail_track_state != 'approve'
+        'unsigned': not release.unsigned_state or release.unsigned_state == 'reject',
+        'unsigned_when': all((release.release_title, release.release_cover, tracks)),
+        'wait': release.unsigned_state == 'process' or release.signed_state == 'process' or release.mail_track_state == 'process',
+        'signed': release.unsigned_state == 'approve' and not release.signed_state or release.signed_state == 'reject',
+        'signed_when': release.signed_license is not None,
+        'mail': release.signed_state == 'approve' and not release.mail_track_state or release.mail_track_state == 'reject',
+        'mail_when': release.mail_track_photo is not None,
+        'aggregate': release.mail_track_state == 'approve',
+        'end': release.mail_track_state != 'approve'
     }
 
 
@@ -214,14 +214,14 @@ async def change_state(_, __, manager: DialogManager):
 
 async def on_approvement2lvl(_, __, manager: DialogManager):
     data = manager.middleware_data
-    await AlbumHandler(data['session_maker'], data['database_logger']).update_signed_state(
-        manager.start_data['album_id'])
+    await ReleaseHandler(data['session_maker'], data['database_logger']).update_signed_state(
+        manager.start_data['release_id'])
 
 
 async def on_approvement3lvl(_, __, manager: DialogManager):
     data = manager.middleware_data
-    await AlbumHandler(data['session_maker'], data['database_logger']).update_mail_state(
-        manager.start_data['album_id'])
+    await ReleaseHandler(data['session_maker'], data['database_logger']).update_mail_state(
+        manager.start_data['release_id'])
 
 
 main = Dialog(
@@ -232,9 +232,9 @@ main = Dialog(
         Const('Ваш трек находится на стадии отгрузки, ожидайте.', when='aggregate'),
         DynamicMedia('doc'),
         Group(
-            SwitchTo(Format('{text_title}'), id='create_album_title', state=AlbumPage.title),
-            SwitchTo(Format('{text_cover}'), id='create_album_cover', state=AlbumPage.cover),
-            Button(Format('{text_tracks}'), id='add_tracks_to_album', on_click=choose_track),
+            SwitchTo(Format('{text_title}'), id='create_release_title', state=ReleasePage.title),
+            SwitchTo(Format('{text_cover}'), id='create_release_cover', state=ReleasePage.cover),
+            Button(Format('{text_tracks}'), id='add_tracks_to_release', on_click=choose_track),
             width=2,
             when='unsigned'
         ),
@@ -251,7 +251,7 @@ main = Dialog(
                      id='swap_docs',
                      on_click=change_state,
                      default=True),
-            SwitchTo(Format('{ld}'), 'users_ld', state=AlbumPage.ld),
+            SwitchTo(Format('{ld}'), 'users_ld', state=ReleasePage.ld),
             Button(Const('Отправить на проверку'), id='on_process_signed', on_click=on_approvement2lvl,
                    when='signed_when'),
             when='signed'
@@ -262,13 +262,13 @@ main = Dialog(
                      id='swap_docs',
                      on_click=change_state,
                      default=True),
-            SwitchTo(Format('{mail_track}'), 'users_mail', state=AlbumPage.mail),
+            SwitchTo(Format('{mail_track}'), 'users_mail', state=ReleasePage.mail),
             Button(Const('Отправить на проверку'), id='on_process_mail', on_click=on_approvement3lvl, when='mail_when'),
             when='mail'
         ),
         Button(Const('Удалить'), on_click=delete_release, id='delete_release', when='end'),
         BTN_CANCEL_BACK,
-        state=AlbumPage.main,
+        state=ReleasePage.main,
         getter=getter
     ),
     title,

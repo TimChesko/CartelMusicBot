@@ -40,8 +40,7 @@ async def employee_list_getter(dialog_manager: DialogManager, **_kwargs):
         text = buttons[dialog_data["filter"]]
         buttons[dialog_data["filter"]] = f"🔘 {text}"
     return {
-        'privilege': [(tg_id, firstname if firstname else tg_username, surname if surname else '', tg_username) for
-                      tg_id, tg_username, firstname, surname in employees],
+        'privilege': employees,
         'developer': dialog_manager.event.from_user.id in config.constant.developers,
         **buttons
     }
@@ -71,7 +70,7 @@ employees = Dialog(
         ),
         ScrollingGroup(
             Select(
-                Format("{item[2]} {item[1]}"),
+                Format("{item.} {item[1]}"),
                 id="ms",
                 items="privilege",
                 item_id_getter=itemgetter(0, 3),

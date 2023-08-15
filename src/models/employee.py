@@ -5,6 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from src.data.config import Config
 from src.models.tables import Employee, User
+from src.utils.enums import Privileges
 
 
 class EmployeeHandler:
@@ -13,10 +14,14 @@ class EmployeeHandler:
         self.session_maker = session_maker
         self.logger = logger
 
-    async def add_new_employee(self, user_id, privilege) -> bool:
+    async def add_new_employee(self, msg) -> bool:
         async with self.session_maker() as session:
             try:
-                new_user = Employee(tg_id=int(user_id), privilege=privilege, add_date=datetime.now())
+                new_user = Employee(add_date=datetime.now(),
+                                    tg_id=msg.from_user.id,
+                                    tg_username=msg.from_user.username,
+                                    tg_first_name=msg.from_user.first_name,
+                                    tg_last_name=msg.from_user.last_name)
                 session.add(new_user)
                 await session.commit()
                 return True
@@ -62,20 +67,31 @@ class EmployeeHandler:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
 
+    async def get_admins(self):
+        async with self.session_maker() as session:
+            try:
+                query = select(Employee.tg_id).where(Employee.privilege == 'admin')
+                result = await session.execute(query)
+                admins = result.scalars().all()
+                return admins
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при выполнении запроса: %s", e)
+                return False
+
     async def get_privilege_by_filter(self, config: Config, privilege: str | None = None):
         async with self.session_maker() as session:
             try:
                 if privilege in config.constant.privileges:
-                    query = select(Employee.tg_id, User.tg_username, Employee.first_name, Employee.surname).join(
+                    query = select(Employee.fullname).join(
                         User).where(and_(Employee.privilege == privilege, Employee.state != 'fired'))
                 elif privilege == 'regs' or privilege == 'fired':
-                    query = select(Employee.tg_id, User.tg_username, Employee.first_name, Employee.surname).join(
+                    query = select(Employee).join(
                         User).where(Employee.state == privilege)
                 else:
-                    query = select(Employee.tg_id, User.tg_username, Employee.first_name, Employee.surname).join(
+                    query = select(Employee.fullname).join(
                         User).where(Employee.state != 'fired')
                 result = await session.execute(query)
-                employee = result.all()
+                employee = result.scalars().all()
                 return employee
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
@@ -145,13 +161,11 @@ class EmployeeHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def set_fullname(self, employee_id: int, first_name, surname, middle_name) -> bool:
+    async def set_fullname(self, employee_id: int, fullname) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(
-                    update(Employee).where(Employee.tg_id == employee_id).values(first_name=first_name,
-                                                                                 surname=surname,
-                                                                                 middle_name=middle_name))
+                    update(Employee).where(Employee.tg_id == employee_id).values(fullname=fullname))
                 await session.commit()
                 return True
             except SQLAlchemyError as e:

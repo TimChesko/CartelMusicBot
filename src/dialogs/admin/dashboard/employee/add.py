@@ -23,8 +23,6 @@ async def employee_id(
         employee: Employee = await EmployeeHandler(data['session_maker'],
                                                    data['database_logger']).get_privilege_by_tg_id(tg_id, config)
         if employee:
-            # TODO когда разделим бота, добавить в вывод username и прочую tg инфу
-            # TODO убрать answer заменить на Format из getter'a
             await message.answer(f'Вы уже добавили сотрудника №{employee.tg_id}!')
         else:
             manager.dialog_data['employee_id'] = tg_id

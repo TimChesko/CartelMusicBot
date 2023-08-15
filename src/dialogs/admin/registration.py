@@ -1,3 +1,4 @@
+from aiogram import F
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import (
     Dialog, DialogManager, Window, StartMode, ShowMode,
@@ -10,6 +11,20 @@ from aiogram_dialog.widgets.text import Const, Format
 from src.dialogs.utils.buttons import TXT_APPROVE, TXT_BACK
 from src.models.employee import EmployeeHandler
 from src.utils.fsm import AdminRegistration, AdminMenu
+
+
+async def answer(msg: Message, __, dialog_manager: DialogManager, _):
+    data = dialog_manager.middleware_data
+    await EmployeeHandler(data['session_maker'], data['database_logger']).add_new_employee(msg)
+    admins = await EmployeeHandler(data['session_maker'], data['database_logger']).get_admins()
+    if admins:
+        for admin in admins:
+            await msg.bot.send_message(admin, f'❗️Новый пользователь❗️\n'
+                                              f' ID: {msg.from_user.id}\n'
+                                              f' username: @{msg.from_user.username}\n'
+                                              f' firstname: {msg.from_user.first_name}\n'
+                                              f' lastname: {msg.from_user.last_name}')
+    await dialog_manager.next()
 
 
 async def fullname_getter(dialog_manager: DialogManager, **_kwargs):
@@ -28,14 +43,19 @@ async def set_info(message: Message, widget: ManagedTextInputAdapter, dialog_man
 
 async def on_finish(callback: CallbackQuery, _, manager: DialogManager):
     data = manager.middleware_data
-    first_name, surname, middle_name = manager.dialog_data['first_name'], manager.dialog_data['surname'], \
-        manager.dialog_data['middle_name']
+    fullname = f"{manager.dialog_data['first_name']} {manager.dialog_data['surname']} {manager.dialog_data['middle_name']}"
     await EmployeeHandler(data['session_maker'], data['database_logger']).set_fullname(callback.from_user.id,
-                                                                                       first_name, surname, middle_name)
+                                                                                       fullname)
     await manager.start(state=AdminMenu.start, mode=StartMode.RESET_STACK, show_mode=ShowMode.EDIT)
 
 
 reg_fullname = Dialog(
+    Window(
+        Const('Ответь на секретный вопрос!\n'),
+        Const('<b>СЕКРЕТНЫЙ ВОПРОС</b>'),
+        TextInput(id='proof', on_success=answer, filter=F.text == 'Андрей лох'),
+        state=AdminRegistration.secret_answer
+    ),
     Window(
         Const('🔰 Перед тем как работать через бота, нужно пройти короткую регистрацию.\n'),
         Const('1️⃣ Пришлите своё - <b>имя</b>'),
