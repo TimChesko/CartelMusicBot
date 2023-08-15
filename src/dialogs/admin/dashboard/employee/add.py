@@ -41,6 +41,7 @@ async def incorrect_type(message: Message, _, __, ___):
 
 async def set_privilege(_, button: Button, manager: DialogManager):
     manager.dialog_data['privilege'] = button.widget_id
+    manager.dialog_data['status'] = button.text.text
     await manager.next()
 
 
@@ -55,7 +56,7 @@ async def developer_getter(dialog_manager: DialogManager, **_kwargs):
 async def on_finish_getter(dialog_manager: DialogManager, **_kwargs):
     return {
         'employee_id': dialog_manager.dialog_data['employee_id'],
-        'privilege': translate_privilege(dialog_manager.dialog_data['privilege'])
+        'privilege': dialog_manager.dialog_data['status']
     }
 
 
@@ -68,7 +69,7 @@ async def on_finish_privilege(callback: CallbackQuery, _, manager: DialogManager
                               'На данный момент пользователь не найден!')
     else:
         privilege = manager.dialog_data['privilege']
-        await EmployeeHandler(data['session_maker'], data['database_logger']).add_new_employee(user_id, privilege)
+        await EmployeeHandler(data['session_maker'], data['database_logger']).add_new_employee(callback, privilege)
         await manager.done()
 
 
@@ -85,16 +86,16 @@ new_employee = Dialog(
     Window(
         Const('Выберите роль, которую хотите выдать данному юзеру:'),
         Button(Const('🧑‍💼Менеджер'),
-               id='manager',
+               id='MANAGER',
                on_click=set_privilege),
         Button(Const('👨🏼‍💻Модератор'),
-               id='moderator',
+               id='MODERATOR',
                on_click=set_privilege),
         Button(Const('👨‍👦‍👦Куратор'),
-               id='curator',
+               id='CURATOR',
                on_click=set_privilege),
         Button(Const('🔐Администратор'),
-               id='admin',
+               id='ADMIN',
                on_click=set_privilege,
                when='developer'),
         BTN_BACK,

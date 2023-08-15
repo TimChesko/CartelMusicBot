@@ -1,8 +1,9 @@
+import logging
 from _operator import itemgetter
 
 from aiogram_dialog import Window, Dialog, DialogManager
 from aiogram_dialog.widgets.kbd import Start, ScrollingGroup, Select, Group, SwitchTo
-from aiogram_dialog.widgets.text import Const, Format
+from aiogram_dialog.widgets.text import Const, Format, Case
 
 from src.dialogs.admin.dashboard.employee.delete import delete_window
 from src.dialogs.admin.dashboard.employee.info import info_window
@@ -42,14 +43,13 @@ async def employee_list_getter(dialog_manager: DialogManager, **_kwargs):
     return {
         'privilege': employees,
         'developer': dialog_manager.event.from_user.id in config.constant.developers,
+        'is_fullname': employees is not None,
         **buttons
     }
 
 
 async def on_item_selected(_, __, manager: DialogManager, selected_item: str):
-    items = eval(selected_item)
-    manager.dialog_data["employee_id"] = int(items[0])
-    manager.dialog_data["username"] = items[1]
+    manager.dialog_data["employee_id"] = int(selected_item)
     await manager.next()
 
 
@@ -58,10 +58,10 @@ employees = Dialog(
     Window(
         Const("Сотрудники"),
         Group(
-            SwitchTo(Format('{admin}'), id='admin', state=AdminEmployee.start, on_click=privilege_filter),
-            SwitchTo(Format('{manager}'), id='manager', state=AdminEmployee.start, on_click=privilege_filter),
-            SwitchTo(Format('{moderator}'), id='moderator', state=AdminEmployee.start, on_click=privilege_filter),
-            SwitchTo(Format('{curator}'), id='curator', state=AdminEmployee.start, on_click=privilege_filter),
+            SwitchTo(Format('{admin}'), id='ADMIN', state=AdminEmployee.start, on_click=privilege_filter),
+            SwitchTo(Format('{manager}'), id='MANAGER', state=AdminEmployee.start, on_click=privilege_filter),
+            SwitchTo(Format('{moderator}'), id='MODERATOR', state=AdminEmployee.start, on_click=privilege_filter),
+            SwitchTo(Format('{curator}'), id='CURATOR', state=AdminEmployee.start, on_click=privilege_filter),
             SwitchTo(Format('{regs}'), id='regs', state=AdminEmployee.start, on_click=privilege_filter),
             SwitchTo(Const('Сброс'), id='all', state=AdminEmployee.start, on_click=privilege_filter),
             SwitchTo(Format('🔻{fired}🔻'), id='fired', state=AdminEmployee.start, on_click=privilege_filter,
@@ -70,10 +70,10 @@ employees = Dialog(
         ),
         ScrollingGroup(
             Select(
-                Format("{item.} {item[1]}"),
+                Format('{item.tg_username}'),
                 id="ms",
                 items="privilege",
-                item_id_getter=itemgetter(0, 3),
+                item_id_getter=lambda emp: emp.tg_id,
                 on_click=on_item_selected
             ),
             width=1,

@@ -7,10 +7,10 @@ def translate_privilege(privilege: str) -> str:
     translations = {
         "user": "Юзер",
         "tester": "Тестер",
-        "manager": "Менеджер",
-        "moderator": "Модератор",
-        "curator": "Куратор",
-        "admin": "Админ",
+        "MANAGER": "Менеджер",
+        "MODERATOR": "Модератор",
+        "CURATOR": "Куратор",
+        "ADMIN": "Админ",
     }
     return translations[privilege]
 

@@ -14,14 +14,15 @@ class EmployeeHandler:
         self.session_maker = session_maker
         self.logger = logger
 
-    async def add_new_employee(self, msg) -> bool:
+    async def add_new_employee(self, event, privilege) -> bool:
         async with self.session_maker() as session:
             try:
                 new_user = Employee(add_date=datetime.now(),
-                                    tg_id=msg.from_user.id,
-                                    tg_username=msg.from_user.username,
-                                    tg_first_name=msg.from_user.first_name,
-                                    tg_last_name=msg.from_user.last_name)
+                                    tg_id=event.from_user.id,
+                                    tg_username=event.from_user.username,
+                                    tg_first_name=event.from_user.first_name,
+                                    tg_last_name=event.from_user.last_name,
+                                    privilege=privilege)
                 session.add(new_user)
                 await session.commit()
                 return True
@@ -58,7 +59,7 @@ class EmployeeHandler:
         async with self.session_maker() as session:
             try:
                 if tg_id in config.constant.developers:
-                    return None
+                    return 'developer'
                 query = select(Employee.privilege).where(and_(Employee.tg_id == tg_id))
                 result = await session.execute(query)
                 employee = result.scalar_one_or_none()
@@ -82,14 +83,14 @@ class EmployeeHandler:
         async with self.session_maker() as session:
             try:
                 if privilege in config.constant.privileges:
-                    query = select(Employee.fullname).join(
-                        User).where(and_(Employee.privilege == privilege, Employee.state != 'fired'))
+                    query = select(Employee).where(
+                        and_(Employee.privilege == privilege, Employee.state != 'fired'))
                 elif privilege == 'regs' or privilege == 'fired':
-                    query = select(Employee).join(
-                        User).where(Employee.state == privilege)
+                    query = select(Employee).where(
+                        Employee.state == privilege)
                 else:
-                    query = select(Employee.fullname).join(
-                        User).where(Employee.state != 'fired')
+                    query = select(Employee).where(
+                        Employee.state != 'fired')
                 result = await session.execute(query)
                 employee = result.scalars().all()
                 return employee
@@ -97,19 +98,12 @@ class EmployeeHandler:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
 
-    async def get_dialog_info_by_tg_id(self, tg_id: int):
+    async def get_dialog_info_by_tg_id(self, tg_id: int) -> Employee | bool:
         async with self.session_maker() as session:
             try:
-                query = select(Employee.first_name,
-                               Employee.surname,
-                               Employee.middle_name,
-                               Employee.privilege,
-                               Employee.state,
-                               Employee.add_date,
-                               Employee.fired_date,
-                               Employee.recovery_date).where(Employee.tg_id == tg_id)
+                query = select(Employee).where(Employee.tg_id == tg_id)
                 result = await session.execute(query)
-                employee = result.one()
+                employee = result.scalar_one_or_none()
                 return employee
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
