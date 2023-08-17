@@ -1,18 +1,26 @@
 from enum import Enum
 
 
-class FeatStatus(Enum):
-    WAIT_FEAT = "WAIT_FEAT"
-    WAIT_REG_FEAT = "WAIT_REG_FEAT"
+class EnumBase(Enum):
+    def __getattribute__(self, name):
+        value = super().__getattribute__(name)
+        if name != '__class__':
+            return value.value
+        return value
 
 
-class Status(Enum):
-    PROCESS = 'PROCESS'
-    REJECT = 'REJECT'
-    APPROVE = 'APPROVE'
+class FeatStatus(EnumBase):
+    WAIT_FEAT = "wait_feat"
+    WAIT_REG_FEAT = "wait_reg_feat"
 
 
-class Tables(Enum):
+class Status(EnumBase):
+    PROCESS = 'process'
+    REJECT = 'reject'
+    APPROVE = 'approve'
+
+
+class Tables(EnumBase):
     USER = 'user'
     TRACK = 'track'
     RELEASE = 'release'
@@ -21,7 +29,7 @@ class Tables(Enum):
     PERSONAL_DATA = 'personal_data'
 
 
-class Actions(Enum):
+class Actions(EnumBase):
     PASS_DATA = 'all_passport_data'
     BANK_DATA = 'all_bank_data'
     RELEASE_UNSIGNED = 'unsigned_state'
@@ -31,14 +39,14 @@ class Actions(Enum):
     TRACK_INFO_STATE = 'info_state'
 
 
-class Privileges(Enum):
-    MANAGER = 'MANAGER'
-    MODERATOR = 'MODERATOR'
-    CURATOR = 'CURATOR'
-    ADMIN = 'ADMIN'
+class Privileges(EnumBase):
+    MANAGER = 'manager'
+    MODERATOR = 'moderator'
+    CURATOR = 'curator'
+    ADMIN = 'admin'
 
 
-class EmployeeStatus(Enum):
-    REGISTRATION = "REGISTRATION"  # the moderator has not registered yet
-    WORKS = "WORKS"  # the moderator has been registered
-    FIRED = "FIRED"  # the moderator has been fired (уволен)
+class EmployeeStatus(EnumBase):
+    REGISTRATION = "registration"  # the moderator has not registered yet
+    WORKS = "works"  # the moderator has been registered
+    FIRED = "fired"  # the moderator has been fired (уволен)
