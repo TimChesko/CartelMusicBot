@@ -4,7 +4,7 @@ from sqlalchemy import select, update, or_, asc, and_, delete
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.data.config import Config
-from src.models.tables import Track, User, TrackInfo, TrackApprovement
+from src.models.tables import Track, User, TrackInfo
 
 
 class TrackHandler:
@@ -274,11 +274,11 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def update_album_id(self, track_ids: list, album_id) -> bool:
+    async def update_release_id(self, track_ids: list, release_id) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(
-                    update(Track).where(Track.id.in_(track_ids)).values(album_id=album_id)
+                    update(Track).where(Track.id.in_(track_ids)).values(release_id=release_id)
                 )
                 await session.commit()
                 return True
@@ -304,12 +304,12 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def get_for_album_multiselect(self, tg_id: int):
+    async def get_for_release_multiselect(self, tg_id: int):
         async with self.session_maker() as session:
             try:
                 result = await session.execute(
                     select(Track.track_title, Track.id).join(TrackInfo)
-                    .where(and_(Track.user_id == tg_id, Track.album_id == None, TrackInfo.status == 'approve'),
+                    .where(and_(Track.user_id == tg_id, Track.release_id == None, TrackInfo.status == 'approve'),
                            or_(Track.status == "approve", Track.status == "approve_promo")))
                 tracks = result.all()
                 return tracks

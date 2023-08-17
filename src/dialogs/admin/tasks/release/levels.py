@@ -6,15 +6,15 @@ from src.dialogs.admin.tasks.release.funcs import on_task_selected
 from src.dialogs.admin.tasks.release.windows import create_task_info_window, create_reason_window, \
     create_reason_confirm_window
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK
-from src.models.album import AlbumHandler
+from src.models.release import ReleaseHandler
 from src.utils.fsm import AdminReleaseLvl1, AdminReleaseLvl3, AdminReleaseLvl2
 
 
 async def lvl1_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    album = await AlbumHandler(data['session_maker'], data['database_logger']).get_unsigned_state('process')
+    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_unsigned_state('process')
     return {
-        'album': album
+        'release': release
     }
 
 
@@ -26,13 +26,13 @@ lvl1 = Dialog(
             Select(
                 Format("Релиз №{item.id}"),
                 id="alb_adm_track_list",
-                items="album",
-                item_id_getter=lambda album: album.id,
+                items="release",
+                item_id_getter=lambda release: release.id,
                 on_click=on_task_selected
             ),
             width=1,
             height=5,
-            id='scroll_albums_lvl1',
+            id='scroll_releases_lvl1',
             hide_on_single_page=True
         ),
         BTN_CANCEL_BACK,
@@ -47,9 +47,9 @@ lvl1 = Dialog(
 
 async def lvl2_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    album = await AlbumHandler(data['session_maker'], data['database_logger']).get_signed_state('process')
+    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_signed_state('process')
     return {
-        'album': album
+        'release': release
     }
 
 
@@ -61,13 +61,13 @@ lvl2 = Dialog(
             Select(
                 Format("Релиз №{item.id}"),
                 id="alb_adm_track_list",
-                items="album",
-                item_id_getter=lambda album: album.id,
+                items="release",
+                item_id_getter=lambda release: release.id,
                 on_click=on_task_selected
             ),
             width=1,
             height=5,
-            id='scroll_albums_lvl2',
+            id='scroll_releases_lvl2',
             hide_on_single_page=True
         ),
         BTN_CANCEL_BACK,
@@ -82,9 +82,9 @@ lvl2 = Dialog(
 
 async def lvl3_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    album = await AlbumHandler(data['session_maker'], data['database_logger']).get_mail_state('process')
+    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_mail_state('process')
     return {
-        'album': album
+        'release': release
     }
 
 
@@ -96,13 +96,13 @@ lvl3 = Dialog(
             Select(
                 Format("Релиз №{item.id}"),
                 id="alb_adm_track_list",
-                items="album",
-                item_id_getter=lambda album: album.id,
+                items="release",
+                item_id_getter=lambda release: release.id,
                 on_click=on_task_selected
             ),
             width=1,
             height=5,
-            id='scroll_albums_lvl3',
+            id='scroll_releases_lvl3',
             hide_on_single_page=True
         ),
         BTN_CANCEL_BACK,

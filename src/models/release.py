@@ -3,20 +3,20 @@ import datetime
 from sqlalchemy import select, update, delete, asc
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.tables import Album, Track, User
+from src.models.tables import Release, Track, User
 
 
 # noinspection PyTypeChecker
-class AlbumHandler:
+class ReleaseHandler:
 
     def __init__(self, session_maker, logger):
         self.session_maker = session_maker
         self.logger = logger
 
-    async def add_new_album(self, user_id: int) -> bool:
+    async def add_new_release(self, user_id: int) -> bool:
         async with self.session_maker() as session:
             try:
-                new_track = Album(user_id=user_id, create_datetime=datetime.datetime.now())
+                new_track = Release(user_id=user_id, create_datetime=datetime.datetime.now())
                 session.add(new_track)
                 await session.commit()
                 return True
@@ -25,10 +25,11 @@ class AlbumHandler:
                 await session.rollback()
                 return False
 
-    async def get_album_by_user_id(self, user_id):
+    async def get_release_by_user_id(self, user_id):
         async with self.session_maker() as session:
             try:
-                result = await session.execute(select(Album.id, Album.album_title).where(Album.user_id == user_id))
+                result = await session.execute(
+                    select(Release.id, Release.release_title).where(Release.user_id == user_id))
                 track_info = result.all()
                 return track_info
             except SQLAlchemyError as e:
@@ -39,8 +40,8 @@ class AlbumHandler:
         async with self.session_maker() as session:
             try:
                 result = await session.execute(
-                    select(Album).where(Album.unsigned_state == state).order_by(
-                        asc(Album.sort_datetime))
+                    select(Release).where(Release.unsigned_state == state).order_by(
+                        asc(Release.sort_datetime))
                 )
                 track_info = result.scalars().all()
                 return track_info
@@ -52,8 +53,8 @@ class AlbumHandler:
         async with self.session_maker() as session:
             try:
                 result = await session.execute(
-                    select(Album).where(Album.signed_state == state).order_by(
-                        asc(Album.sort_datetime))
+                    select(Release).where(Release.signed_state == state).order_by(
+                        asc(Release.sort_datetime))
                 )
                 track_info = result.scalars().all()
                 return track_info
@@ -65,8 +66,8 @@ class AlbumHandler:
         async with self.session_maker() as session:
             try:
                 result = await session.execute(
-                    select(Album).where(Album.mail_track_state == state).order_by(
-                        asc(Album.sort_datetime))
+                    select(Release).where(Release.mail_track_state == state).order_by(
+                        asc(Release.sort_datetime))
                 )
                 track_info = result.scalars().all()
                 return track_info
@@ -74,23 +75,23 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def get_album_scalar(self, album_id) -> Album:
+    async def get_release_scalar(self, release_id) -> Release:
         async with self.session_maker() as session:
             try:
-                album = await session.execute(select(Album).where(Album.id == album_id))
-                album_info = album.scalar_one_or_none()
-                tracks = await session.execute(select(Track).where(Track.album_id == album_id))
+                release = await session.execute(select(Release).where(Release.id == release_id))
+                release_info = release.scalar_one_or_none()
+                tracks = await session.execute(select(Track).where(Track.release_id == release_id))
                 tracks_info = tracks.scalars().all()
-                return album_info, tracks_info
+                return release_info, tracks_info
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def delete_album_id_from_tracks(self, album_id) -> Album:
+    async def delete_release_id_from_tracks(self, release_id) -> Release:
         async with self.session_maker() as session:
             try:
                 await session.execute(
-                    update(Track).where(Track.album_id == album_id).values(album_id=None)
+                    update(Track).where(Track.release_id == release_id).values(release_id=None)
                 )
                 await session.commit()
                 return True
@@ -98,14 +99,14 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def delete_release(self, album_id) -> Album:
+    async def delete_release(self, release_id) -> Release:
         async with self.session_maker() as session:
             try:
                 await session.execute(
-                    update(Track).where(Track.album_id == album_id).values(album_id=None)
+                    update(Track).where(Track.release_id == release_id).values(release_id=None)
                 )
                 await session.execute(
-                    delete(Album).where(Album.id == album_id)
+                    delete(Release).where(Release.id == release_id)
                 )
                 await session.commit()
                 return True
@@ -113,24 +114,24 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def get_tracks_and_personal_data(self, tg_id: int, album_id: int):
+    async def get_tracks_and_personal_data(self, tg_id: int, release_id: int):
         async with self.session_maker() as session:
             try:
                 user = await session.execute(select(User).where(User.tg_id == tg_id))
                 user = user.scalar_one()
-                album = await session.execute(select(Album).where(Album.id == album_id))
-                album = album.scalar_one()
-                tracks = await session.execute(select(Track).where(Track.album_id == album_id))
+                release = await session.execute(select(Release).where(Release.id == release_id))
+                release = release.scalar_one()
+                tracks = await session.execute(select(Track).where(Track.release_id == release_id))
                 tracks = tracks.scalars().all()
-                return user, tracks, album
+                return user, tracks, release
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def get_release_lvl1_info(self, album_id: int):
+    async def get_release_lvl1_info(self, release_id: int):
         async with self.session_maker() as session:
             try:
-                query = select(Album, User).join(User).where(Album.id == album_id)
+                query = select(Release, User).join(User).where(Release.id == release_id)
                 result = await session.execute(query)
                 tracks = result.first()
                 return tracks
@@ -138,10 +139,10 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def get_album_first(self, album_id: int) -> Album:
+    async def get_release_first(self, release_id: int) -> Release:
         async with self.session_maker() as session:
             try:
-                query = select(Album).where(Album.id == album_id)
+                query = select(Release).where(Release.id == release_id)
                 result = await session.execute(query)
                 tracks = result.scalar()
                 return tracks
@@ -149,11 +150,11 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def set_task_state(self, album_id, employee_id=None) -> bool:
+    async def set_task_state(self, release_id, employee_id=None) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(
-                    update(Album).where(Album.id == album_id).values(checker=employee_id)
+                    update(Release).where(Release.id == release_id).values(checker=employee_id)
                 )
                 await session.commit()
                 return True
@@ -161,30 +162,30 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def approve(self, album_id, employee_id, state) -> bool:
+    async def approve(self, release_id, employee_id, state) -> bool:
         async with self.session_maker() as session:
             try:
                 if state == 'unsigned':
                     await session.execute(
-                        update(Album).where(Album.id == album_id).values(checker=None,
-                                                                         unsigned_state='approve',
-                                                                         approver_unsigned=employee_id)
+                        update(Release).where(Release.id == release_id).values(checker=None,
+                                                                             unsigned_state='approve',
+                                                                             approver_unsigned=employee_id)
                     )
                     await session.commit()
                     return True
                 if state == 'signed':
                     await session.execute(
-                        update(Album).where(Album.id == album_id).values(checker=None,
-                                                                         signed_state='approve',
-                                                                         approver_signed=employee_id)
+                        update(Release).where(Release.id == release_id).values(checker=None,
+                                                                             signed_state='approve',
+                                                                             approver_signed=employee_id)
                     )
                     await session.commit()
                     return True
                 if state == 'mail':
                     await session.execute(
-                        update(Album).where(Album.id == album_id).values(checker=None,
-                                                                         mail_track_state='approve',
-                                                                         approver_mail=employee_id)
+                        update(Release).where(Release.id == release_id).values(checker=None,
+                                                                             mail_track_state='approve',
+                                                                             approver_mail=employee_id)
                     )
                     await session.commit()
                     return True
@@ -192,30 +193,30 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def reject(self, album_id, employee_id, state) -> bool:
+    async def reject(self, release_id, employee_id, state) -> bool:
         async with self.session_maker() as session:
             try:
                 if state == 'unsigned':
                     await session.execute(
-                        update(Album).where(Album.id == album_id).values(checker=None,
-                                                                         unsigned_state='reject',
-                                                                         approver_unsigned=employee_id)
+                        update(Release).where(Release.id == release_id).values(checker=None,
+                                                                             unsigned_state='reject',
+                                                                             approver_unsigned=employee_id)
                     )
                     await session.commit()
                     return True
                 if state == 'signed':
                     await session.execute(
-                        update(Album).where(Album.id == album_id).values(checker=None,
-                                                                         signed_state='reject',
-                                                                         approver_signed=employee_id)
+                        update(Release).where(Release.id == release_id).values(checker=None,
+                                                                             signed_state='reject',
+                                                                             approver_signed=employee_id)
                     )
                     await session.commit()
                     return True
                 if state == 'mail':
                     await session.execute(
-                        update(Album).where(Album.id == album_id).values(checker=None,
-                                                                         mail_track_state='reject',
-                                                                         approver_mail=employee_id)
+                        update(Release).where(Release.id == release_id).values(checker=None,
+                                                                             mail_track_state='reject',
+                                                                             approver_mail=employee_id)
                     )
                     await session.commit()
                     return True
@@ -223,11 +224,11 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def set_title(self, album_id: int, title: str) -> bool:
+    async def set_title(self, release_id: int, title: str) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(
-                    update(Album).where(Album.id == album_id).values(album_title=title)
+                    update(Release).where(Release.id == release_id).values(release_title=title)
                 )
                 await session.commit()
                 return True
@@ -235,11 +236,11 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def set_cover(self, album_id: int, cover) -> bool:
+    async def set_cover(self, release_id: int, cover) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(
-                    update(Album).where(Album.id == album_id).values(album_cover=cover)
+                    update(Release).where(Release.id == release_id).values(release_cover=cover)
                 )
                 await session.commit()
                 return True
@@ -247,11 +248,11 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def set_ld(self, album_id: int, ld) -> bool:
+    async def set_ld(self, release_id: int, ld) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(
-                    update(Album).where(Album.id == album_id).values(signed_license=ld)
+                    update(Release).where(Release.id == release_id).values(signed_license=ld)
                 )
                 await session.commit()
                 return True
@@ -259,11 +260,11 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def set_mail_track(self, album_id: int, photo) -> bool:
+    async def set_mail_track(self, release_id: int, photo) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(
-                    update(Album).where(Album.id == album_id).values(mail_track_photo=photo)
+                    update(Release).where(Release.id == release_id).values(mail_track_photo=photo)
                 )
                 await session.commit()
                 return True
@@ -271,13 +272,13 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def update_unsigned_state(self, album_id: int, file_id) -> bool:
+    async def update_unsigned_state(self, release_id: int, file_id) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(
-                    update(Album).where(Album.id == album_id).values(unsigned_license=file_id,
-                                                                     unsigned_state='process',
-                                                                     sort_datetime=datetime.datetime.now())
+                    update(Release).where(Release.id == release_id).values(unsigned_license=file_id,
+                                                                         unsigned_state='process',
+                                                                         sort_datetime=datetime.datetime.now())
                 )
                 await session.commit()
                 return True
@@ -285,12 +286,12 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def update_signed_state(self, album_id: int) -> bool:
+    async def update_signed_state(self, release_id: int) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(
-                    update(Album).where(Album.id == album_id).values(signed_state='process',
-                                                                     sort_datetime=datetime.datetime.now())
+                    update(Release).where(Release.id == release_id).values(signed_state='process',
+                                                                         sort_datetime=datetime.datetime.now())
                 )
                 await session.commit()
                 return True
@@ -298,12 +299,12 @@ class AlbumHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def update_mail_state(self, album_id: int) -> bool:
+    async def update_mail_state(self, release_id: int) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(
-                    update(Album).where(Album.id == album_id).values(mail_track_state='process',
-                                                                     sort_datetime=datetime.datetime.now())
+                    update(Release).where(Release.id == release_id).values(mail_track_state='process',
+                                                                         sort_datetime=datetime.datetime.now())
                 )
                 await session.commit()
                 return True

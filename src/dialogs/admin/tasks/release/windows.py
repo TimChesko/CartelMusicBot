@@ -54,8 +54,8 @@ def create_task_info_window(state: [AdminReleaseLvl3 | AdminReleaseLvl2 | AdminR
         cover_or_ld,
         Back(TXT_CONFIRM, id=f'confirm_{id}', on_click=confirm_release),
         Back(TXT_REJECT, id=f'reject_{id}', on_click=reject_release),
-        Button(Const('✘ Шаблон'), id=f'reject_album_template', on_click=coming_soon),
-        SwitchTo(Const('✘ Свой ответ'), id=f'reject_album_custom', state=state.custom),
+        Button(Const('✘ Шаблон'), id=f'reject_release_template', on_click=coming_soon),
+        SwitchTo(Const('✘ Свой ответ'), id=f'reject_release_custom', state=state.custom),
         Cancel(TXT_BACK, on_click=cancel_task),
         state=state.info,
         getter=task_page_getter
