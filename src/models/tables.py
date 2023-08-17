@@ -18,6 +18,23 @@ class Base:
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
 
 
+class Employee(Base):
+    tg_id = Column(BigInteger, primary_key=True, nullable=False)
+    tg_username = Column(String)
+    tg_first_name = Column(String)
+    tg_last_name = Column(String)
+    fullname = Column(String)
+
+    privilege = Column(Enum(Privileges, name='privilege_status'))
+    state = Column(Enum(EmployeeStatus, name='employee_status'), default=EmployeeStatus.REGISTRATION)
+    add_date = Column(DateTime, nullable=False)
+    fired_date = Column(DateTime)
+    recovery_date = Column(DateTime)
+
+    track = relationship("Track", back_populates="employee", uselist=True)
+    employee = relationship("Release", back_populates="employee")
+
+
 class User(Base):
     tg_id = Column(BigInteger, primary_key=True, nullable=False)
     tg_username = Column(String)
@@ -90,23 +107,6 @@ class PersonalDataTemplate(Base):
     input_type = Column(String)
 
 
-class Employee(Base):
-    tg_id = Column(BigInteger, primary_key=True, nullable=False)
-    tg_username = Column(String)
-    tg_first_name = Column(String)
-    tg_last_name = Column(String)
-    fullname = Column(String)
-
-    privilege = Column(Enum(Privileges, name='privilege_status'))
-    state = Column(Enum(EmployeeStatus, name='employee_status'), default=EmployeeStatus.REGISTRATION)
-    add_date = Column(DateTime, nullable=False)
-    fired_date = Column(DateTime)
-    recovery_date = Column(DateTime)
-
-    track = relationship("Track", back_populates="employee", uselist=True)
-    employee = relationship("Release", back_populates="employee")
-
-
 class Release(Base):
     """
     TODO Лимитер новых альбомов (чтобы не spam альбомами ничего), думаю 3 альбома одновременно будет достаточно
@@ -120,23 +120,26 @@ class Release(Base):
     release_cover = Column(String)  # Обложка
     release_title = Column(String)  # Название
 
-    unsigned_state = Column(Enum(Status, name="unsigned_status"))
-    signed_state = Column(Enum(Status, name="signed_status"))
-    mail_track_state = Column(Enum(Status, name="mail_status"))
-
     signed_license = Column(String)  # Подписанное ЛС на проверку
     unsigned_license = Column(String)  # Неподписанное ЛС на проверку
     mail_track_photo = Column(String)  # трек номер отправленного письма с ЛС
 
-    tg_id_checker_now = Column(BigInteger)
-    start_check = Column(DateTime, default=datetime.utcnow)
+    # Who work
+    checker_id = Column(BigInteger, ForeignKey(Employee.tg_id))
+    date_check_start = Column(DateTime)
 
+    # Status
+    unsigned_state = Column(Enum(Status, name="unsigned_status"))
+    signed_state = Column(Enum(Status, name="signed_status"))
+    mail_track_state = Column(Enum(Status, name="mail_status"))
+
+    # Moderators who approve
     approve_unsigned = Column(BigInteger, ForeignKey(Employee.tg_id))
     approve_signed = Column(BigInteger)
     approve_mail = Column(BigInteger)
 
-    create_datetime = Column(DateTime, default=datetime.utcnow)
-    last_edit = Column(DateTime, default=datetime.utcnow)
+    date_create = Column(DateTime, default=datetime.utcnow, nullable=False)
+    date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     tracks = relationship("Track", back_populates="release")
     user = relationship("User", back_populates="release")
@@ -151,13 +154,19 @@ class Track(Base):
     track_title = Column(String, nullable=False)
     file_id_audio = Column(String, nullable=False)
 
-    add_datetime = Column(DateTime, nullable=False)
-    sort_datetime = Column(DateTime, nullable=False)
+    date_create = Column(DateTime, default=datetime.utcnow, nullable=False)
+    date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     track_status = Column(Enum(Status, name='track_status'), default=Status.PROCESS)
+    comment = Column(String)
 
-    checker_now = Column(BigInteger)  # Кто проверяет сейчас
+    # Who work
+    checker_id = Column(BigInteger, ForeignKey(Employee.tg_id))
+    date_check_start = Column(DateTime)
+
+    # Who approve
     approve_track = Column(BigInteger, ForeignKey(Employee.tg_id))
+    date_approve = Column(DateTime)
 
     track_info = relationship("TrackInfo", uselist=False, back_populates="track")
     employee = relationship("Employee", back_populates='track')
@@ -170,20 +179,21 @@ class TrackInfo(Base):
 
     track_id = Column(Integer, ForeignKey(Track.id))
     title = Column(String)
+    date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Text
     text_file_id = Column(String)
-    words_status = Column(Boolean, default=False)
+    author_words = Column(Boolean, default=False)
     words_alienation = Column(String)
     words_author_fullname = Column(String)
 
     # Beat
-    beat_status = Column(Boolean, default=False)
+    author_beat = Column(Boolean, default=False)
     beat_alienation = Column(String)
     beatmaker_fullname = Column(String)
 
     # Feat
-    feat_status = Column(Boolean, default=False)
+    is_feat = Column(Boolean, default=False)
     feat_tg_id = Column(String)
     feat_percent = Column(Integer)
 
@@ -192,13 +202,20 @@ class TrackInfo(Base):
     explicit_lyrics = Column(Boolean)
 
     # Status
-    track_info_feat_status = Column(Enum(FeatStatus, name="track_info_feat_status"))
-    track_info_status = Column(Enum(Status, name='track_info_status'), default=Status.PROCESS)
-
+    feat_status = Column(Enum(FeatStatus, name="track_info_feat_status"))
+    status = Column(Enum(Status, name='track_info_status'), default=Status.PROCESS)
     comment = Column(String)
 
-    id_who_check = Column(String)
+    # Who work
+    checker_id = Column(BigInteger, ForeignKey(Employee.tg_id))
+    date_check_start = Column(DateTime)
+
+    # Who approve
+    approve_info = Column(BigInteger, ForeignKey(Employee.tg_id))
+    date_approve = Column(DateTime)
+
     track = relationship('Track', back_populates='track_info', uselist=False)
+    employee = relationship("Employee", back_populates='track')
 
 
 class ApprovalTemplates(Base):
@@ -214,8 +231,8 @@ class EmployeeLogs(Base):
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     employee_id = Column(BigInteger, ForeignKey(Employee.tg_id), nullable=False)
     table = Column(String, nullable=False)
-    table_id = Column(BigInteger, nullable=False)
+    row_id = Column(BigInteger, nullable=False)
     column_name = Column(String, nullable=False)
     action_type = Column(Enum(Status, name='action_type'), nullable=False)
     comment = Column(String)
-    timestamp = Column(DateTime, nullable=False)
+    datetime = Column(DateTime, default=datetime.utcnow, nullable=False)
