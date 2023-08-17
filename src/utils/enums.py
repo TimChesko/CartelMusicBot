@@ -1,7 +1,12 @@
 from enum import Enum
 
 
-class State(Enum):
+class FeatStatus(Enum):
+    WAIT_FEAT = "WAIT_FEAT"
+    WAIT_REG_FEAT = "WAIT_REG_FEAT"
+
+
+class Status(Enum):
     PROCESS = 'PROCESS'
     REJECT = 'REJECT'
     APPROVE = 'APPROVE'
@@ -31,3 +36,9 @@ class Privileges(Enum):
     MODERATOR = 'MODERATOR'
     CURATOR = 'CURATOR'
     ADMIN = 'ADMIN'
+
+
+class EmployeeStatus(Enum):
+    REGISTRATION = "REGISTRATION"  # the moderator has not registered yet
+    WORKS = "WORKS"  # the moderator has been registered
+    FIRED = "FIRED"  # the moderator has been fired (уволен)
