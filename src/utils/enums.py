@@ -2,16 +2,15 @@ from enum import Enum
 
 
 class EnumBase(Enum):
-    def __getattribute__(self, name):
-        value = super().__getattribute__(name)
-        if name != '__class__':
-            return value.value
-        return value
+
+    def __str__(self):
+        return self.value
 
 
 class FeatStatus(EnumBase):
     WAIT_FEAT = "wait_feat"
     WAIT_REG_FEAT = "wait_reg_feat"
+    APPROVE = "approve"
 
 
 class Status(EnumBase):

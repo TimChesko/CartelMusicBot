@@ -157,7 +157,7 @@ class Track(Base):
     date_create = Column(DateTime, default=datetime.utcnow, nullable=False)
     date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-    track_status = Column(Enum(Status, name='track_status'), default=Status.PROCESS)
+    status = Column(Enum(Status, name='track_status'), default=Status.PROCESS)
     comment = Column(String)
 
     # Who work
@@ -194,7 +194,7 @@ class TrackInfo(Base):
 
     # Feat
     is_feat = Column(Boolean, default=False)
-    feat_tg_id = Column(String)
+    feat_tg_id = Column(BigInteger)
     feat_percent = Column(Integer)
 
     # Utils

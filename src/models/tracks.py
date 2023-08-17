@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from src.data.config import Config
 from src.models.tables import Track, User, TrackInfo
-from src.utils.enums import State
+from src.utils.enums import Status
 
 
 class TrackHandler:
@@ -17,7 +17,7 @@ class TrackHandler:
     async def get_tracks_by_status(self, tg_id: int, status: str):
         async with self.session_maker() as session:
             try:
-                query = select(Track).where(and_(Track.user_id == tg_id, Track.track_state == status))
+                query = select(Track).where(and_(Track.user_id == tg_id, Track.status == status))
                 result = await session.execute(query)
                 return result.scalars().all()
             except SQLAlchemyError as e:
@@ -27,10 +27,9 @@ class TrackHandler:
     async def get_tracks_and_info_by_status(self, user_id: int, status: str):
         async with self.session_maker() as session:
             try:
-                # Присоединяем trackinfo к track по какому-то условию (например, по id)
                 query = select(Track, TrackInfo).join(TrackInfo, Track.id == TrackInfo.track_id).where(
                     (Track.user_id == user_id) &
-                    (or_(Track.track_state == status, TrackInfo.track_state == status))
+                    (or_(Track.status == status, TrackInfo.status == status))
                 )
                 result = await session.execute(query)
                 return result.all()
@@ -57,8 +56,6 @@ class TrackHandler:
                 track_instance = result.scalar()
                 if track_instance:
                     await session.execute(delete(TrackInfo).where(TrackInfo.track_id == track_id))
-                    #  TODO что делать с этим запросом ?
-                    await session.execute(delete(TrackApprovement).where(TrackApprovement.track_id == track_id))
                     await session.execute(delete(Track).where(Track.id == track_id))
                     await session.commit()
                     return True
@@ -82,10 +79,10 @@ class TrackHandler:
     async def has_reject_by_tg_id(self, tg_id: int) -> list[Track] | bool:
         async with self.session_maker() as session:
             try:
-                result = await session.execute(
-                    select(Track.track_state).where(Track.user_id == tg_id, Track.track_state == State.REJECT))
-                tracks = result.all()
-                return tracks
+                query = select(Track.status).where(and_(
+                    Track.user_id == tg_id, Track.status == Status.REJECT))
+                result = await session.execute(query)
+                return result.all()
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
@@ -93,10 +90,9 @@ class TrackHandler:
     async def check_chat_exists(self, tg_id: int) -> bool:
         async with self.session_maker() as session:
             try:
-                result = await session.execute(
-                    select(Track).where(Track.user_id == tg_id).limit(1))
-                track = result.scalar_one_or_none()
-                return track is not None
+                query = select(Track).where(Track.user_id == tg_id).limit(1)
+                result = await session.execute(query)
+                return result.scalar_one_or_none() is not None
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса check_chat_exists: {e}")
                 return False
@@ -104,8 +100,9 @@ class TrackHandler:
     async def add_new_track(self, user_id: int, track_title: str, file_id_audio: str) -> bool:
         async with self.session_maker() as session:
             try:
-                new_track = Track(user_id=user_id, track_title=track_title, file_id_audio=file_id_audio,
-                                  add_datetime=datetime.datetime.now(), sort_datetime=datetime.datetime.now())
+                new_track = Track(user_id=user_id,
+                                  track_title=track_title,
+                                  file_id_audio=file_id_audio)
                 session.add(new_track)
                 await session.flush()  # Это обновит new_track.id после добавления в базу данных
                 new_info = TrackInfo(track_id=new_track.id)
@@ -130,10 +127,9 @@ class TrackHandler:
     async def get_custom_answer_info_by_id(self, track_id: int):
         async with self.session_maker() as session:
             try:
-                result = await session.execute(
-                    select(Track.user_id, Track.track_title).where(Track.id == track_id))
-                track_info = result.first()
-                return track_info
+                query = select(Track.user_id, Track.track_title).where(Track.id == track_id)
+                result = await session.execute(query)
+                return result.first()
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
@@ -141,23 +137,20 @@ class TrackHandler:
     async def get_rejected_by_tg_id(self, tg_id: int):
         async with self.session_maker() as session:
             try:
-                result = await session.execute(
-                    select(Track.track_title, Track.id).where(Track.user_id == tg_id, Track.track_state == State.REJECT))
-                tracks = result.all()
-                return tracks
+                query = select(Track).where(and_(Track.user_id == tg_id, Track.status == Status.REJECT))
+                result = await session.execute(query)
+                return result.all()
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
     async def get_approved_by_tg_id(self, tg_id: int):
-        # потеряли статус APPROVE_PROMO or_(Track.track_state == State.APPROVE, Track.status == "approve_promo")))
         async with self.session_maker() as session:
             try:
-                result = await session.execute(
-                    select(Track.track_title, Track.id)
-                    .where(Track.user_id == tg_id, or_(Track.track_state == State.APPROVE, Track.track_state == "approve_promo")))
-                tracks = result.all()
-                return tracks
+                query = select(Track.track_title, Track.id).where(and_(
+                    Track.user_id == tg_id, Track.status == Status.APPROVE))
+                result = await session.execute(query)
+                return result.all()
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
@@ -165,51 +158,11 @@ class TrackHandler:
     async def check_count_process_by_tg_id(self, tg_id: int):
         async with self.session_maker() as session:
             try:
-                result = await session.execute(
-                    select(Track.track_state).where(Track.user_id == tg_id, Track.track_state == State.PROCESS))
+                query = select(Track.status).where(and_(
+                    Track.user_id == tg_id, Track.status == Status.PROCESS))
+                result = await session.execute(query)
                 process_tracks = result.all()
                 return len(process_tracks) < 3
-            except SQLAlchemyError as e:
-                self.logger.error(f"Ошибка при выполнении запроса: {e}")
-                return False
-
-    async def get_title_by_track_id(self, track_id: int):
-        async with self.session_maker() as session:
-            try:
-                result = await session.execute(select(Track.track_title).where(Track.id == track_id))
-                title = result.scalar_one_or_none()
-                return title
-            except SQLAlchemyError as e:
-                self.logger.error(f"Ошибка при выполнении запроса: {e}")
-                return False
-
-    async def get_task_msg_id_by_track_id(self, track_id: int):
-        async with self.session_maker() as session:
-            try:
-                result = await session.execute(select(Track.task_msg_id).where(Track.id == track_id))
-                msg_id = result.scalar_one_or_none()
-                return msg_id
-            except SQLAlchemyError as e:
-                self.logger.error(f"Ошибка при выполнении запроса: {e}")
-                return False
-
-    async def get_user_id_by_track_id(self, track_id: int):
-        async with self.session_maker() as session:
-            try:
-                result = await session.execute(select(Track.user_id).where(Track.id == track_id))
-                user_id = result.scalar_one_or_none()
-                return user_id
-            except SQLAlchemyError as e:
-                self.logger.error(f"Ошибка при выполнении запроса: {e}")
-                return False
-
-    async def get_title(self, track_id: int):
-        async with self.session_maker() as session:
-            try:
-                result = await session.execute(
-                    select(Track.track_title).where(Track.id == track_id))
-                row = result.first()
-                return row
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
@@ -218,10 +171,10 @@ class TrackHandler:
         async with self.session_maker() as session:
             try:
                 query = select(Track.id).where(
-                    and_(Track.track_state == State.PROCESS, Track.checker == None)).order_by(asc(Track.sort_datetime))
+                    and_(Track.status == Status.PROCESS, Track.checker_id.is_(None))).order_by(
+                    asc(Track.date_last_edit))
                 result = await session.execute(query)
-                tracks = result.all()
-                return tracks
+                return result.all()
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
@@ -229,11 +182,11 @@ class TrackHandler:
     async def update_edited_track(self, track_id: int, file_id_audio: int) -> bool:
         async with self.session_maker() as session:
             try:
-                await session.execute(
-                    update(Track).where(Track.id == track_id).values(file_id_audio=file_id_audio,
-                                                                     sort_datetime=datetime.datetime.now(),
-                                                                     track_state=State.PROCESS)
-                )
+                query = update(Track).where(Track.id == track_id).values(
+                    file_id_audio=file_id_audio,
+                    date_last_edit=datetime.datetime.now(),
+                    status=Status.PROCESS)
+                await session.execute(query)
                 await session.commit()
                 return True
             except SQLAlchemyError as e:
@@ -243,7 +196,7 @@ class TrackHandler:
     async def get_listening_info(self, track_id: int):
         async with self.session_maker() as session:
             try:
-                query = select(Track.checker, Track.file_id_audio, Track.track_title, User).join(User).where(
+                query = select(Track.checker_id, Track.file_id_audio, Track.track_title, User).join(User).where(
                     Track.id == track_id)
                 result = await session.execute(query)
                 tracks = result.first()
@@ -256,8 +209,9 @@ class TrackHandler:
         async with self.session_maker() as session:
             try:
                 await session.execute(
-                    update(Track).where(Track.id == track_id).values(checker=employee_id,
-                                                                     track_state=State.REJECT)
+                    update(Track).where(Track.id == track_id).values(
+                        checker=employee_id,
+                        status=Status.REJECT)
                 )
                 await session.commit()
                 return True
@@ -268,9 +222,8 @@ class TrackHandler:
     async def set_task_state(self, track_id, employee_id=None) -> bool:
         async with self.session_maker() as session:
             try:
-                await session.execute(
-                    update(Track).where(Track.id == track_id).values(checker=employee_id)
-                )
+                query = update(Track).where(Track.id == track_id).values(checker_id=employee_id)
+                await session.execute(query)
                 await session.commit()
                 return True
             except SQLAlchemyError as e:
@@ -280,9 +233,8 @@ class TrackHandler:
     async def update_release_id(self, track_ids: list, release_id) -> bool:
         async with self.session_maker() as session:
             try:
-                await session.execute(
-                    update(Track).where(Track.id.in_(track_ids)).values(release_id=release_id)
-                )
+                query = update(Track).where(Track.id.in_(track_ids)).values(release_id=release_id)
+                await session.execute(query)
                 await session.commit()
                 return True
             except SQLAlchemyError as e:
@@ -294,29 +246,30 @@ class TrackHandler:
             try:
                 if employee_id in config.constant.developers:
                     employee_id = None
-                await session.execute(
-                    update(Track).where(Track.id == track_id).values(id_who_approve=employee_id,
-                                                                     track_state=State.APPROVE)
-                )
-                query = select(Track.user_id).where(Track.id == track_id)
-                result = await session.execute(query)
-                user_id = result.scalar_one_or_none()
+
+                query_update = update(Track).where(Track.id == track_id).values(
+                    id_who_approve=employee_id,
+                    track_state=Status.APPROVE)
+                await session.execute(query_update)
                 await session.commit()
-                return user_id
+
+                query_getter = select(Track.user_id).where(Track.id == track_id)
+                result = await session.execute(query_getter)
+                return result.scalar_one_or_none()
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
     async def get_for_release_multiselect(self, tg_id: int):
-        # потеряли статус APPROVE_PROMO "or_(Track.track_state == State.APPROVE, Track.status == "approve_promo")))"
         async with self.session_maker() as session:
             try:
-                result = await session.execute(
-                    select(Track.track_title, Track.id).join(TrackInfo)
-                    .where(and_(Track.user_id == tg_id, Track.release_id == None, TrackInfo.status == 'approve'),
-                           or_(Track.track_state == State.APPROVE, Track.status == "approve_promo")))
-                tracks = result.all()
-                return tracks
+                query = select(Track.track_title, Track.id).join(TrackInfo).where(and_(
+                    Track.user_id == tg_id,
+                    Track.release_id.is_(None),
+                    TrackInfo.status == Status.APPROVE,
+                    Track.status == Status.APPROVE))
+                result = await session.execute(query)
+                return result.all()
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
