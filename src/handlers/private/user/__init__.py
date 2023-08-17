@@ -1,7 +1,7 @@
 from aiogram import Router
 
-from . import start, get_id
+from . import commands
 
 router = Router()
-router.include_router(start.router)
-router.include_router(get_id.router)
+
+router.include_router(commands.router)

@@ -5,6 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from src.data.config import Config
 from src.models.tables import Track, User, TrackInfo
+from src.utils.enums import State
 
 
 class TrackHandler:
@@ -16,7 +17,7 @@ class TrackHandler:
     async def get_tracks_by_status(self, tg_id: int, status: str):
         async with self.session_maker() as session:
             try:
-                query = select(Track).where(and_(Track.user_id == tg_id, Track.status == status))
+                query = select(Track).where(and_(Track.user_id == tg_id, Track.track_state == status))
                 result = await session.execute(query)
                 return result.scalars().all()
             except SQLAlchemyError as e:
@@ -29,7 +30,7 @@ class TrackHandler:
                 # Присоединяем trackinfo к track по какому-то условию (например, по id)
                 query = select(Track, TrackInfo).join(TrackInfo, Track.id == TrackInfo.track_id).where(
                     (Track.user_id == user_id) &
-                    (or_(Track.status == status, TrackInfo.status == status))
+                    (or_(Track.track_state == status, TrackInfo.track_state == status))
                 )
                 result = await session.execute(query)
                 return result.all()
@@ -56,6 +57,7 @@ class TrackHandler:
                 track_instance = result.scalar()
                 if track_instance:
                     await session.execute(delete(TrackInfo).where(TrackInfo.track_id == track_id))
+                    #  TODO что делать с этим запросом ?
                     await session.execute(delete(TrackApprovement).where(TrackApprovement.track_id == track_id))
                     await session.execute(delete(Track).where(Track.id == track_id))
                     await session.commit()
@@ -81,7 +83,7 @@ class TrackHandler:
         async with self.session_maker() as session:
             try:
                 result = await session.execute(
-                    select(Track.status).where(Track.user_id == tg_id, Track.status == "reject"))
+                    select(Track.track_state).where(Track.user_id == tg_id, Track.track_state == State.REJECT))
                 tracks = result.all()
                 return tracks
             except SQLAlchemyError as e:
@@ -140,7 +142,7 @@ class TrackHandler:
         async with self.session_maker() as session:
             try:
                 result = await session.execute(
-                    select(Track.track_title, Track.id).where(Track.user_id == tg_id, Track.status == "reject"))
+                    select(Track.track_title, Track.id).where(Track.user_id == tg_id, Track.track_state == State.REJECT))
                 tracks = result.all()
                 return tracks
             except SQLAlchemyError as e:
@@ -148,11 +150,12 @@ class TrackHandler:
                 return False
 
     async def get_approved_by_tg_id(self, tg_id: int):
+        # потеряли статус APPROVE_PROMO or_(Track.track_state == State.APPROVE, Track.status == "approve_promo")))
         async with self.session_maker() as session:
             try:
                 result = await session.execute(
                     select(Track.track_title, Track.id)
-                    .where(Track.user_id == tg_id, or_(Track.status == "approve", Track.status == "approve_promo")))
+                    .where(Track.user_id == tg_id, or_(Track.track_state == State.APPROVE, Track.track_state == "approve_promo")))
                 tracks = result.all()
                 return tracks
             except SQLAlchemyError as e:
@@ -163,7 +166,7 @@ class TrackHandler:
         async with self.session_maker() as session:
             try:
                 result = await session.execute(
-                    select(Track.status).where(Track.user_id == tg_id, Track.status == "process"))
+                    select(Track.track_state).where(Track.user_id == tg_id, Track.track_state == State.PROCESS))
                 process_tracks = result.all()
                 return len(process_tracks) < 3
             except SQLAlchemyError as e:
@@ -215,7 +218,7 @@ class TrackHandler:
         async with self.session_maker() as session:
             try:
                 query = select(Track.id).where(
-                    and_(Track.status == 'process', Track.checker == None)).order_by(asc(Track.sort_datetime))
+                    and_(Track.track_state == State.PROCESS, Track.checker == None)).order_by(asc(Track.sort_datetime))
                 result = await session.execute(query)
                 tracks = result.all()
                 return tracks
@@ -229,7 +232,7 @@ class TrackHandler:
                 await session.execute(
                     update(Track).where(Track.id == track_id).values(file_id_audio=file_id_audio,
                                                                      sort_datetime=datetime.datetime.now(),
-                                                                     status='process')
+                                                                     track_state=State.PROCESS)
                 )
                 await session.commit()
                 return True
@@ -254,7 +257,7 @@ class TrackHandler:
             try:
                 await session.execute(
                     update(Track).where(Track.id == track_id).values(checker=employee_id,
-                                                                     status='reject')
+                                                                     track_state=State.REJECT)
                 )
                 await session.commit()
                 return True
@@ -293,7 +296,7 @@ class TrackHandler:
                     employee_id = None
                 await session.execute(
                     update(Track).where(Track.id == track_id).values(id_who_approve=employee_id,
-                                                                     status='approve')
+                                                                     track_state=State.APPROVE)
                 )
                 query = select(Track.user_id).where(Track.id == track_id)
                 result = await session.execute(query)
@@ -305,12 +308,13 @@ class TrackHandler:
                 return False
 
     async def get_for_release_multiselect(self, tg_id: int):
+        # потеряли статус APPROVE_PROMO "or_(Track.track_state == State.APPROVE, Track.status == "approve_promo")))"
         async with self.session_maker() as session:
             try:
                 result = await session.execute(
                     select(Track.track_title, Track.id).join(TrackInfo)
                     .where(and_(Track.user_id == tg_id, Track.release_id == None, TrackInfo.status == 'approve'),
-                           or_(Track.status == "approve", Track.status == "approve_promo")))
+                           or_(Track.track_state == State.APPROVE, Track.status == "approve_promo")))
                 tracks = result.all()
                 return tracks
             except SQLAlchemyError as e:

@@ -14,7 +14,7 @@ async def view_status(callback: CallbackQuery, button: Button, manager: DialogMa
 
 dialog = Dialog(
     Window(
-        Const("🎙 Моя студия"),
+        Const("💠 Моя студия"),
         SwitchTo(Const("🎧 Список треков"), id="studio_my_tracks", state=MyStudio.my_tracks),
         Button(Const("💿 Список релизов"), id="studio_status_public", on_click=coming_soon),
         BTN_CANCEL_BACK,
