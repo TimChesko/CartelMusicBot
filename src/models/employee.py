@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from src.data.config import Config
 from src.models.tables import Employee, User
-from src.utils.enums import Privileges
+from src.utils.enums import Privileges, EmployeeStatus
 
 
 class EmployeeHandler:
@@ -34,7 +34,7 @@ class EmployeeHandler:
     async def check_employee_by_tg_id(self, tg_id: int):
         async with self.session_maker() as session:
             try:
-                query = select(Employee).where(and_(Employee.tg_id == tg_id, Employee.state != 'fired'))
+                query = select(Employee).where(and_(Employee.tg_id == tg_id, Employee.state != EmployeeStatus.FIRED))
                 result = await session.execute(query)
                 user = result.scalar_one_or_none()
                 return user

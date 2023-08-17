@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger, Enum, MetaData
 from sqlalchemy.orm import relationship, declared_attr, as_declarative
 
-from src.utils.enums import State, Tables, Actions, Privileges
+from src.utils.enums import Tables, Actions, Privileges, FeatStatus, Status, EmployeeStatus
 
 
 @as_declarative()
@@ -58,7 +58,7 @@ class PersonalData(Base):
     photo_id_first = Column(String)  # фотография первой страницы паспорта
     photo_id_second = Column(String)  # фотография второй страницы паспорта
     email = Column(String)  # почта
-    all_passport_data = Column(Enum(State, name="passport_status"))
+    all_passport_data = Column(Enum(Status, name="passport_status"))
 
     # Банковские данные
     recipient = Column(String)  # Получатель
@@ -69,7 +69,7 @@ class PersonalData(Base):
     tin_self = Column(String)  # ИНН физ лица
     tin_bank = Column(String)  # Инн банка
     kpp_code = Column(String)  # КПП
-    all_bank_data = Column(Enum(State, name="bank_status"))
+    all_bank_data = Column(Enum(Status, name="bank_status"))
 
     last_datetime = Column(DateTime, default=datetime.utcnow)
 
@@ -109,22 +109,17 @@ class Release(Base):
     release_cover = Column(String)  # Обложка
     release_title = Column(String)  # Название
 
-    unsigned_state = Column(Enum(State, name="unsigned_status"))
-    signed_state = Column(Enum(State, name="signed_status"))
-    mail_track_state = Column(Enum(State, name="mail_status"))
-
-    checker = Column(BigInteger)
+    checker_now = Column(BigInteger)
 
     signed_license = Column(String)  # Подписанное ЛС на проверку
     unsigned_license = Column(String)  # Неподписанное ЛС на проверку
     mail_track_photo = Column(String)  # трек номер отправленного письма с ЛС
 
-    approver_unsigned = Column(BigInteger)
-    approver_signed = Column(BigInteger)
-    approver_mail = Column(BigInteger)
+    unsigned_state = Column(Enum(Status, name="unsigned_status"))
+    signed_state = Column(Enum(Status, name="signed_status"))
+    mail_track_state = Column(Enum(Status, name="mail_status"))
 
-    create_datetime = Column(DateTime)
-    sort_datetime = Column(DateTime)
+    date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     tracks = relationship('Track', back_populates='release')  # новое отношение с треками
     user = relationship("User", back_populates="release")
@@ -144,12 +139,10 @@ class Employee(Base):
     fullname = Column(String)
 
     privilege = Column(Enum(Privileges, name='privilege_status'))
-    state = Column(Enum('regs', 'works', 'fired', name='employee_status'), default='regs')
+    state = Column(Enum(EmployeeStatus, name='employee_status'), default='regs')
     add_date = Column(DateTime, nullable=False)
     fired_date = Column(DateTime)
     recovery_date = Column(DateTime)
-
-    track = relationship("Track", back_populates='employee', uselist=True)
 
 
 class Track(Base):
@@ -159,17 +152,13 @@ class Track(Base):
 
     track_title = Column(String, nullable=False)
     file_id_audio = Column(String, nullable=False)
-    checker = Column(BigInteger)
-    #  if False - task is free (no one works with it), True - task was taken by someone
-    id_who_approve = Column(BigInteger, ForeignKey(Employee.tg_id))
 
-    add_datetime = Column(DateTime, nullable=False)
-    sort_datetime = Column(DateTime, nullable=False)
+    date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
+    checker_now = Column(BigInteger)  # Кто проверяет сейчас
 
-    track_state = Column(Enum(State, name='track_status'), default='process')
+    status = Column(Enum(Status, name='track_status'), default='process')
 
     # Определение связи с TrackInfo
-    employee = relationship("Employee", back_populates='track')
     track_info = relationship("TrackInfo", uselist=False, back_populates="track")
     release = relationship('Release', back_populates='tracks')  # новое отношение с альбомом
     user = relationship("User", back_populates="tracks")
@@ -194,37 +183,38 @@ class TrackInfo(Base):
 
     # Feat
     feat_status = Column(Boolean, default=False)
-    feat_tg_id = Column(String)
+    feat_tg_id = Column(BigInteger)
     feat_percent = Column(Integer)
 
     # Utils
     tiktok_time = Column(String)
     explicit_lyrics = Column(Boolean)
 
-    info_state = Column(Enum("wait_feat", "wait_docs_feat", "process", "approve", "reject", "done",
-                             name='track_info_status'))
+    track_info_feat_status = Column(Enum(FeatStatus, name="track_info_feat_status"))
+    track_info_status = Column(Enum(Status, name='track_info_status'), default=Status.PROCESS)
+
     comment = Column(String)
 
-    id_who_check = Column(String)
+    checker_id = Column(BigInteger)
     # Определение связи с Track
     track = relationship('Track', back_populates='track_info', uselist=False)
 
 
 class ApprovalTemplates(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
-    table = Column(Enum(Tables, name='table_names'), nullable=False)
+    table = Column(Enum(Tables, name='templates_table_names'), nullable=False)
     action = Column(Enum(Actions, name='action_names'), nullable=False)
-    type = Column(Enum('reject', 'approve', name='template_type'), nullable=False)
+    type = Column(Enum(Status, name='template_type'), nullable=False)
     title = Column(String, nullable=False)
     content = Column(String, nullable=False)
 
 
-class EmployeeLogs(Base):
+class Logs(Base):
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     employee_id = Column(BigInteger, ForeignKey(Employee.tg_id), nullable=False)
-    table = Column(String, nullable=False)
-    table_id = Column(BigInteger, nullable=False)
-    column_name = Column(String, nullable=False)
-    action_type = Column(Enum('reject', 'approve', name='action_type'), nullable=False)
+    table = Column(Enum(Tables, name='emp_logs_table_names'), nullable=False)
+    row_id = Column(BigInteger, nullable=False)
+    column_name = Column(Enum(Actions, name='column_name'), nullable=False)
+    action_type = Column(Enum(Status, name='action_type'), nullable=False)
     comment = Column(String)
-    timestamp = Column(DateTime, nullable=False)
+    datetime = Column(DateTime, default=datetime.utcnow, nullable=False)
