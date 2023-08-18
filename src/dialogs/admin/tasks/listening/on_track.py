@@ -87,10 +87,7 @@ async def approve(callback: CallbackQuery, btn: Button, manager: DialogManager):
     track_id = manager.dialog_data['getter_info']['track_id']
     user_id = await (TrackHandler(data['session_maker'], data['database_logger']).
                      update_approve(track_id, callback.from_user.id, config))
-
-    text = await (ListeningTemplatesHandler(data['session_maker'], data['database_logger']).
-                  get_approve_reason(btn.widget_id))
-    await bot.send_message(chat_id=user_id, text=text)
+    await bot.send_message(chat_id=user_id, text='ИДЕТ РАЗРАБОТКА')
 
 
 info_window = Window(
@@ -101,9 +98,6 @@ info_window = Window(
     Back(Const('Одобрить'),
          on_click=approve,
          id='approve'),
-    Back(Const('Одобрить промо'),
-         on_click=coming_soon,
-         id='approve_promo'),
     Next(Const('Отклонить шаблоны'),
          id='reject'),
     SwitchTo(Const('Свой ответ'),

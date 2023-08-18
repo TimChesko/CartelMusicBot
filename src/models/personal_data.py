@@ -4,6 +4,7 @@ from sqlalchemy import select, delete, or_, func, and_, update
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.models.tables import PersonalData, Social, PersonalDataTemplate, TrackInfo
+from src.utils.enums import FeatStatus, Status
 
 
 class PersonalDataHandler:
@@ -75,15 +76,17 @@ class PersonalDataHandler:
                 }
 
                 if header_name in headers_map:
-                    setattr(user, headers_map[header_name], "approve")
+                    # TODO чек Status.APPROVE
+                    setattr(user, headers_map[header_name], Status.APPROVE)
                 else:
                     self.logger.error("Неправильный header_name: %s", header_name)
                     return False
 
-                if user.all_passport_data == "approve" and user.all_bank_data == "approve":
+                if user.all_passport_data == Status.APPROVE and user.all_bank_data == Status.APPROVE:
                     update_query = (
                         update(TrackInfo)
-                        .where(and_(TrackInfo.feat_tg_id == str(user_id), TrackInfo.status == "wait_docs_feat"))
+                        .where(and_(TrackInfo.feat_tg_id == str(user_id),
+                                    TrackInfo.enum_feat_status == FeatStatus.WAIT_FEAT))
                         .values(status="process")
                     )
                     await session.execute(update_query)
@@ -104,9 +107,9 @@ class PersonalDataHandler:
                 user = result.scalar()
                 if user:
                     if header_name == "passport":
-                        user.all_passport_data = "reject"
+                        user.all_passport_data = Status.REJECT
                     elif header_name == "bank":
-                        user.all_bank_data = "reject"
+                        user.all_bank_data = Status.REJECT
                     else:
                         self.logger.error("Неправильный header_name: %s", header_name)
                         return False
@@ -148,14 +151,14 @@ class PersonalDataHandler:
                     for key, value in save_input.items():
                         setattr(existing_data, key, value)
                     if header_data == "passport":
-                        existing_data.all_passport_data = "process"
+                        existing_data.all_passport_data = Status.PROCESS
                     elif header_data == "bank":
-                        existing_data.all_bank_data = "process"
+                        existing_data.all_bank_data = Status.PROCESS
                 else:
                     if header_data == "passport":
-                        save_input["all_passport_data"] = "process"
+                        save_input["all_passport_data"] = Status.PROCESS
                     elif header_data == "bank":
-                        save_input["all_bank_data"] = "process"
+                        save_input["all_bank_data"] = Status.PROCESS
                     header_data = PersonalData(tg_id=tg_id, **save_input)
                     session.add(header_data)
                 await session.commit()
@@ -231,7 +234,7 @@ class PersonalDataHandler:
                 count_none = sum(1 for key in list_name_data if getattr(personal_data, key) is None)
                 all_data_field = f"all_{header_data}_data"
                 if hasattr(PersonalData, all_data_field):
-                    setattr(personal_data, all_data_field, "reject" if count_none > 1 else "process")
+                    setattr(personal_data, all_data_field, Status.REJECT if count_none > 1 else Status.PROCESS)
 
                 for key, value in data.items():
                     if hasattr(PersonalData, key):
@@ -294,8 +297,8 @@ class PersonalDataHandler:
             try:
                 query = select(PersonalData).where(
                     or_(
-                        PersonalData.all_passport_data == "process",
-                        PersonalData.all_bank_data == "process"
+                        PersonalData.all_passport_data == Status.PROCESS,
+                        PersonalData.all_bank_data == Status.PROCESS
                     )
                 ).order_by(PersonalData.last_datetime.asc())
                 result = await session.execute(query)
@@ -309,8 +312,8 @@ class PersonalDataHandler:
             try:
                 query = select(func.count(PersonalData.tg_id)).where(
                     or_(
-                        PersonalData.all_passport_data == "process",
-                        PersonalData.all_bank_data == "process"
+                        PersonalData.all_passport_data == Status.PROCESS,
+                        PersonalData.all_bank_data == Status.PROCESS
                     )
                 )
                 count = await session.execute(query)

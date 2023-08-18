@@ -27,7 +27,7 @@ class User(Base):
     nickname = Column(String)
 
     ban = Column(Boolean, default=False)
-    last_active = Column(DateTime, default=datetime.now())
+    last_active = Column(DateTime, default=datetime.utcnow())
 
     # uselist for one-to-one, one user have only one personal data
     personal_data = relationship("PersonalData", backref="user", uselist=False)
@@ -72,6 +72,7 @@ class PersonalData(Base):
     all_bank_data = Column(Enum(Status, name="bank_status"))
 
     last_datetime = Column(DateTime, default=datetime.utcnow)
+    checker_id = Column(BigInteger)
 
     social = relationship("Social", back_populates="personal_data", uselist=False)
 
@@ -109,28 +110,22 @@ class Release(Base):
     release_cover = Column(String)  # Обложка
     release_title = Column(String)  # Название
 
-    checker_now = Column(BigInteger)
-
     signed_license = Column(String)  # Подписанное ЛС на проверку
     unsigned_license = Column(String)  # Неподписанное ЛС на проверку
     mail_track_photo = Column(String)  # трек номер отправленного письма с ЛС
 
-    unsigned_state = Column(Enum(Status, name="unsigned_status"))
-    signed_state = Column(Enum(Status, name="signed_status"))
-    mail_track_state = Column(Enum(Status, name="mail_status"))
+    unsigned_status = Column(Enum(Status, name="unsigned_status"))
+    signed_status = Column(Enum(Status, name="signed_status"))
+    mail_track_status = Column(Enum(Status, name="mail_status"))
 
     date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
+    checker_id = Column(BigInteger)
 
     tracks = relationship('Track', back_populates='release')  # новое отношение с треками
     user = relationship("User", back_populates="release")
 
 
 class Employee(Base):
-    """
-        regs - the moderator has not registered yet
-        works - the moderator has been registered
-        fired - the moderator has been fired (уволен)
-    """
 
     tg_id = Column(BigInteger, primary_key=True, nullable=False)
     tg_username = Column(String)
@@ -139,7 +134,7 @@ class Employee(Base):
     fullname = Column(String)
 
     privilege = Column(Enum(Privileges, name='privilege_status'))
-    state = Column(Enum(EmployeeStatus, name='employee_status'), default='regs')
+    state = Column(Enum(EmployeeStatus, name='employee_status'), default=EmployeeStatus.REGISTRATION)
     add_date = Column(DateTime, nullable=False)
     fired_date = Column(DateTime)
     recovery_date = Column(DateTime)
@@ -154,9 +149,9 @@ class Track(Base):
     file_id_audio = Column(String, nullable=False)
 
     date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
-    checker_now = Column(BigInteger)  # Кто проверяет сейчас
+    checker_id = Column(BigInteger)  # Кто проверяет сейчас
 
-    status = Column(Enum(Status, name='track_status'), default='process')
+    track_status = Column(Enum(Status, name='track_status'), default=Status.PROCESS)
 
     # Определение связи с TrackInfo
     track_info = relationship("TrackInfo", uselist=False, back_populates="track")
@@ -190,7 +185,7 @@ class TrackInfo(Base):
     tiktok_time = Column(String)
     explicit_lyrics = Column(Boolean)
 
-    track_info_feat_status = Column(Enum(FeatStatus, name="track_info_feat_status"))
+    enum_feat_status = Column(Enum(FeatStatus, name="track_info_feat_status"))
     track_info_status = Column(Enum(Status, name='track_info_status'), default=Status.PROCESS)
 
     comment = Column(String)
@@ -211,7 +206,7 @@ class ApprovalTemplates(Base):
 
 class Logs(Base):
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
-    employee_id = Column(BigInteger, ForeignKey(Employee.tg_id), nullable=False)
+    employee_id = Column(BigInteger, ForeignKey(Employee.tg_id))
     table = Column(Enum(Tables, name='emp_logs_table_names'), nullable=False)
     row_id = Column(BigInteger, nullable=False)
     column_name = Column(Enum(Actions, name='column_name'), nullable=False)

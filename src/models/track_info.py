@@ -2,6 +2,7 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.models.tables import TrackInfo, Track, PersonalData
+from src.utils.enums import Status, FeatStatus
 
 
 class TrackInfoHandler:
@@ -14,9 +15,10 @@ class TrackInfoHandler:
         async with self.session_maker() as session:
             try:
                 result = dict.fromkeys(edit_list, None)
-                result["status"] = "reject"
+                result["status"] = Status.REJECT
                 if comment:
                     result['comment'] = comment
+                # TODO однозначно тут параша какая то
                 query = update(TrackInfo).where(TrackInfo.track_id == track_id).values(**result)
                 await session.execute(query)
                 await session.commit()
@@ -28,7 +30,7 @@ class TrackInfoHandler:
     async def set_status_approve(self, track_id: int):
         async with self.session_maker() as session:
             try:
-                query = update(TrackInfo).where(TrackInfo.track_id == track_id).values(status='approve')
+                query = update(TrackInfo).where(TrackInfo.track_id == track_id).values(track_info_status=Status.APPROVE)
                 await session.execute(query)
                 await session.commit()
                 return True
@@ -66,7 +68,8 @@ class TrackInfoHandler:
     async def get_docs_by_status(self, status: str) -> list | None:
         async with self.session_maker() as session:
             try:
-                query = select(TrackInfo).where(TrackInfo.status == status)
+                # TODO тут сто проц не то передается, нужно через условие, прокидывать не варик
+                query = select(TrackInfo).where(TrackInfo.track_info_status == status)
                 result = await session.execute(query)
                 docs = result.scalars().all()
                 return docs
@@ -100,12 +103,12 @@ class TrackInfoHandler:
                 track_info.feat_tg_id = str(user_id)
 
                 # Если оба значения равны 3, то записать в TrackInfo.status="process"
-                if personal_data.all_passport_data == "approve" and personal_data.all_bank_data == "approve":
-                    track_info.status = "process"
+                if personal_data.all_passport_data == Status.APPROVE and personal_data.all_bank_data == Status.APPROVE:
+                    track_info.status = Status.PROCESS
                     text_status = "трек отправлен на модерацию!"
                 else:
                     # В другом случае TrackInfo.status="wait_docs_feat"
-                    track_info.status = "wait_docs_feat"
+                    track_info.status = FeatStatus.WAIT_FEAT
                     text_status = "пройдите верификацию, чтобы отправить трек на модерацию."
                 await session.commit()
 

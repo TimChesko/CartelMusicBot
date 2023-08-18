@@ -17,19 +17,20 @@ from src.utils.fsm import ListeningEditTrack
 
 
 async def on_item_selected(_, __, manager: DialogManager, selected_item: str):
-    items = eval(selected_item)
-    manager.dialog_data["track_id"] = int(items[1])
-    manager.dialog_data['title'] = items[0]
+    item = int(selected_item)
+    manager.dialog_data["track_id"] = int(item)
     await manager.next()
 
 
 async def on_finish_getter(dialog_manager: DialogManager, **_kwargs):
+    data = dialog_manager.middleware_data
     file_id = dialog_manager.dialog_data['track'] if 'track' in dialog_manager.dialog_data else None
-    title = dialog_manager.dialog_data['title']
+    track = await TrackHandler(data['session_maker'], data['database_logger']).get_track_by_id(
+        data['event_from_user'].id)
     audio = MediaAttachment(ContentType.AUDIO, file_id=MediaId(file_id))
-    dialog_manager.dialog_data['track_title'] = title
+    dialog_manager.dialog_data['title'] = track.track_title if track else None
     return {
-        'title': title,
+        'title': track.track_title if track else '',
         'audio': audio
     }
 
@@ -49,7 +50,7 @@ async def on_finish_old_track(callback: CallbackQuery, _, manager: DialogManager
         file_id_audio=manager.dialog_data["track"]
     )
     await callback.message.edit_caption(
-        caption=f'Трек "{manager.dialog_data["track_title"]}" повторно отправлен на модерацию')
+        caption=f'Трек "{manager.dialog_data["title"]}" повторно отправлен на модерацию')
     manager.show_mode = ShowMode.SEND
     await manager.done()
 
@@ -59,10 +60,10 @@ edit_track = Dialog(
         Const("Выберите трек"),
         ScrollingGroup(
             Select(
-                Format("🔴 {item[0]}"),
+                Format("🔴 {item.title}"),
                 id="ms",
-                items="reject_tracks",
-                item_id_getter=itemgetter(0, 1),
+                items="reject_check",
+                item_id_getter=lambda track: track.id,
                 on_click=on_item_selected
             ),
             width=1,

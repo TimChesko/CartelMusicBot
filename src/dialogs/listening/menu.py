@@ -14,11 +14,9 @@ async def tracks_getter(dialog_manager: DialogManager, **_kwargs):
                      .check_count_process_by_tg_id(data['event_from_user'].id))
     rejects = await (TrackHandler(data['session_maker'], data['database_logger'])
                      .has_reject_by_tg_id(data['event_from_user'].id))
-    reject_tracks = await (TrackHandler(data['session_maker'], data['database_logger'])
-                           .get_rejected_by_tg_id(data['event_from_user'].id))
+
     return {
-        "rejects_check": rejects,
-        'reject_tracks': reject_tracks,
+        "reject_check": rejects,
         'process_check': process
     }
 
@@ -33,7 +31,7 @@ listening_menu = Dialog(
         Const("Дождитесь проверки имеющихся треков на модерации", when=F["process_check"].is_(False)),
         Start(Const('❇️ Прислать трек'), state=ListeningNewTrack.start, id='listening_new_track', when='process_check',
               data="data"),
-        Start(Const('❌ Отклоненные'), state=ListeningEditTrack.start, id='listening_old_track', when='rejects_check'),
+        Start(Const('❌ Отклоненные'), state=ListeningEditTrack.start, id='listening_old_track', when='reject_check'),
         BTN_CANCEL_BACK,
         state=Listening.start,
         getter=tracks_getter
