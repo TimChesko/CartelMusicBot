@@ -3,12 +3,14 @@ import sys
 
 import structlog
 
-from src.data import config
+from src.data.config import load_config
 
 
 def setup_logger() -> structlog.typing.FilteringBoundLogger:
+    config = load_config()
+
     logging.basicConfig(
-        level=config.LOGGING_LEVEL,
+        level=config.constant.logging_level,
         stream=sys.stdout
     )
 
@@ -24,7 +26,7 @@ def setup_logger() -> structlog.typing.FilteringBoundLogger:
     ]
     structlog.configure(
         processors=processors,
-        wrapper_class=structlog.make_filtering_bound_logger(config.LOGGING_LEVEL)
+        wrapper_class=structlog.make_filtering_bound_logger(config.constant.logging_level)
     )
 
     logging.getLogger("aiogram.dispatcher").setLevel(logging.WARN)
@@ -33,6 +35,6 @@ def setup_logger() -> structlog.typing.FilteringBoundLogger:
     logging.getLogger("apscheduler.scheduler").setLevel(logging.WARN)
     logging.getLogger("aiogram.utils.chat_action").setLevel(logging.WARN)
     logging.getLogger("aiogram_dialog.context.intent_middleware").setLevel(logging.WARN)
-    logging.getLogger("aiogram_dialog.manager.message_manager").setLevel(logging.WARN)
+    # logging.getLogger("aiogram_dialog.manager.message_manager").setLevel(logging.WARN)
 
     return log

@@ -1,14 +1,13 @@
 from aiogram.enums import ContentType
-from aiogram.types import Message, CallbackQuery, InputMediaAudio, InputMedia
+from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.api.entities import MediaId, MediaAttachment
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Row, Button, Cancel, Back
-from aiogram_dialog.widgets.media import Media, DynamicMedia
+from aiogram_dialog.widgets.kbd import Row, Button, Back
+from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const
 
-from src.data import config
-from src.keyboards.inline.listening import markup_new_listening
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK, TXT_APPROVE, TXT_EDIT
 from src.models.tracks import TrackHandler
 from src.models.user import UserHandler
 from src.utils.fsm import ListeningNewTrack
@@ -28,7 +27,7 @@ async def set_music_title(msg: Message, _, manager: DialogManager):
     await manager.next()
 
 
-async def on_finish_getter(dialog_manager: DialogManager, **kwargs):
+async def on_finish_getter(dialog_manager: DialogManager, **_kwargs):
     audio_id = dialog_manager.dialog_data['track']
     audio = MediaAttachment(ContentType.AUDIO, file_id=MediaId(audio_id))
     return {
@@ -37,72 +36,66 @@ async def on_finish_getter(dialog_manager: DialogManager, **kwargs):
     }
 
 
-async def nickname_getter(dialog_manager: DialogManager, **kwargs):
+async def nickname_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    user_nickname = await UserHandler(data['engine'], data['database_logger']) \
-        .get_user_nickname_by_tg_id(data['event_from_user'].id)
+    user = await UserHandler(data['session_maker'], data['database_logger']) \
+        .get_user_by_tg_id(data['event_from_user'].id)
     return {
-        "nickname": user_nickname,
+        "nickname": user.nickname,
     }
 
 
 async def on_finish_new_track(callback: CallbackQuery, _, manager: DialogManager):
     data = manager.middleware_data
-    chat_id = config.CHATS_BACKUP[0]  # TODO нужный чат
-    nickname, tg_username = await UserHandler(data['engine'], data['database_logger']).get_nicknames_by_tg_id(
-        callback.from_user.id)
-    user_name = callback.from_user.id if tg_username is None else f"@{callback.from_user.username}"
-    await TrackHandler(data['engine'], data['database_logger']).add_track_to_tracks(
+    support = data['config'].constant.support
+    answer = await TrackHandler(data['session_maker'], data['database_logger']).add_new_track(
         user_id=callback.from_user.id,
         track_title=manager.dialog_data["track_title"],
         file_id_audio=manager.dialog_data["track"]
     )
-    track_id = await TrackHandler(data['engine'], data['database_logger']).get_id_by_file_id_audio(
-        manager.dialog_data["track"])
-    msg_audio: Message = await data['bot'].send_audio(chat_id=chat_id,
-                                                      audio=manager.dialog_data["track"],
-                                                      caption=f"Title: {manager.dialog_data['track_title']}\n" \
-                                                              f"User: {user_name} / nickname: {nickname}",
-                                                      reply_markup=markup_new_listening(track_id))
-    await TrackHandler(data['engine'], data['database_logger']).set_task_msg_id_to_tracks(track_id,
-                                                                                          msg_audio.message_id)
-    await callback.message.edit_caption(caption=f'Трек "{manager.dialog_data["track_title"]}" отправлен на модерацию')
+    if answer:
+        text = f'✅ Трек <b>{manager.dialog_data["track_title"]}</b> отправлен на модерацию'
+    else:
+        text = f'❌ Произошел сбой на стороне сервера. Обратитесь в поддержку {support}'
+    await callback.message.edit_caption(caption=text)
     manager.show_mode = ShowMode.SEND
     await manager.done()
 
 
 async def other_type_handler_audio(msg: Message, _, __):
-    await msg.answer("Пришлите трек в формате mp3")
+    await msg.answer("🎶 Пришлите трек в формате файла - <b>.mp3</b>")
 
 
 async def other_type_handler_text(msg: Message, _, __):
-    await msg.answer("Пришлите название трека")
+    await msg.answer("📝 Название трека в формате - текст\nПример: <b>Best of the best track</b>")
 
 
 new_track = Dialog(
     Window(
-        Format("{nickname}, скиньте ваш трек"),
-        Cancel(Const("Назад")),
+        Format("1️⃣ {nickname}, скиньте ваш трек"),
+        BTN_CANCEL_BACK,
         MessageInput(set_music_file, content_types=[ContentType.AUDIO]),
         MessageInput(other_type_handler_audio),
-        state=ListeningNewTrack.start
+        state=ListeningNewTrack.start,
+        getter=nickname_getter
     ),
     Window(
-        Const("Дайте название вашему треку"),
+        Const("2️⃣ Дайте название вашему треку"),
         MessageInput(set_music_title, content_types=[ContentType.TEXT]),
         MessageInput(other_type_handler_text),
+        BTN_BACK,
         state=ListeningNewTrack.title
     ),
     Window(
-        Format('Подтверждение отправки трека "{title}"'),
+        Const("Подтверждение отправки трека"),
+        Format("Название: <b>{title}</b>"),
         DynamicMedia('audio'),
         Row(
-            Button(Const("Подтверждаю"), on_click=on_finish_new_track, id="approve_track"),
-            Back(Const("Изменить"), id="edit_track"),
+            Button(TXT_APPROVE, on_click=on_finish_new_track, id="approve_track"),
+            Back(TXT_EDIT, id="edit_track"),
         ),
-        Cancel(Const("Вернуться в главное меню")),
+        BTN_CANCEL_BACK,
         state=ListeningNewTrack.finish,
         getter=on_finish_getter
-    ),
-    getter=nickname_getter
+    )
 )

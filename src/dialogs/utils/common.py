@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from aiogram_dialog import DialogManager, StartMode, ShowMode
 
@@ -26,3 +27,29 @@ async def on_unknown_state(event, dialog_manager: DialogManager):
     await dialog_manager.start(
         StartMenu.start, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND,
     )
+
+
+def format_date(dt: datetime = None) -> str:
+    if dt is None:
+        dt = datetime.now()
+
+    months_russian = {
+        1: 'января',
+        2: 'февраля',
+        3: 'марта',
+        4: 'апреля',
+        5: 'мая',
+        6: 'июня',
+        7: 'июля',
+        8: 'августа',
+        9: 'сентября',
+        10: 'октября',
+        11: 'ноября',
+        12: 'декабря'
+    }
+
+    day = dt.day
+    month = months_russian[dt.month]
+    year = dt.year
+
+    return f'«{day}» {month} {year} г.'

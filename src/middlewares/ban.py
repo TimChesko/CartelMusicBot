@@ -13,6 +13,8 @@ class CheckBan(BaseMiddleware):
                        event: Message,
                        data: Dict[str, Any]
                        ) -> Any:
-        if await UserHandler(data['engine'], data['database_logger']).get_ban_by_tg_id(event.from_user.id):
-            return
+        user = await UserHandler(data['session_maker'], data['database_logger']).get_user_by_tg_id(event.from_user.id)
+        if user:
+            if user.ban:
+                return
         return await handler(event, data)

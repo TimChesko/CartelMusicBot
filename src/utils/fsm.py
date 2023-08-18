@@ -15,24 +15,79 @@ class StartMenu(StatesGroup):
     start = State()
 
 
+class AdminRegistration(StatesGroup):
+    secret_answer = State()
+    first_name = State()
+    surname = State()
+    middle_name = State()
+    confirm = State()
+
+
 class AdminMenu(StatesGroup):
     start = State()
 
 
+class AdminTemplates(StatesGroup):
+    start = State()
+
+
+class TemplatesListening(StatesGroup):
+    start = State()
+    info = State()
+    content = State()
+    reject = State()
+    name = State()
+    add_name = State()
+    add_content = State()
+
+
 class AdminListening(StatesGroup):
     start = State()
+    info = State()
+    templates = State()
+    custom = State()
+    custom_confirm = State()
+    confirm = State()
 
 
-class AdminDashboardPIN(StatesGroup):
+class AdminRelease(StatesGroup):
+    menu = State()
+
+
+class AdminReleaseLvl1(StatesGroup):
     start = State()
+    info = State()
+    reject = State()
+    custom = State()
+    confirm = State()
+
+
+class AdminReleaseLvl2(StatesGroup):
+    start = State()
+    info = State()
+    reject = State()
+    custom = State()
+    confirm = State()
+
+
+class AdminReleaseLvl3(StatesGroup):
+    start = State()
+    info = State()
+    reject = State()
+    custom = State()
+    confirm = State()
 
 
 class AdminEmployee(StatesGroup):
     start = State()
+    info = State()
+    layoff = State()
+    change_privilege = State()
 
 
 class AdminStatistic(StatesGroup):
     start = State()
+
 
 class AdminAddEmployee(StatesGroup):
     start = State()
@@ -101,41 +156,32 @@ class MyTracksRejected(StatesGroup):
     finish = State()
 
 
-class MyTracksProcessed(StatesGroup):
-    ...
+# Release my_tracks states
+class ReleaseTrack(StatesGroup):
+    list = State()
 
 
-class PersonalDataFilling(StatesGroup):
+class ReleasePage(StatesGroup):
+    main = State()
+    title = State()
+    cover = State()
+    ld = State()
+    mail = State()
+
+
+class ReleaseTitle(StatesGroup):
     start = State()
-    info = State()
-    firstname = State()
-    surname = State()
-    middlename = State()
-    passport_series = State()  # серия паспорта
-    passport_number = State()  # номер паспорта
-    who_issued_it = State()  # кем выдан
-    date_of_issue = State()  # когда выдан
-    unit_code = State()  # код подразделения
-    date_of_birth = State()  # дата рождения
-    place_of_birth = State()  # место рождения
-    registration_address = State()  # адрес регистрации
-    physical_inn_code = State()  # ИНН по паспорту
-
-    recipient = State()  # Получатель
-    account_code = State()  # Номер счёта
-    bik_code = State()  # БИК
-    bank_recipient = State()  # Банк получатель
-    correct_code = State()  # Корр. Счет
-    inn_code = State()  # ИНН
-    kpp_code = State()  # КПП
-    swift_code = State()  # Свифт-код
-
     finish = State()
 
 
-# Public tracks states
-class PublicTrack(StatesGroup):
-    list = State()
+class ReleaseCover(StatesGroup):
+    start = State()
+    finish = State()
+
+
+class ReleaseTracks(StatesGroup):
+    start = State()
+    finish = State()
 
 
 #  Service's states
@@ -150,7 +196,8 @@ class Profile(StatesGroup):
 class Passport(StatesGroup):
     add_data = State()
     edit_data = State()
-
+    passport_first_img = State()
+    passport_second_img = State()
     confirm = State()
 
 
@@ -161,15 +208,90 @@ class Bank(StatesGroup):
     confirm = State()
 
 
+class Nickname(StatesGroup):
+    edit = State()
+
+
+class Social(StatesGroup):
+    view_data = State()
+    confirm = State()
+    view_link = State()
+
+
 class PersonalData(StatesGroup):
     confirm = State()
 
 
 class ProfileEdit(StatesGroup):
     menu = State()
-    process = State()
+    confirm = State()
 
 
 class DialogInput(StatesGroup):
     text = State()
     date = State()
+    img = State()
+
+
+class MyStudio(StatesGroup):
+    menu = State()
+    my_tracks = State()
+
+
+class ViewStatus(StatesGroup):
+    menu = State()
+    track = State()
+    accept = State()
+
+
+class TrackApprove(StatesGroup):
+    title = State()
+    text = State()
+    author_music = State()
+    author_text = State()
+    time_track = State()
+    profanity = State()
+    feat = State()
+    finish = State()
+
+
+class TrackAuthor(StatesGroup):
+    type_agreement = State()
+    percentage = State()
+
+
+class StudioEdit(StatesGroup):
+    title = State()
+    text = State()
+    author_text = State()
+    author_text_percent = State()
+    author_beat = State()
+    author_beat_percent = State()
+    feat_percent = State()
+    confirm = State()
+
+
+class AdminViewTypeDocs(StatesGroup):
+    menu = State()
+
+
+class AdminCheckPassport(StatesGroup):
+    menu = State()
+    view = State()
+
+
+class PersonalDataCheck(StatesGroup):
+    text = State()
+    reject_data = State()
+    finish = State()
+
+
+class AdminListTracks(StatesGroup):
+    menu = State()
+
+
+class AdminCheckTrack(StatesGroup):
+    menu = State()
+    reject_data = State()
+    comment = State()
+    finish = State()

@@ -1,17 +1,41 @@
+import re
 from datetime import datetime
 
-from aiogram.loggers import event
-from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger, Enum
-from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Column, BigInteger, Enum, MetaData
+from sqlalchemy.orm import relationship, declared_attr, as_declarative
+
+from src.utils.enums import Tables, Actions, Privileges, FeatStatus, Status, EmployeeStatus
 
 
-class Base(DeclarativeBase):
-    pass
+@as_declarative()
+class Base:
+    metadata = MetaData()
+
+    @classmethod
+    @declared_attr
+    def __tablename__(cls) -> str:
+        name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', cls.__name__)
+        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
+
+
+class Employee(Base):
+    tg_id = Column(BigInteger, primary_key=True, nullable=False)
+    tg_username = Column(String)
+    tg_first_name = Column(String)
+    tg_last_name = Column(String)
+    fullname = Column(String)
+
+    privilege = Column(Enum(Privileges, name='privilege_status'))
+    state = Column(Enum(EmployeeStatus, name='employee_status'), default=EmployeeStatus.REGISTRATION)
+    add_date = Column(DateTime, nullable=False)
+    fired_date = Column(DateTime)
+    recovery_date = Column(DateTime)
+
+    track = relationship("Track", back_populates="employee", uselist=True)
+    employee = relationship("Release", back_populates="employee")
 
 
 class User(Base):
-    __tablename__ = "users"
-
     tg_id = Column(BigInteger, primary_key=True, nullable=False)
     tg_username = Column(String)
     tg_first_name = Column(String)
@@ -20,19 +44,15 @@ class User(Base):
     nickname = Column(String)
 
     ban = Column(Boolean, default=False)
-    privilege = Column(String, default="user")
-    last_active = Column(DateTime, default=datetime.now())
+    last_active = Column(DateTime, default=datetime.utcnow)
 
-    # uselist for one-to-one, one user have only one personal data
-    personal_data = relationship("PersonalData", uselist=False, back_populates="user")
-    # chats show how to realize one-to-many
-    tracks = relationship("Track", back_populates="user")  # Добавить связь с Track
-    albums = relationship("Album", back_populates="user")
+    personal_data = relationship("PersonalData", backref="user", uselist=False)
+    tracks = relationship("Track", back_populates="user")
+    release = relationship("Release", back_populates="user")
 
 
 class PersonalData(Base):
-    __tablename__ = 'personal_data'
-    tg_id = Column(BigInteger, ForeignKey('users.tg_id'), primary_key=True, nullable=False)
+    tg_id = Column(BigInteger, ForeignKey(User.tg_id), primary_key=True, nullable=False)
     confirm_use_personal_data = Column(Boolean, default=False)
 
     # ФИО
@@ -41,106 +61,178 @@ class PersonalData(Base):
     middle_name = Column(String)
 
     # Личные данные
-    passport_series = Column(Integer)  # серия паспорта
-    passport_number = Column(Integer)  # номер паспорта
+    passport_series = Column(String)  # серия паспорта
+    passport_number = Column(String)  # номер паспорта
     who_issued_it = Column(String)  # кем выдан
     date_of_issue = Column(DateTime)  # когда выдан
     unit_code = Column(String)  # код подразделения
     date_of_birth = Column(DateTime)  # дата рождения
     place_of_birth = Column(String)  # место рождения
     registration_address = Column(String)  # адрес регистрации
-    all_passport_data = Column(Integer, default=0)  # 0 - нет, 1 - в обработке, 2 - отклонены, 3 - проверены
+    photo_id_first = Column(String)  # фотография первой страницы паспорта
+    photo_id_second = Column(String)  # фотография второй страницы паспорта
+    email = Column(String)  # почта
+    all_passport_data = Column(Enum(Status, name="passport_status"))
 
     # Банковские данные
     recipient = Column(String)  # Получатель
-    account_code = Column(BigInteger)  # Номер счёта
-    bik_code = Column(BigInteger)  # БИК
+    account_code = Column(String)  # Номер счёта
+    bik_code = Column(String)  # БИК
     bank_recipient = Column(String)  # Банк получатель
-    correct_code = Column(BigInteger)  # Корр. Счет
-    inn_code = Column(BigInteger)  # ИНН
-    kpp_code = Column(BigInteger)  # КПП
-    all_bank_data = Column(Integer, default=0)  # 0 - нет, 1 - в обработке, 2 - отклонены, 3 - проверены
+    correct_code = Column(String)  # Корр. Счет
+    tin_self = Column(String)  # ИНН физ лица
+    tin_bank = Column(String)  # Инн банка
+    kpp_code = Column(String)  # КПП
+    all_bank_data = Column(Enum(Status, name="bank_status"))
 
-    moderated = Column(Boolean, default=False)
-    user = relationship("User", back_populates="personal_data")
+    social = relationship("Social", back_populates="personal_data", uselist=False)
 
 
-class Track(Base):
-    __tablename__ = "tracks"
-
+class Social(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(BigInteger, ForeignKey('users.tg_id'), nullable=False)  # Ссылка на таблицу users
-    listening_chat_id = Column(BigInteger)
-    album_id = Column(Integer, ForeignKey('albums.id'))  # новая ссылка на альбом
-
-    track_title = Column(String)
-    file_id_audio = Column(String)
-    task_msg_id = Column(Integer)
-    id_who_approve = Column(BigInteger)
-    reject_reason = Column(String)
-
-    datetime = Column(DateTime, nullable=False)  # дату доставать из msg
-
-    status = Column(Enum('process', 'reject', 'approve',
-                         'approve_promo', 'aggregating',
-                         'aggregated', name='track_status'), default='process')
-
-    # Определение связи с TrackInfo
-    track_info = relationship("TrackInfo", uselist=False, back_populates="track")
-    album = relationship('Album', back_populates='tracks')  # новое отношение с альбомом
-    user = relationship("User", back_populates="tracks")
-
-
-class TrackInfo(Base):
-    __tablename__ = 'tracks_info'
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-
-    track_id = Column(Integer, ForeignKey('tracks.id'))  # Ссылка на таблицу tracks
+    tg_id = Column(BigInteger, ForeignKey(PersonalData.tg_id), nullable=False)
     title = Column(String)
-    text_file_id = Column(String)
-    tiktok_time = Column(String)
-    explicit_lyrics = Column(Boolean)
+    link = Column(String)
 
-    beat_alienation = Column(String)  # Отчуждение на бит
-    words_alienation = Column(String)  # Отчуждение на слова
-
-    beatmaker_percent = Column(Integer)
-    words_author_percent = Column(Integer)
-    feat_percent = Column(Integer)
-
-    # if False - artist author of beat/words and without feat
-    beat_status = Column(Boolean, default=False)
-    words_status = Column(Boolean, default=False)
-    feat_status = Column(Boolean, default=False)
-
-    # Определение связи с Track
-    track = relationship('Track', back_populates='track_info', uselist=False)
+    personal_data = relationship("PersonalData", back_populates="social")
 
 
-class Album(Base):
-    __tablename__ = 'albums'
+class PersonalDataTemplate(Base):
+    id = Column(Integer, primary_key=True)
+    header_data = Column(String)
+    name_data = Column(String)
+    title = Column(String)
+    text = Column(String)
+    example = Column(String)
+    input_type = Column(String)
 
+
+class Release(Base):
+    """
+    TODO Лимитер новых альбомов (чтобы не spam альбомами ничего), думаю 3 альбома одновременно будет достаточно
+    TODO Сделать состояния, прикреплена обложка (после чего появляется кнопка создать ЛС), проверено подписанное ЛС,
+    TODO Также сделать заполнение ПРОМО (думаю отдельной таблицей), если подтверждено с промо
+    """
     # todo не забыть добавить колонки для промо
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(BigInteger, ForeignKey('users.tg_id'))
-    album_cover = Column(String)  # Обложка
+    user_id = Column(BigInteger, ForeignKey(User.tg_id))
+    release_cover = Column(String)  # Обложка
+    release_title = Column(String)  # Название
 
     signed_license = Column(String)  # Подписанное ЛС на проверку
     unsigned_license = Column(String)  # Неподписанное ЛС на проверку
     mail_track_photo = Column(String)  # трек номер отправленного письма с ЛС
 
-    tracks = relationship('Track', back_populates='album')  # новое отношение с треками
-    user = relationship("User", back_populates="albums")
+    # Who work
+    checker_id = Column(BigInteger, ForeignKey(Employee.tg_id))
+    date_check_start = Column(DateTime)
+
+    # Status
+    unsigned_state = Column(Enum(Status, name="unsigned_status"))
+    signed_state = Column(Enum(Status, name="signed_status"))
+    mail_track_state = Column(Enum(Status, name="mail_status"))
+
+    # Moderators who approve
+    approve_unsigned = Column(BigInteger, ForeignKey(Employee.tg_id))
+    approve_signed = Column(BigInteger)
+    approve_mail = Column(BigInteger)
+
+    date_create = Column(DateTime, default=datetime.utcnow, nullable=False)
+    date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    tracks = relationship("Track", back_populates="release")
+    user = relationship("User", back_populates="release")
+    employee = relationship("Employee", back_populates="release")
 
 
-# class Employee(Base):
-#     __tablename__ = 'employees'
-#
-#     id = Column(Integer, primary_key=True, autoincrement=True)
-#     user_id = Column(BigInteger, ForeignKey('users.tg_id'))
-#
-#     first_name = Column(String)
-#     surname = Column(String)
-#     middle_name = Column(String)
+class Track(Base):
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(BigInteger, ForeignKey(User.tg_id), nullable=False)  # Ссылка на таблицу users
+    release_id = Column(Integer, ForeignKey(Release.id))  # новая ссылка на альбом
+
+    track_title = Column(String, nullable=False)
+    file_id_audio = Column(String, nullable=False)
+
+    date_create = Column(DateTime, default=datetime.utcnow, nullable=False)
+    date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    status = Column(Enum(Status, name='track_status'), default=Status.PROCESS)
+    comment = Column(String)
+
+    # Who work
+    checker_id = Column(BigInteger, ForeignKey(Employee.tg_id))
+    date_check_start = Column(DateTime)
+
+    # Who approve
+    approve_track = Column(BigInteger, ForeignKey(Employee.tg_id))
+    date_approve = Column(DateTime)
+
+    track_info = relationship("TrackInfo", uselist=False, back_populates="track")
+    employee = relationship("Employee", back_populates='track')
+    release = relationship('Release', back_populates='tracks')
+    user = relationship("User", back_populates="tracks")
+
+
+class TrackInfo(Base):
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    track_id = Column(Integer, ForeignKey(Track.id))
+    title = Column(String)
+    date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    # Text
+    text_file_id = Column(String)
+    author_words = Column(Boolean, default=False)
+    words_alienation = Column(String)
+    words_author_fullname = Column(String)
+
+    # Beat
+    author_beat = Column(Boolean, default=False)
+    beat_alienation = Column(String)
+    beatmaker_fullname = Column(String)
+
+    # Feat
+    is_feat = Column(Boolean, default=False)
+    feat_tg_id = Column(BigInteger)
+    feat_percent = Column(Integer)
+
+    # Utils
+    tiktok_time = Column(String)
+    explicit_lyrics = Column(Boolean)
+
+    # Status
+    feat_status = Column(Enum(FeatStatus, name="track_info_feat_status"))
+    status = Column(Enum(Status, name='track_info_status'), default=Status.PROCESS)
+    comment = Column(String)
+
+    # Who work
+    checker_id = Column(BigInteger, ForeignKey(Employee.tg_id))
+    date_check_start = Column(DateTime)
+
+    # Who approve
+    approve_info = Column(BigInteger, ForeignKey(Employee.tg_id))
+    date_approve = Column(DateTime)
+
+    track = relationship('Track', back_populates='track_info', uselist=False)
+    employee = relationship("Employee", back_populates='track')
+
+
+class ApprovalTemplates(Base):
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    table = Column(Enum(Tables, name='table_names'), nullable=False)
+    action = Column(Enum(Actions, name='action_names'), nullable=False)
+    type = Column(Enum(Status, name='template_type'), nullable=False)
+    title = Column(String, nullable=False)
+    content = Column(String, nullable=False)
+
+
+class EmployeeLogs(Base):
+    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    employee_id = Column(BigInteger, ForeignKey(Employee.tg_id), nullable=False)
+    table = Column(String, nullable=False)
+    row_id = Column(BigInteger, nullable=False)
+    column_name = Column(String, nullable=False)
+    action_type = Column(Enum(Status, name='action_type'), nullable=False)
+    comment = Column(String)
+    datetime = Column(DateTime, default=datetime.utcnow, nullable=False)

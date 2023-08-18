@@ -6,12 +6,12 @@ from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Back, Button, Row
 from aiogram_dialog.widgets.text import Const, Format, Multi
 
-from src.models.personal_data import PersonalDataHandler
+from src.dialogs.utils.buttons import TXT_EDIT, TXT_NEXT
 from src.models.user import UserHandler
 from src.utils.fsm import RegNickname, StartMenu
 
 
-async def get_data(dialog_manager: DialogManager, **kwargs):
+async def get_data(dialog_manager: DialogManager, **_kwargs):
     return {
         "nickname": dialog_manager.dialog_data['nickname']
     }
@@ -27,9 +27,7 @@ async def nickname_check(msg: Message, _, manager: DialogManager):
 async def on_finish(callback: CallbackQuery, _, manager: DialogManager):
     data = (await manager.load_data())['middleware_data']
     nickname = manager.dialog_data['nickname']
-    await UserHandler(data['engine'], data['database_logger']).set_user_nickname(
-        callback.from_user.id, nickname)
-    await PersonalDataHandler(data['engine'], data['database_logger']).create_row(callback.from_user.id)
+    await UserHandler(data['session_maker'], data['database_logger']).update_nickname(callback.from_user.id, nickname)
     await callback.message.answer("Спасибо за регистрацию ❤️")
     await manager.start(StartMenu.start, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND)
 
@@ -42,11 +40,11 @@ reg_nickname = Dialog(
     ),
     Window(
         Multi(
-            Format("Ваш псевдоним: {nickname}")
+            Format("Ваш псевдоним: <b>{nickname}</b>")
         ),
         Row(
-            Back(Const("Изменить")),
-            Button(Const("Продолжить"), on_click=on_finish, id="finish"),
+            Back(TXT_EDIT),
+            Button(TXT_NEXT, on_click=on_finish, id="finish"),
         ),
         getter=get_data,
         state=RegNickname.finish

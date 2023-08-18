@@ -1,37 +1,38 @@
 import logging
 
 from aiogram_dialog import Dialog, Window, DialogManager
-from aiogram_dialog.widgets.kbd import Start, Cancel
+from aiogram_dialog.widgets.kbd import Start
 from aiogram_dialog.widgets.text import Const
 
-from src.data import config
-from src.dialogs.utils.common import on_start_copy_start_data
-from src.models.user import UserHandler
-from src.utils.fsm import AdminMenu, AdminListening, AdminDashboardPIN, AdminDashboard
+from src.dialogs.admin.common import privilege_level
+from src.models.employee import EmployeeHandler
+from src.utils.fsm import AdminMenu, AdminListening, AdminDashboard, AdminViewTypeDocs
 
 
-async def privilege_getter(dialog_manager: DialogManager, **kwargs):
+async def privilege_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
+    config = data['config']
     user_id = data['event_from_user'].id
-    privilege = await UserHandler(data['engine'], data['database_logger']).get_privilege_by_tg_id(user_id)
-    return {
-        'manager': privilege == 'manager' or privilege == 'curator' or privilege == 'admin' or user_id in config.DEVELOPERS,
-        'moderator': privilege == 'moderator' or privilege == 'curator' or privilege == 'admin' or user_id in config.DEVELOPERS,
-        'curator': privilege == 'curator' or privilege == 'admin' or user_id in config.DEVELOPERS,
-        'admin': privilege == 'admin' or user_id in config.DEVELOPERS
-    }
+    privilege = await EmployeeHandler(data['session_maker'], data['database_logger']).get_privilege_menu(user_id,
+                                                                                                         config)
+    logging.info(privilege)
+    return privilege_level(config, privilege)
 
-admin_main = Dialog(
+
+menu = Dialog(
     Window(
-        Const('ГЛАВНОЕ МЕНЮ'),
-        Start(Const('Прослушивание'),
+        Const('🏠 <b>Главное меню</b>'),
+        Start(Const('🎙 Прослушивание'),
               id='admin_listening',
               state=AdminListening.start,
-              when='manager'),
-        Start(Const('Админ панель'),
+              when='MANAGER'),
+        Start(Const('📨 Проверка документов'),
+              id='admin_documents',
+              state=AdminViewTypeDocs.menu),
+        Start(Const('🔑 Админ панель'),
               id='admin_panel',
-              state=AdminDashboardPIN.start,
-              when='admin'),
+              state=AdminDashboard.start,
+              when='ADMIN'),
         state=AdminMenu.start,
         getter=privilege_getter
     ),

@@ -1,12 +1,25 @@
-from aiogram.types import Message, CallbackQuery
-from aiogram_dialog import Window, Dialog, LaunchMode, DialogManager
-from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.kbd import Start, Cancel, Button, Row, Back
-from aiogram_dialog.widgets.text import Const, Format
+from aiogram_dialog import Window, DialogManager
+from aiogram_dialog.widgets.kbd import Back, Row
+from aiogram_dialog.widgets.text import Format
 
-from src.data import config
-from src.dialogs.utils.common import on_start_copy_start_data
-from src.models.user import UserHandler
-from src.utils.fsm import AdminMenu, AdminListening, AdminDashboardPIN, AdminDashboard, AdminEmployee, AdminAddEmployee
+from src.dialogs.admin.dashboard.employee.info import employee_getter
+from src.dialogs.utils.buttons import BTN_BACK, TXT_CONFIRM
+from src.models.employee import EmployeeHandler
+from src.utils.fsm import AdminEmployee
 
-# TODO Снятие должности у работника
+
+async def delete_employee(_, __, manager: DialogManager):
+    data = manager.middleware_data
+    tg_id = manager.dialog_data['employee_id']
+    await EmployeeHandler(data['session_maker'], data['database_logger']).update_state_to_fired(tg_id)
+
+
+delete_window = Window(
+    Format('Подтвердите увольнение сотрудника {name}'),
+    Row(
+        Back(TXT_CONFIRM, on_click=delete_employee, id="fire_employee"),
+        BTN_BACK,
+    ),
+    state=AdminEmployee.layoff,
+    getter=employee_getter
+)

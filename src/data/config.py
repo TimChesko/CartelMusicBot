@@ -1,22 +1,72 @@
+from dataclasses import dataclass
+from typing import List
+
 from environs import Env
 
-env = Env()
-env.read_env()
 
-BOT_TOKEN: str = env.str("BOT_TOKEN")
-DEVELOPERS: list = list(map(int, env.list("DEVELOPERS")))
+@dataclass
+class TgBot:
+    token: str
+    webhook_url: str
 
-PRIVILEGES: list = list(map(str, env.list("PRIVILEGES")))
-CHATS_BACKUP: list = list(map(int, env.list("CHATS_BACKUP")))
 
-LOGGING_LEVEL: int = env.int("LOGGING_LEVEL")
-# INFO - 20, DEBUG - 10, ERROR - 40
+@dataclass
+class Postgres:
+    host: str
+    user: str
+    password: str
+    database: str
 
-PG_HOST: str = env.str("PG_HOST")
-PG_USER: str = env.str("PG_USER")
-PG_PASSWORD: str = env.str("PG_PASSWORD")
-PG_DATABASE: str = env.str("PG_DATABASE")
 
-FSM_HOST: str = env.str("FSM_HOST")
-FSM_PORT: int = env.int("FSM_PORT")
-FSM_PASSWORD: str = env.str("FSM_PASSWORD")
+@dataclass
+class RedisServer:
+    host: str
+    port: int
+    password: str = None
+
+
+@dataclass
+class Constant:
+    developers: List[int]
+    privileges: List[str]
+    chats_backup: List[int]
+    logging_level: int
+    support: str
+
+
+@dataclass
+class Config:
+    tg: TgBot
+    postgres: Postgres
+    redis: RedisServer
+    constant: Constant
+
+
+def load_config(path: str = None) -> Config:
+    env = Env()
+    env.read_env(path)
+
+    return Config(
+        tg=TgBot(
+            token=env.str("BOT_TOKEN"),
+            webhook_url=env.str("WEBHOOK_URL")
+        ),
+        postgres=Postgres(
+            host=env.str("PG_HOST"),
+            user=env.str("PG_USER"),
+            password=env.str("PG_PASSWORD"),
+            database=env.str("PG_DATABASE")
+        ),
+        redis=RedisServer(
+            host=env.str("FSM_HOST"),
+            port=env.int("FSM_PORT"),
+            password=env.str("FSM_PASSWORD")
+        ),
+        constant=Constant(
+            developers=list(map(int, env.list("DEVELOPERS"))),
+            privileges=list(map(str, env.list("PRIVILEGES"))),
+            chats_backup=list(map(int, env.list("CHATS_BACKUP"))),
+            logging_level=env.int("LOGGING_LEVEL"),
+            support="@CartelMusicSupport"
+        )
+    )

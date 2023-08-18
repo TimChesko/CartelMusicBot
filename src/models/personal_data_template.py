@@ -1,0 +1,74 @@
+from sqlalchemy import select, update
+from sqlalchemy.exc import SQLAlchemyError
+
+from src.models.tables import PersonalDataTemplate
+
+
+class PersonalDataTemplateHandler:
+
+    def __init__(self, session_maker, logger):
+        self.session_maker = session_maker
+        self.logger = logger
+
+    async def get_template_by_id(self, template_id: int) -> PersonalDataTemplate | None:
+        async with self.session_maker() as session:
+            try:
+                query = select(PersonalDataTemplate).where(PersonalDataTemplate.id == template_id)
+                result = await session.execute(query)
+                template = result.scalar_one_or_none()
+                return template
+            except SQLAlchemyError as e:
+                self.logger.error(f"Error occurred during query execution: {e}")
+                return None
+
+    async def get_all_templates(self) -> list[PersonalDataTemplate] | None:
+        async with self.session_maker() as session:
+            try:
+                query = select(PersonalDataTemplate)
+                result = await session.execute(query)
+                templates = result.scalars().all()
+                return templates
+            except SQLAlchemyError as e:
+                self.logger.error(f"Error occurred during query execution: {e}")
+                return None
+
+    async def get_all_args_by_header_data(self, header_data: str) -> list[PersonalDataTemplate] | None:
+        async with self.session_maker() as session:
+            try:
+                query = select(
+                    PersonalDataTemplate.name_data,
+                    PersonalDataTemplate.title,
+                    PersonalDataTemplate.text,
+                    PersonalDataTemplate.example,
+                    PersonalDataTemplate.input_type
+                ).where(PersonalDataTemplate.header_data == header_data) \
+                    .order_by(PersonalDataTemplate.id)
+                result = await session.execute(query)
+                return result.mappings().all()
+            except SQLAlchemyError as e:
+                self.logger.error(f"Error occurred during query execution: {e}")
+                return None
+
+    async def update_template(self, template_id: int, new_data: dict) -> bool:
+        async with self.session_maker() as session:
+            try:
+                await session.execute(
+                    update(PersonalDataTemplate).where(PersonalDataTemplate.id == template_id).values(**new_data)
+                )
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Error occurred during query execution: {e}")
+                await session.rollback()
+                return False
+
+    async def add_template(self, template: PersonalDataTemplate) -> bool:
+        async with self.session_maker() as session:
+            try:
+                session.add(template)
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при добавлении нового шаблона: %s", e)
+                await session.rollback()
+                return False

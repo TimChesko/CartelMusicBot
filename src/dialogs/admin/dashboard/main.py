@@ -1,23 +1,25 @@
-from aiogram_dialog import Dialog, Window, DialogManager
-from aiogram_dialog.widgets.kbd import Start, Cancel
+from aiogram_dialog import Dialog, Window
+from aiogram_dialog.widgets.kbd import Start
 from aiogram_dialog.widgets.text import Const
 
-from src.data import config
-from src.dialogs.utils.common import on_start_copy_start_data
-from src.models.user import UserHandler
-from src.utils.fsm import AdminMenu, AdminListening, AdminDashboardPIN, AdminDashboard, AdminAddEmployee, AdminStatistic
+from src.dialogs.utils.buttons import BTN_CANCEL_BACK
+from src.utils.fsm import AdminDashboard, AdminStatistic, AdminEmployee, AdminTemplates
 
 dashboard = Dialog(
     Window(
         Const('АДМИН ПАНЕЛЬ'),
-        # TODO Добавить список работников
-        Start(Const('Добавить работника'),
+        Start(Const('Сотрудники'),
               id='add_employee',
-              state=AdminAddEmployee.start),
+              state=AdminEmployee.start,
+              data={'filter': '',
+                    'title': 'Сотрудники'}),
         Start(Const('Статистика'),
               id='admin_stats',
               state=AdminStatistic.start),
-        Cancel(),
+        Start(Const('Шаблоны'),
+              id='admin_templates',
+              state=AdminTemplates.start),
+        BTN_CANCEL_BACK,
         state=AdminDashboard.start
     ),
 )
