@@ -178,7 +178,7 @@ class TrackInfo(Base):
     beatmaker_fullname = Column(String)
 
     # Feat
-    feat_status = Column(Boolean, default=False)
+    is_feat = Column(Boolean, default=False)
     feat_tg_id = Column(BigInteger)
     feat_percent = Column(Integer)
 
@@ -186,7 +186,7 @@ class TrackInfo(Base):
     tiktok_time = Column(String)
     explicit_lyrics = Column(Boolean)
 
-    enum_feat_status = Column(Enum(FeatStatus, name="track_info_feat_status"))
+    feat_status = Column(Enum(FeatStatus, name="track_info_feat_status"))
     track_info_status = Column(Enum(Status, name='track_info_status'), default=Status.PROCESS)
 
     date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -204,7 +204,7 @@ class ApprovalTemplates(Base):
     content = Column(String, nullable=False)
 
 
-class Logs(Base):
+class LogsEmployee(Base):
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     employee_id = Column(BigInteger, ForeignKey(Employee.tg_id))
     table = Column(Enum(Tables, name='emp_logs_table_names'), nullable=False)
@@ -212,4 +212,14 @@ class Logs(Base):
     column_name = Column(Enum(Actions, name='column_name'), nullable=False)
     action_type = Column(Enum(Status, name='action_type'), nullable=False)
     comment = Column(String)
+    datetime = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class LogsUser(Base):
+    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    employee_id = Column(BigInteger, ForeignKey(User.tg_id))
+    table = Column(Enum(Tables, name='emp_logs_table_names'), nullable=False)
+    row_id = Column(BigInteger, nullable=False)
+    column_name = Column(Enum(Actions, name='column_name'), nullable=False)
+    action_type = Column(Enum(Status, name='action_type'), nullable=False)
     datetime = Column(DateTime, default=datetime.utcnow, nullable=False)

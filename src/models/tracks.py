@@ -4,7 +4,7 @@ from sqlalchemy import select, update, or_, asc, and_, delete
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.data.config import Config
-from src.models.logs.listening import track_approve, track_reject
+from src.models.logs.emp import track_approve, track_reject, Logging
 from src.models.tables import Track, User, TrackInfo
 from src.utils.enums import Status
 
@@ -174,7 +174,7 @@ class TrackHandler:
                     self.logger.error(f"Трек с ID {track_id} не найден")
                     return False
                 track.checker, track.track_status = None, Status.REJECT
-                track_reject(employee_id, track.id, comment)
+
                 await session.commit()
                 return True
             except SQLAlchemyError as e:
