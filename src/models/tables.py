@@ -126,7 +126,6 @@ class Release(Base):
 
 
 class Employee(Base):
-
     tg_id = Column(BigInteger, primary_key=True, nullable=False)
     tg_username = Column(String)
     tg_first_name = Column(String)
@@ -138,6 +137,8 @@ class Employee(Base):
     add_date = Column(DateTime, nullable=False)
     fired_date = Column(DateTime)
     recovery_date = Column(DateTime)
+
+    last_active = Column(DateTime, default=datetime.utcnow())
 
 
 class Track(Base):
@@ -188,8 +189,7 @@ class TrackInfo(Base):
     enum_feat_status = Column(Enum(FeatStatus, name="track_info_feat_status"))
     track_info_status = Column(Enum(Status, name='track_info_status'), default=Status.PROCESS)
 
-    comment = Column(String)
-
+    date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
     checker_id = Column(BigInteger)
     # Определение связи с Track
     track = relationship('Track', back_populates='track_info', uselist=False)
