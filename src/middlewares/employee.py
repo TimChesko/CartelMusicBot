@@ -16,6 +16,5 @@ class EmployeeCheck(BaseFilter):
                        session_maker: async_sessionmaker,
                        database_logger: BoundLoggerFilteringAtDebug,
                        config: Config) -> Any:
-        privilege = await (EmployeeHandler(session_maker, database_logger)
-                           .check_employee_by_tg_id(message.from_user.id))
+        privilege = await EmployeeHandler(session_maker, database_logger).check_employee_by_tg_id(message.from_user.id)
         return privilege or message.from_user.id in config.constant.developers

@@ -35,9 +35,11 @@ async def on_item_selected(callback: CallbackQuery, __, manager: DialogManager, 
     await ApprovementHandler(data['session_maker'], data['database_logger']).add_reject(callback.from_user.id,
                                                                                         track_id,
                                                                                         template_id)
-    await callback.answer(f"❌ Трек <b>{manager.dialog_data['getter_info']['title']}</b> - отклонен!")
+    await callback.answer('Трек успешно отклонен!')
     await bot.send_message(chat_id=user_id, text=track.content)
+    track_id = manager.dialog_data['getter_info']['track_id']
     await TrackHandler(data['session_maker'], data['database_logger']).update_checker(track_id, None)
+    manager.dialog_data.clear()
     await manager.switch_to(AdminListening.start)
 
 
@@ -50,11 +52,11 @@ async def reject_list_getter(dialog_manager: DialogManager, **_kwargs):
 
 
 reject_templates = Window(
-    Const('❌ Выберите шаблон'),
+    Const('Выберите шаблон'),
     DynamicMedia('audio'),
     ScrollingGroup(
         Select(
-            Format('{item[1]}'),
+            Format('"{item[1]}"'),
             id="temp_rej_list",
             items="rejects",
             item_id_getter=itemgetter(0),
@@ -78,15 +80,14 @@ async def cancel_task(_, __, manager: DialogManager):
     manager.show_mode = ShowMode.EDIT
 
 
-async def approve(callback: CallbackQuery, _, manager: DialogManager):
+async def approve(callback: CallbackQuery, btn: Button, manager: DialogManager):
     data = manager.middleware_data
     config = data['config']
     bot: Bot = data.get("bot", None)
     track_id = manager.dialog_data['getter_info']['track_id']
     user_id = await (TrackHandler(data['session_maker'], data['database_logger']).
                      update_approve(track_id, callback.from_user.id, config))
-    text = f"✅ Ваш трек <b>{manager.dialog_data['getter_info']['title']}</b> - принят !"
-    await bot.send_message(chat_id=user_id, text=text)
+    await bot.send_message(chat_id=user_id, text='ИДЕТ РАЗРАБОТКА')
 
 
 info_window = Window(
@@ -97,10 +98,7 @@ info_window = Window(
     Back(Const('✓ Одобрить'),
          on_click=approve,
          id='approve'),
-    Back(Const('✓ Одобрить промо'),
-         on_click=coming_soon,
-         id='approve_promo'),
-    Next(Const('✘ Отклонить шаблоны'),
+    Next(Const('✓ Отклонить шаблоны'),
          id='reject'),
     SwitchTo(Const('✍ Свой ответ'),
              id='custom_reject',

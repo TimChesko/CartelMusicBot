@@ -10,41 +10,34 @@ from src.dialogs.admin.dashboard.employee.info import info_window
 from src.dialogs.admin.dashboard.employee.privilege import privilege_window
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK
 from src.models.employee import EmployeeHandler
+from src.utils.enums import Privileges, EmployeeStatus
 from src.utils.fsm import AdminEmployee, AdminAddEmployee
 
 
-async def on_start(_, dialog_manager: DialogManager):
-    dialog_manager.dialog_data['filter'] = dialog_manager.start_data['filter']
-    dialog_manager.dialog_data['title'] = dialog_manager.start_data['title']
-
-
-async def privilege_filter(_, btn: SwitchTo, manager: DialogManager):
-    manager.dialog_data['filter'] = btn.widget_id
+# async def privilege_filter(_, btn: SwitchTo, manager: DialogManager):
+#     manager.dialog_data['filter'] = btn.widget_id
 
 
 async def employee_list_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    config = data['config']
-    dialog_data = dialog_manager.dialog_data
-    privilege = dialog_data['filter']
+    # config = data['config']
     employees = await (EmployeeHandler(data['session_maker'], data['database_logger']).
-                       get_privilege_by_filter(config, privilege))
-    buttons = {
-        "admin": "Админ",
-        "manager": "Менеджер",
-        "moderator": "Модератор",
-        "curator": "Куратор",
-        "regs": "Нереги",
-        "fired": "Уволены"
-    }
-    if "filter" in dialog_data and dialog_data["filter"] in buttons:
-        text = buttons[dialog_data["filter"]]
-        buttons[dialog_data["filter"]] = f"🔘 {text}"
+                       get_privilege_by_filter())
+    # buttons = {
+    #     f"{Privileges.ADMIN}": "Админ",
+    #     f"{Privileges.MANAGER}": "Менеджер",
+    #     f"{Privileges.MODERATOR}": "Модератор",
+    #     f"{Privileges.CURATOR}": "Куратор",
+    #     f"{EmployeeStatus.REGISTRATION}": "Нереги",
+    #     f"{EmployeeStatus.FIRED}": "Уволены"
+    # }
+    # if "filter" in dialog_data and dialog_data["filter"] in buttons:
+    #     text = buttons[dialog_data["filter"]]
+    #     buttons[dialog_data["filter"]] = f"🔘 {text}"
     return {
         'privilege': employees,
-        'developer': dialog_manager.event.from_user.id in config.constant.developers,
-        'is_fullname': employees is not None,
-        **buttons
+        # 'developer': dialog_manager.event.from_user.id in config.constant.developers,
+        # **buttons
     }
 
 
@@ -57,17 +50,17 @@ async def on_item_selected(_, __, manager: DialogManager, selected_item: str):
 employees = Dialog(
     Window(
         Const("Сотрудники"),
-        Group(
-            SwitchTo(Format('{admin}'), id='ADMIN', state=AdminEmployee.start, on_click=privilege_filter),
-            SwitchTo(Format('{manager}'), id='MANAGER', state=AdminEmployee.start, on_click=privilege_filter),
-            SwitchTo(Format('{moderator}'), id='MODERATOR', state=AdminEmployee.start, on_click=privilege_filter),
-            SwitchTo(Format('{curator}'), id='CURATOR', state=AdminEmployee.start, on_click=privilege_filter),
-            SwitchTo(Format('{regs}'), id='regs', state=AdminEmployee.start, on_click=privilege_filter),
-            SwitchTo(Const('Сброс'), id='all', state=AdminEmployee.start, on_click=privilege_filter),
-            SwitchTo(Format('🔻{fired}🔻'), id='fired', state=AdminEmployee.start, on_click=privilege_filter,
-                     when="developer"),
-            width=3
-        ),
+        # Group(
+        #     SwitchTo(Format('f{admin}'), id='ADMIN', state=AdminEmployee.start, on_click=privilege_filter),
+        #     SwitchTo(Format('f{manager}'), id='MANAGER', state=AdminEmployee.start, on_click=privilege_filter),
+        #     SwitchTo(Format('f{moderator}'), id='MODERATOR', state=AdminEmployee.start, on_click=privilege_filter),
+        #     SwitchTo(Format('f{curator}'), id='CURATOR', state=AdminEmployee.start, on_click=privilege_filter),
+        #     SwitchTo(Format('f{regs}'), id='regs', state=AdminEmployee.start, on_click=privilege_filter),
+        #     SwitchTo(Const('Сброс'), id='all', state=AdminEmployee.start, on_click=privilege_filter),
+        #     SwitchTo(Format('🔻{fired}🔻'), id='fired', state=AdminEmployee.start, on_click=privilege_filter,
+        #              when="developer"),
+        #     width=3
+        # ),
         ScrollingGroup(
             Select(
                 Format('{item.tg_username}'),
@@ -85,13 +78,12 @@ employees = Dialog(
                   id='employee_add',
                   state=AdminAddEmployee.start),
             BTN_CANCEL_BACK,
-            width=2
+            width=1
         ),
         state=AdminEmployee.start,
         getter=employee_list_getter
     ),
     info_window,
     delete_window,
-    privilege_window,
-    on_start=on_start
+    privilege_window
 )

@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from src.data.config import Config
 from src.models.tables import Employee, User
-from src.utils.enums import Privileges
+from src.utils.enums import Privileges, EmployeeStatus
 
 
 class EmployeeHandler:
@@ -17,7 +17,15 @@ class EmployeeHandler:
     async def add_new_employee(self, event, privilege) -> bool:
         async with self.session_maker() as session:
             try:
-                new_user = Employee(add_date=datetime.now(),
+                if privilege == Privileges.ADMIN:
+                    privilege = Privileges.ADMIN
+                elif privilege == Privileges.CURATOR:
+                    privilege = Privileges.CURATOR
+                elif privilege == Privileges.MODERATOR:
+                    privilege = Privileges.MODERATOR
+                else:
+                    privilege = Privileges.MANAGER
+                new_user = Employee(add_date=datetime.utcnow(),
                                     tg_id=event.from_user.id,
                                     tg_username=event.from_user.username,
                                     tg_first_name=event.from_user.first_name,
@@ -34,7 +42,7 @@ class EmployeeHandler:
     async def check_employee_by_tg_id(self, tg_id: int):
         async with self.session_maker() as session:
             try:
-                query = select(Employee).where(and_(Employee.tg_id == tg_id, Employee.state != 'fired'))
+                query = select(Employee).where(and_(Employee.tg_id == tg_id, Employee.state != EmployeeStatus.FIRED))
                 result = await session.execute(query)
                 user = result.scalar_one_or_none()
                 return user
@@ -79,18 +87,10 @@ class EmployeeHandler:
                 self.logger.error("Ошибка при выполнении запроса: %s", e)
                 return False
 
-    async def get_privilege_by_filter(self, config: Config, privilege: str | None = None):
+    async def get_privilege_by_filter(self):
         async with self.session_maker() as session:
             try:
-                if privilege in config.constant.privileges:
-                    query = select(Employee).where(
-                        and_(Employee.privilege == privilege, Employee.state != 'fired'))
-                elif privilege == 'regs' or privilege == 'fired':
-                    query = select(Employee).where(
-                        Employee.state == privilege)
-                else:
-                    query = select(Employee).where(
-                        Employee.state != 'fired')
+                query = select(Employee).where(Employee.state != EmployeeStatus.FIRED)
                 result = await session.execute(query)
                 employee = result.scalars().all()
                 return employee
@@ -159,7 +159,8 @@ class EmployeeHandler:
         async with self.session_maker() as session:
             try:
                 await session.execute(
-                    update(Employee).where(Employee.tg_id == employee_id).values(fullname=fullname))
+                    update(Employee).where(Employee.tg_id == employee_id).values(fullname=fullname,
+                                                                                 state=EmployeeStatus.WORKS))
                 await session.commit()
                 return True
             except SQLAlchemyError as e:

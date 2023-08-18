@@ -2,15 +2,14 @@ from enum import Enum
 
 
 class EnumBase(Enum):
-
     def __str__(self):
         return self.value
 
 
+# TODO поправить в старте ссылку на фит
 class FeatStatus(EnumBase):
     WAIT_FEAT = "wait_feat"
     WAIT_REG_FEAT = "wait_reg_feat"
-    APPROVE = "approve"
 
 
 class Status(EnumBase):
@@ -31,11 +30,11 @@ class Tables(EnumBase):
 class Actions(EnumBase):
     PASS_DATA = 'all_passport_data'
     BANK_DATA = 'all_bank_data'
-    RELEASE_UNSIGNED = 'unsigned_state'
-    RELEASE_SIGNED = 'signed_state'
-    RELEASE_MAIL = 'mail_track_state'
-    TRACK_STATE = 'track_state'
-    TRACK_INFO_STATE = 'info_state'
+    RELEASE_UNSIGNED = 'unsigned_status'
+    RELEASE_SIGNED = 'signed_status'
+    RELEASE_MAIL = 'mail_track_status'
+    TRACK_STATE = 'track_status'
+    TRACK_INFO_STATE = 'track_info_status'
 
 
 class Privileges(EnumBase):

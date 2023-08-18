@@ -10,6 +10,7 @@ from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK, TXT_CONFIRM
 from src.models.employee import EmployeeHandler
 from src.models.tables import Employee
 from src.models.user import UserHandler
+from src.utils.enums import Privileges
 from src.utils.fsm import AdminAddEmployee
 
 
@@ -86,16 +87,16 @@ new_employee = Dialog(
     Window(
         Const('Выберите роль, которую хотите выдать данному юзеру:'),
         Button(Const('🧑‍💼Менеджер'),
-               id='MANAGER',
+               id=f'{Privileges.MANAGER}',
                on_click=set_privilege),
         Button(Const('👨🏼‍💻Модератор'),
-               id='MODERATOR',
+               id=f'{Privileges.MODERATOR}',
                on_click=set_privilege),
         Button(Const('👨‍👦‍👦Куратор'),
-               id='CURATOR',
+               id=f'{Privileges.CURATOR}',
                on_click=set_privilege),
         Button(Const('🔐Администратор'),
-               id='ADMIN',
+               id=f'{Privileges.ADMIN}',
                on_click=set_privilege,
                when='developer'),
         BTN_BACK,

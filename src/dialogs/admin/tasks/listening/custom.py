@@ -38,13 +38,13 @@ async def other_type_handler_text(msg: Message, _, __):
 
 async def on_finish_custom_reason(callback: CallbackQuery, _, manager: DialogManager):
     data = manager.middleware_data
+    info = manager.dialog_data['getter_info']
     track_id = manager.dialog_data['getter_info']['track_id']
     reason = manager.dialog_data['reason']
-    await ApprovementHandler(data['session_maker'], data['database_logger']).add_custom_reject(callback.from_user.id,
-                                                                                               track_id,
-                                                                                               reason)
-    await TrackHandler(data['session_maker'], data['database_logger']).update_checker(track_id, None)
-    await data['bot'].send_message(manager.dialog_data['getter_info']['user_id'], manager.dialog_data['reason'])
+    await TrackHandler(data['session_maker'], data['database_logger']).update_checker(track_id, callback.from_user.id,
+                                                                                      reason)
+    await data['bot'].send_message(info['user_id'], f'Ваш трек "{info["title"]}" отклонен с комментарием:\n'
+                                                    f'{reason}')
     await manager.done()
 
 
