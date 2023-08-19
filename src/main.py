@@ -16,6 +16,7 @@ from src.dialogs.utils.common import on_unknown_intent, on_unknown_state
 from src.middlewares.ban import CheckBan
 from src.middlewares.config_middleware import ConfigMiddleware
 from src.middlewares.throttling import ThrottlingMiddleware
+from src.utils.commands import set_start_commands
 from src.utils.notify import notify_admins
 
 
@@ -43,12 +44,13 @@ async def set_logging(dp: Dispatcher) -> None:
     dp["database_logger"] = utils.logging.setup_logger().bind(**dp["database_logger_init"])
 
 
-async def setup_aiogram(dp: Dispatcher, config_bot: Config) -> None:
+async def setup_aiogram(dp: Dispatcher, bot: Bot, config_bot: Config) -> None:
     await set_logging(dp)
     dp["aiogram_logger"].info("Configuring aiogram")
     await set_middlewares(dp, config_bot)
     await set_handlers(dp)
     await set_dialogs(dp)
+    await set_start_commands(bot)
     dp["aiogram_logger"].info("Configured aiogram")
 
 
@@ -60,7 +62,7 @@ async def set_database(dp: Dispatcher, config_bot: Config) -> None:
 async def on_startup_polling(dispatcher: Dispatcher, bot: Bot) -> None:
     config_bot = load_config()
     await bot.delete_webhook(drop_pending_updates=True)
-    await setup_aiogram(dispatcher, config_bot)
+    await setup_aiogram(dispatcher, bot, config_bot)
     await set_database(dispatcher, config_bot)
     await notify_admins(dispatcher, config_bot, "Бот запущен")
     dispatcher["aiogram_logger"].info("Started polling")

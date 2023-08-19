@@ -4,7 +4,6 @@ from sqlalchemy import select, update, or_, asc, and_, delete
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.data.config import Config
-from src.models.logs.emp import track_approve, track_reject, Logging
 from src.models.tables import Track, User, TrackInfo
 from src.utils.enums import Status
 
