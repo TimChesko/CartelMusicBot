@@ -15,7 +15,6 @@ async def set_start_commands(bot: Bot):
         BotCommand(
             command="help",
             description="❓ Частые вопросы"
-        ),
-        BotCommand
+        )
     ]
     return await bot.set_my_commands(commands=commands, scope=BotCommandScopeDefault())
