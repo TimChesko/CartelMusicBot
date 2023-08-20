@@ -162,6 +162,9 @@ class ReleaseTrack(StatesGroup):
 
 
 class ReleasePage(StatesGroup):
+    lvl1 = State()
+    lvl2 = State()
+    lvl3 = State()
     main = State()
     title = State()
     cover = State()

@@ -5,6 +5,7 @@ from aiogram_dialog.widgets.text import Const, Format
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.personal_data import PersonalDataHandler
 from src.models.tracks import TrackHandler
+from src.utils.enums import Status
 from src.utils.fsm import StartMenu, Listening, Profile, \
     PersonalData, MyStudio, ReleaseTrack
 
@@ -18,7 +19,7 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
         get_all_by_tg(user_id)
     return {
         "library_check": library,
-        'verif_check': personal_data.all_passport_data == 'approve' and personal_data.all_bank_data == 'approve',
+        'verif_check': personal_data.all_passport_data == Status.APPROVE and personal_data.all_bank_data == Status.APPROVE,
         'track_check': tracks,
         "has_btn": "\nВыберете категорию:" if tracks else "",
         'data': data,

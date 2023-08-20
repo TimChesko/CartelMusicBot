@@ -6,6 +6,7 @@ from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.kbd import Button
 
 from src.models.release import ReleaseHandler
+from src.utils.enums import Status
 
 
 # GETTERS
@@ -28,9 +29,9 @@ async def task_page_getter(dialog_manager: DialogManager, **_kwargs):
     content_type = ContentType.DOCUMENT
     doc_id = release.release_cover if dialog_manager.dialog_data.get('doc_state',
                                                                      None) is True else release.unsigned_license
-    if release.signed_state == 'process':
+    if release.unsigned_status == Status.PROCESS:
         doc_id = release.signed_license
-    elif release.mail_track_state == 'process':
+    elif release.mail_track_status == Status.PROCESS:
         doc_id = release.mail_track_photo
         content_type = ContentType.PHOTO
     doc = MediaAttachment(content_type, file_id=MediaId(doc_id))
@@ -40,7 +41,7 @@ async def task_page_getter(dialog_manager: DialogManager, **_kwargs):
         'title': release.release_title,
         'tracks': track,
         'doc': doc,
-        'checkbox': release.unsigned_state == 'process'
+        'checkbox': release.unsigned_status == Status.PROCESS
     }
 
 
@@ -49,7 +50,7 @@ async def confirm_release(callback: CallbackQuery, widget: Button, manager: Dial
     confirm = widget.widget_id.split('_')
     data = manager.middleware_data
     bot: Bot = manager.middleware_data['bot']
-    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release_first(
+    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release(
         manager.dialog_data['release_id'])
     await ReleaseHandler(data['session_maker'], data['database_logger']).approve(manager.dialog_data['release_id'],
                                                                                  callback.from_user.id,
@@ -64,7 +65,7 @@ async def reject_release(callback: CallbackQuery, widget: Button, manager: Dialo
     bot: Bot = manager.middleware_data['bot']
     text = 'Комментарий администратора:\n' + manager.dialog_data.get(
         "reason") if 'reason' in manager.dialog_data else ""
-    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release_first(
+    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release(
         manager.dialog_data['release_id'])
     await ReleaseHandler(data['session_maker'], data['database_logger']).reject(manager.dialog_data['release_id'],
                                                                                 callback.from_user.id,
@@ -78,8 +79,8 @@ async def reject_release(callback: CallbackQuery, widget: Button, manager: Dialo
 async def on_task_selected(callback: CallbackQuery, __, manager: DialogManager, selected_item):
     item = int(selected_item)
     data = manager.middleware_data
-    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release_first(item)
-    if release.checker is None or release.checker == callback.from_user.id:
+    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release(item)
+    if release.checker_id is None or release.checker_id == callback.from_user.id:
         await ReleaseHandler(data['session_maker'], data['database_logger']).set_task_state(item,
                                                                                             callback.from_user.id)
         manager.dialog_data['release_id'] = item

@@ -217,7 +217,7 @@ class LogsEmployee(Base):
 
 class LogsUser(Base):
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
-    employee_id = Column(BigInteger, ForeignKey(User.tg_id))
+    user_id = Column(BigInteger, ForeignKey(User.tg_id))
     table = Column(Enum(Tables, name='emp_logs_table_names'), nullable=False)
     row_id = Column(BigInteger, nullable=False)
     column_name = Column(Enum(Actions, name='column_name'), nullable=False)
