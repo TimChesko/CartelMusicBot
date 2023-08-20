@@ -17,6 +17,7 @@ from src.utils.fsm import Passport
 async def create_form(_, __, manager: DialogManager):
     buttons = [False, True, True]
     task_list = await get_data_from_db("passport", manager)
+
     manager.show_mode = ShowMode.EDIT
     await InputForm(manager).start_dialog(buttons, task_list)
 
@@ -33,7 +34,8 @@ async def on_finally_passport(callback: CallbackQuery, _, manager: DialogManager
         text = "✅ Вы успешно внесли данные о паспорте !"
     else:
         text = f'❌ Произошел сбой на стороне сервера. Обратитесь в поддержку {support}'
-    await callback.message.edit_text(text)
+    await callback.message.delete()
+    await middleware_data["bot"].send_message(chat_id=user_id, text=text)
     manager.show_mode = ShowMode.SEND
     await manager.done()
 

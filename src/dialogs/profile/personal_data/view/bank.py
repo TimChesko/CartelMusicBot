@@ -29,7 +29,8 @@ async def on_finally_bank(callback: CallbackQuery, _, manager: DialogManager):
         text = "✅ Вы успешно внесли банковские данные !"
     else:
         text = f'❌ Произошел сбой на стороне сервера. Обратитесь в поддержку {support}'
-    await callback.message.edit_text(text)
+    await callback.message.delete()
+    await middleware_data["bot"].send_message(chat_id=user_id, text=text)
     manager.show_mode = ShowMode.SEND
     await manager.done()
 
