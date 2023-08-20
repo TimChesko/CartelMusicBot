@@ -35,7 +35,7 @@ class DialogManagerOptimized:
     async def generate_list_buttons(self, dialog_manager: DialogManager) -> dict:
         user_id = dialog_manager.event.from_user.id
         dialog_data = dialog_manager.dialog_data
-        tracks = await self.track_handler.get_tracks_and_info_by_status(user_id, dialog_data['status'])
+        tracks = await self.track_handler.get_tracks_and_info_by_status(user_id, dialog_data['status'].upper())
 
         status = dialog_data['status']
         buttons = []

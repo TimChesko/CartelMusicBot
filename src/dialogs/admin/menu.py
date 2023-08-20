@@ -6,7 +6,6 @@ from aiogram_dialog.widgets.text import Const
 
 from src.dialogs.admin.common import privilege_level
 from src.models.employee import EmployeeHandler
-from src.models.tables import Employee
 from src.utils.enums import Privileges
 from src.utils.fsm import AdminMenu, AdminListening, AdminDashboard, AdminViewTypeDocs
 

@@ -76,7 +76,6 @@ class PersonalDataHandler:
                 }
 
                 if header_name in headers_map:
-                    # TODO чек Status.APPROVE
                     setattr(user, headers_map[header_name], Status.APPROVE)
                 else:
                     self.logger.error("Неправильный header_name: %s", header_name)
@@ -85,9 +84,9 @@ class PersonalDataHandler:
                 if user.all_passport_data == Status.APPROVE and user.all_bank_data == Status.APPROVE:
                     update_query = (
                         update(TrackInfo)
-                        .where(and_(TrackInfo.feat_tg_id == str(user_id),
-                                    TrackInfo.enum_feat_status == FeatStatus.WAIT_FEAT))
-                        .values(status="process")
+                        .where(and_(TrackInfo.feat_tg_id == user_id,
+                                    TrackInfo.feat_status == FeatStatus.WAIT_FEAT))
+                        .values(feat_status=None, status=Status.PROCESS)
                     )
                     await session.execute(update_query)
 
@@ -144,7 +143,8 @@ class PersonalDataHandler:
     async def update_all_personal_data(self, tg_id: int, header_data: str, save_input: dict) -> bool:
         async with self.session_maker() as session:
             try:
-                existing_data = await session.execute(select(PersonalData).where(PersonalData.tg_id == tg_id))
+                query = select(PersonalData).where(PersonalData.tg_id == tg_id)
+                existing_data = await session.execute(query)
                 existing_data = (existing_data.first())[0] if existing_data else None
 
                 if existing_data:
@@ -164,7 +164,7 @@ class PersonalDataHandler:
                 await session.commit()
                 return True
             except SQLAlchemyError as e:
-                self.logger.error("Ошибка при обновлении персональных данных: %s", e)
+                self.logger.error("Ошибка при обновлении персональных данных: %s", e, exc_info=True)
                 await session.rollback()
                 return False
 

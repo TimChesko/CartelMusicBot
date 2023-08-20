@@ -8,6 +8,7 @@ from src.dialogs.admin.tasks.personal_data.factory.process import CheckDocs, on_
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, BTN_BACK
 from src.models.personal_data import PersonalDataHandler
 from src.models.user import UserHandler
+from src.utils.enums import Status
 from src.utils.fsm import AdminCheckPassport
 
 
@@ -38,8 +39,8 @@ async def get_data_user(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     user_data = await UserHandler(data['session_maker'], data['database_logger']).get_user_by_tg_id(user_id)
     user = await PersonalDataHandler(data['session_maker'], data['database_logger']).get_all_personal_data(user_id)
-    passport = True if user.all_passport_data == "process" else False
-    bank = True if user.all_bank_data == "process" else False
+    passport = True if user.all_passport_data == Status.PROCESS else False
+    bank = True if user.all_bank_data == Status.PROCESS else False
     return {
         "nickname": user_data.nickname,
         "user_id": user_id,

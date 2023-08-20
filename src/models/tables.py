@@ -152,7 +152,7 @@ class Track(Base):
     date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
     checker_id = Column(BigInteger)  # Кто проверяет сейчас
 
-    track_status = Column(Enum(Status, name='track_status'), default=Status.PROCESS)
+    status = Column(Enum(Status, name='track_status'), default=Status.PROCESS)
 
     # Определение связи с TrackInfo
     track_info = relationship("TrackInfo", uselist=False, back_populates="track")
@@ -187,7 +187,7 @@ class TrackInfo(Base):
     explicit_lyrics = Column(Boolean)
 
     feat_status = Column(Enum(FeatStatus, name="track_info_feat_status"))
-    track_info_status = Column(Enum(Status, name='track_info_status'), default=Status.PROCESS)
+    status = Column(Enum(Status, name='track_info_status'), default=Status.PROCESS)
 
     date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
     checker_id = Column(BigInteger)

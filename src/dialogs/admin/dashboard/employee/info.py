@@ -21,7 +21,7 @@ async def employee_getter(dialog_manager: DialogManager, **_kwargs):
     }
     return {
         'name': employee.fullname if employee.fullname is not None else employee.tg_username,
-        'privilege': translate_privilege(employee.privilege.value),
+        'privilege': translate_privilege(employee.privilege),
         'state': status[employee.state],
         'add_date': employee.add_date.strftime("%d.%m.%Y %H:%M") if employee.add_date is not None else None,
         'fired_date': employee.fired_date.strftime("%d.%m.%Y %H:%M") if employee.fired_date is not None else None,

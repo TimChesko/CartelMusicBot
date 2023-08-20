@@ -5,6 +5,7 @@ from aiogram_dialog import DialogManager
 from src.dialogs.admin.tasks.personal_data.factory.model import Task
 from src.dialogs.admin.tasks.personal_data.factory.window import start_dialog_check_docs
 from src.models.personal_data import PersonalDataHandler
+from src.utils.enums import Status
 from src.utils.fsm import AdminCheckPassport
 
 
@@ -53,7 +54,7 @@ async def calc_exit(manager: DialogManager):
     user_id = manager.dialog_data['user_id']
     personal_data = PersonalDataHandler(middleware['session_maker'], middleware['database_logger'])
     user = await personal_data.get_all_personal_data(user_id)
-    if user.all_passport_data == "process" or user.all_bank_data == "process":
+    if user.all_passport_data == Status.PROCESS or user.all_bank_data == Status.PROCESS:
         return await manager.switch_to(AdminCheckPassport.view)
     count = await personal_data.get_docs_count_personal_data()
     if count and count > 0:

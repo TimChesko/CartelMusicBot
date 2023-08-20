@@ -8,43 +8,43 @@ class EnumBase(Enum):
 
 # TODO поправить в старте ссылку на фит
 class FeatStatus(EnumBase):
-    WAIT_FEAT = "wait_feat"
-    WAIT_REG_FEAT = "wait_reg_feat"
+    WAIT_FEAT = "WAIT_FEAT"
+    WAIT_REG_FEAT = "WAIT_REG_FEAT"
 
 
 class Status(EnumBase):
-    PROCESS = 'process'
-    REJECT = 'reject'
-    APPROVE = 'approve'
+    PROCESS = 'PROCESS'
+    REJECT = 'REJECT'
+    APPROVE = 'APPROVE'
 
 
 class Tables(EnumBase):
-    USER = 'user'
-    TRACK = 'track'
-    RELEASE = 'release'
-    EMPLOYEE = 'employee'
-    TRACK_INFO = 'track_info'
-    PERSONAL_DATA = 'personal_data'
+    USER = 'USER'
+    TRACK = 'TRACK'
+    RELEASE = 'RELEASE'
+    EMPLOYEE = 'EMPLOYEE'
+    TRACK_INFO = 'TRACK_INFO'
+    PERSONAL_DATA = 'PERSONAL_DATA'
 
 
 class Actions(EnumBase):
-    PASS_DATA = 'all_passport_data'
-    BANK_DATA = 'all_bank_data'
-    RELEASE_UNSIGNED = 'unsigned_status'
-    RELEASE_SIGNED = 'signed_status'
-    RELEASE_MAIL = 'mail_track_status'
-    TRACK_STATE = 'track_status'
-    TRACK_INFO_STATE = 'track_info_status'
+    PASS_DATA = 'ALL_PASSPORT_DATA'
+    BANK_DATA = 'ALL_BANK_DATA'
+    RELEASE_UNSIGNED = 'UNSIGNED_STATUS'
+    RELEASE_SIGNED = 'SIGNED_STATUS'
+    RELEASE_MAIL = 'MAIL_TRACK_STATUS'
+    TRACK_STATE = 'TRACK_STATUS'
+    TRACK_INFO_STATE = 'TRACK_INFO_STATUS'
 
 
 class Privileges(EnumBase):
-    MANAGER = 'manager'
-    MODERATOR = 'moderator'
-    CURATOR = 'curator'
-    ADMIN = 'admin'
+    MANAGER = 'MANAGER'
+    MODERATOR = 'MODERATOR'
+    CURATOR = 'CURATOR'
+    ADMIN = 'ADMIN'
 
 
 class EmployeeStatus(EnumBase):
-    REGISTRATION = "registration"  # the moderator has not registered yet
-    WORKS = "works"  # the moderator has been registered
-    FIRED = "fired"  # the moderator has been fired (уволен)
+    REGISTRATION = "REGISTRATION"  # the moderator has not registered yet
+    WORKS = "WORKS"  # the moderator has been registered
+    FIRED = "FIRED"  # the moderator has been fired (уволен)
