@@ -161,14 +161,19 @@ class ReleaseTrack(StatesGroup):
     list = State()
 
 
-class ReleasePage(StatesGroup):
-    lvl1 = State()
-    lvl2 = State()
-    lvl3 = State()
+class ReleasePage1(StatesGroup):
     main = State()
     title = State()
     cover = State()
+
+
+class ReleasePage2(StatesGroup):
+    main = State()
     ld = State()
+
+
+class ReleasePage3(StatesGroup):
+    main = State()
     mail = State()
 
 

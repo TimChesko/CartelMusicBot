@@ -17,13 +17,14 @@ from src.dialogs.utils.common import format_date
 from src.models.release import ReleaseHandler
 from src.models.personal_data import PersonalDataHandler
 from src.models.tables import PersonalData
-from src.utils.fsm import ReleasePage, ReleaseTracks
+from src.utils.fsm import ReleaseTracks
 
 
 async def set_release_mail(msg: Message, _, manager: DialogManager):
     data = manager.middleware_data
-    await ReleaseHandler(data['session_maker'], data['database_logger']).set_mail_track(manager.start_data['release_id'],
-                                                                                      msg.photo[0].file_id)
+    await ReleaseHandler(data['session_maker'], data['database_logger']).set_mail_track(
+        manager.start_data['release_id'],
+        msg.photo[0].file_id)
     await msg.delete()
     manager.show_mode = ShowMode.EDIT
     await manager.switch_to(ReleasePage.main)
@@ -51,7 +52,7 @@ async def other_type_handler_ld(msg: Message, _, __):
 async def set_release_ld(msg: Message, _, manager: DialogManager):
     data = manager.middleware_data
     await ReleaseHandler(data['session_maker'], data['database_logger']).set_ld(manager.start_data['release_id'],
-                                                                              msg.document.file_id)
+                                                                                msg.document.file_id)
     await msg.delete()
     manager.show_mode = ShowMode.EDIT
     await manager.switch_to(ReleasePage.main)
@@ -66,68 +67,15 @@ ld = Window(
 )
 
 
-async def set_release_cover(msg: Message, _, manager: DialogManager):
-    data = manager.middleware_data
-    await ReleaseHandler(data['session_maker'], data['database_logger']).set_cover(manager.start_data['release_id'],
-                                                                                 msg.document.file_id)
-    await msg.delete()
-    manager.show_mode = ShowMode.EDIT
-    await manager.switch_to(ReleasePage.main)
-
-
-# TODO переделать other type в одну функцию для всего блока
-async def other_type_handler_doc(msg: Message, _, __):
-    await msg.delete()
-    await msg.answer("Пришлите обложку альбома в виде файла")
-
-
-cover = Window(
-    Const("Прикрепите новую обложку в виде фото без сжатия"),
-    MessageInput(set_release_cover, content_types=[ContentType.DOCUMENT]),
-    MessageInput(other_type_handler_doc),
-    SwitchTo(TXT_BACK, 'from_cover', ReleasePage.main),
-    state=ReleasePage.cover
-)
-
-
-async def set_release_title(msg: Message, _, manager: DialogManager):
-    data = manager.middleware_data
-    await ReleaseHandler(data['session_maker'], data['database_logger']).set_title(manager.start_data['release_id'],
-                                                                                 msg.text)
-    manager.start_data['title'] = msg.text
-    await msg.delete()
-    manager.show_mode = ShowMode.EDIT
-    await manager.back()
-
-
-async def other_type_handler_text(msg: Message, _, __):
-    await msg.delete()
-    await msg.answer("Пришлите название альбома в виде сообщения")
-
-
-title = Window(
-    Const("Дайте название альбому"),
-    MessageInput(set_release_title, content_types=[ContentType.TEXT]),
-    MessageInput(other_type_handler_text),
-    SwitchTo(TXT_BACK, 'from_title', ReleasePage.main),
-    state=ReleasePage.title
-)
-
-
 async def choose_track(__, _, manager: DialogManager):
     await manager.start(state=ReleaseTracks.start, data={'release_id': manager.start_data['release_id']},
                         show_mode=ShowMode.EDIT)
 
 
-async def clear_tracks(__, _, manager: DialogManager):
-    data = manager.middleware_data
-    await ReleaseHandler(data['session_maker'], data['database_logger']).delete_release_id_from_tracks(
-        manager.start_data['release_id'])
-
-
 async def delete_release(__, _, manager: DialogManager):
     data = manager.middleware_data
-    await ReleaseHandler(data['session_maker'], data['database_logger']).delete_release(manager.start_data['release_id'])
+    await ReleaseHandler(data['session_maker'], data['database_logger']).delete_release(
+        manager.start_data['release_id'])
     await manager.done()
 
 

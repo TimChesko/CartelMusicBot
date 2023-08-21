@@ -1,7 +1,11 @@
 from aiogram import Router
 
-from src.dialogs.my_studio.release import create, page, tracks
+from src.dialogs.my_studio.release import dialogs
 
 router = Router()
 
-router.include_routers(create.main, page.main, tracks.choose_track)
+router.include_routers(dialogs.create_new_release,
+                       dialogs.lvl1_page,
+                       dialogs.choose_tracks,
+                       dialogs.lvl2_page,
+                       dialogs.lvl3_page)
