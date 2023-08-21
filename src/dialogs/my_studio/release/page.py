@@ -17,13 +17,15 @@ from src.dialogs.utils.common import format_date
 from src.models.release import ReleaseHandler
 from src.models.personal_data import PersonalDataHandler
 from src.models.tables import PersonalData
+from src.utils.enums import Status
 from src.utils.fsm import ReleasePage, ReleaseTracks
 
 
 async def set_release_mail(msg: Message, _, manager: DialogManager):
     data = manager.middleware_data
-    await ReleaseHandler(data['session_maker'], data['database_logger']).set_mail_track(manager.start_data['release_id'],
-                                                                                      msg.photo[0].file_id)
+    await ReleaseHandler(data['session_maker'], data['database_logger']).set_mail_track(
+        manager.start_data['release_id'],
+        msg.photo[0].file_id)
     await msg.delete()
     manager.show_mode = ShowMode.EDIT
     await manager.switch_to(ReleasePage.main)
@@ -51,7 +53,7 @@ async def other_type_handler_ld(msg: Message, _, __):
 async def set_release_ld(msg: Message, _, manager: DialogManager):
     data = manager.middleware_data
     await ReleaseHandler(data['session_maker'], data['database_logger']).set_ld(manager.start_data['release_id'],
-                                                                              msg.document.file_id)
+                                                                                msg.document.file_id)
     await msg.delete()
     manager.show_mode = ShowMode.EDIT
     await manager.switch_to(ReleasePage.main)
@@ -69,7 +71,7 @@ ld = Window(
 async def set_release_cover(msg: Message, _, manager: DialogManager):
     data = manager.middleware_data
     await ReleaseHandler(data['session_maker'], data['database_logger']).set_cover(manager.start_data['release_id'],
-                                                                                 msg.document.file_id)
+                                                                                   msg.document.file_id)
     await msg.delete()
     manager.show_mode = ShowMode.EDIT
     await manager.switch_to(ReleasePage.main)
@@ -93,7 +95,7 @@ cover = Window(
 async def set_release_title(msg: Message, _, manager: DialogManager):
     data = manager.middleware_data
     await ReleaseHandler(data['session_maker'], data['database_logger']).set_title(manager.start_data['release_id'],
-                                                                                 msg.text)
+                                                                                   msg.text)
     manager.start_data['title'] = msg.text
     await msg.delete()
     manager.show_mode = ShowMode.EDIT
@@ -127,7 +129,8 @@ async def clear_tracks(__, _, manager: DialogManager):
 
 async def delete_release(__, _, manager: DialogManager):
     data = manager.middleware_data
-    await ReleaseHandler(data['session_maker'], data['database_logger']).delete_release(manager.start_data['release_id'])
+    await ReleaseHandler(data['session_maker'], data['database_logger']).delete_release(
+        manager.start_data['release_id'])
     await manager.done()
 
 
@@ -192,15 +195,15 @@ async def getter(dialog_manager: DialogManager, **_kwargs):
         'ld': '✓ Лиц. Договор' if release.signed_license else 'Лиц. Договор',
         'mail_track': '✓ Трек номер' if release.mail_track_photo else 'Трек номер',
         'when_clear': tracks is not None,
-        'unsigned': not release.unsigned_state or release.unsigned_state == 'reject',
+        'unsigned': not release.unsigned_status or release.unsigned_status == Status.REJECT,
         'unsigned_when': all((release.release_title, release.release_cover, tracks)),
-        'wait': release.unsigned_state == 'process' or release.signed_state == 'process' or release.mail_track_state == 'process',
-        'signed': release.unsigned_state == 'approve' and not release.signed_state or release.signed_state == 'reject',
+        'wait': release.unsigned_status == Status.PROCESS or release.unsigned_status == Status.PROCESS or release.mail_track_status == Status.PROCESS,
+        'signed': release.ununsigned_status == Status.APPROVE and not release.unsigned_status or release.unsigned_status == Status.REJECT,
         'signed_when': release.signed_license is not None,
-        'mail': release.signed_state == 'approve' and not release.mail_track_state or release.mail_track_state == 'reject',
+        'mail': release.unsigned_status == Status.APPROVE and not release.mail_track_status or release.mail_track_status == Status.REJECT,
         'mail_when': release.mail_track_photo is not None,
-        'aggregate': release.mail_track_state == 'approve',
-        'end': release.mail_track_state != 'approve'
+        'aggregate': release.mail_track_status == Status.APPROVE,
+        'end': release.mail_track_status != Status.APPROVE
     }
 
 

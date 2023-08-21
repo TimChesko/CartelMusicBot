@@ -1,3 +1,4 @@
+import logging
 from _operator import itemgetter
 
 from aiogram.types import CallbackQuery
@@ -7,12 +8,19 @@ from aiogram_dialog.widgets.text import Const, Format
 
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK
 from src.models.release import ReleaseHandler
+from src.utils.enums import Status
 from src.utils.fsm import ReleaseTrack, ReleasePage
 
 
-async def on_release_selected(_, __, manager: DialogManager, selected_item: str):
-    release_id = int(selected_item)
-    await manager.start(ReleasePage.main, data={'release_id': release_id}, show_mode=ShowMode.EDIT)
+async def on_release_selected(_, __, manager: DialogManager, release_id):
+    data = manager.middleware_data
+    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release(release_id)
+    if all([release.signed_status is None, release.unsigned_status != Status.APPROVE]):
+        await manager.start(ReleasePage.lvl1, data={'release_id': release_id}, show_mode=ShowMode.EDIT)
+    elif all([release.mail_track_status is None, release.signed_status != Status.APPROVE]):
+        await manager.start(ReleasePage.lvl2, data={'release_id': release_id}, show_mode=ShowMode.EDIT)
+    elif all([release.signed_status == Status.APPROVE, release.mail_track_status != Status.APPROVE]):
+        await manager.start(ReleasePage.lvl3, data={'release_id': release_id}, show_mode=ShowMode.EDIT)
 
 
 async def list_getter(dialog_manager: DialogManager, **_kwargs):
@@ -35,6 +43,7 @@ main = Dialog(
         ScrollingGroup(
             Select(
                 Format("🎵 {item[1]}"),
+                type_factory=int,
                 id="ms",
                 items="releases",
                 item_id_getter=itemgetter(0),
