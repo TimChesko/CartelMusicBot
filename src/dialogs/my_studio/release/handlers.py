@@ -141,3 +141,44 @@ async def delete_release(__, _, manager: DialogManager):
     await ReleaseHandler(data['session_maker'], data['database_logger']).delete_release(
         manager.start_data['release_id'])
     await manager.done()
+
+
+async def release_ld_oth(msg: Message, _, __):
+    await msg.delete()
+    await msg.answer("Пришлите лицензионный договор в виде файла")
+
+
+async def set_release_ld(msg: Message, _, manager: DialogManager):
+    data = manager.middleware_data
+    await ReleaseHandler(data['session_maker'], data['database_logger']).set_ld(manager.start_data['release_id'],
+                                                                                msg.document.file_id)
+    await msg.delete()
+    manager.show_mode = ShowMode.EDIT
+    await manager.switch_to(ReleasePage2.main)
+
+
+async def on_approvement_lvl2(_, __, manager: DialogManager):
+    data = manager.middleware_data
+    await ReleaseHandler(data['session_maker'], data['database_logger']).update_signed_state(
+        manager.start_data['release_id'])
+
+
+async def set_release_mail(msg: Message, _, manager: DialogManager):
+    data = manager.middleware_data
+    await ReleaseHandler(data['session_maker'], data['database_logger']).set_mail_track(
+        manager.start_data['release_id'],
+        msg.photo[0].file_id)
+    await msg.delete()
+    manager.show_mode = ShowMode.EDIT
+    await manager.switch_to(ReleasePage3.main)
+
+
+async def release_mail_oth(msg: Message, _, __):
+    await msg.delete()
+    await msg.answer("Пришлите трек номер в виде фото с сжатием")
+
+
+async def on_approvement_lvl3(_, __, manager: DialogManager):
+    data = manager.middleware_data
+    await ReleaseHandler(data['session_maker'], data['database_logger']).update_mail_state(
+        manager.start_data['release_id'])

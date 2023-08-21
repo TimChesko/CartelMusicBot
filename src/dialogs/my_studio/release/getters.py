@@ -30,8 +30,6 @@ async def getter(dialog_manager: DialogManager, **_kwargs):
         doc_id = release.release_cover if dialog_manager.dialog_data['doc_state'] is True else release.unsigned_license
         is_cover = MediaAttachment(ContentType.DOCUMENT, file_id=MediaId(doc_id))
     return {
-        'ld': '✓ Лиц. Договор' if release.signed_license else 'Лиц. Договор',
-        'mail_track': '✓ Трек номер' if release.mail_track_photo else 'Трек номер',
         'unsigned': not release.unsigned_state or release.unsigned_state == 'reject',
         'signed': release.unsigned_state == 'approve' and not release.signed_state or release.signed_state == 'reject',
         'signed_when': release.signed_license is not None,
@@ -76,10 +74,35 @@ async def lvl1_getter(dialog_manager: DialogManager, **_kwargs):
     }
 
 
+async def lvl2_getter(dialog_manager: DialogManager, **_kwargs):
+    data = dialog_manager.middleware_data
+    release, tracks = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release_scalar(
+        dialog_manager.start_data['release_id'])
+    return {
+        'ld': '✓ Лиц. Договор' if release.signed_license else 'Лиц. Договор',
+        'all_done': release.signed_license is not None,
+        'ld_file': 1,  # TODO сделать миграцию из дока в пдф и прикрепить'
+        **release_info(tracks, release)
+    }
+
+
 async def choose_tracks_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     tracks = await TrackHandler(data['session_maker'], data['database_logger']).get_for_release_multiselect(
         dialog_manager.event.from_user.id)
     return {
         'items': tracks
+    }
+
+
+async def lvl3_getter(dialog_manager: DialogManager, **_kwargs):
+    data = dialog_manager.middleware_data
+    release, tracks = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release_scalar(
+        dialog_manager.start_data['release_id'])
+    return {
+        'mail': '✓ Трек номер' if release.mail_track_photo else 'Трек номер',
+        'all_done': release.mail_track_photo is not None,
+        'mail_photo': MediaAttachment(ContentType.PHOTO,
+                                      file_id=MediaId(release.mail_track_photo)) if release.mail_track_photo else None,
+        **release_info(tracks, release)
     }

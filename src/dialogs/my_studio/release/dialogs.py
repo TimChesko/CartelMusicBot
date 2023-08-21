@@ -9,10 +9,12 @@ from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Multiselect
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format, List, Multi
 
-from src.dialogs.my_studio.release.getters import create_new_release_getter, lvl1_getter, choose_tracks_getter
+from src.dialogs.my_studio.release.getters import create_new_release_getter, lvl1_getter, choose_tracks_getter, \
+    lvl2_getter, lvl3_getter
 from src.dialogs.my_studio.release.handlers import create_release, on_release, clear_release_tracks, set_release_title, \
     release_title_oth, set_release_cover, release_cover_oth, all_tracks_selected, to_choose_tracks, on_approvement_lvl1, \
-    delete_release
+    delete_release, release_ld_oth, set_release_ld, on_approvement_lvl2, release_mail_oth, set_release_mail, \
+    on_approvement_lvl3
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, TXT_BACK
 from src.utils.fsm import ReleaseTrack, ReleasePage1, ReleasePage2, ReleasePage3
 from src.utils.fsm import ReleaseTracks
@@ -119,18 +121,19 @@ choose_tracks = Dialog(
 lvl2_page = Dialog(
     Window(
         release_info,
-        DynamicMedia('doc'),
+        # DynamicMedia('ld_file'),
         SwitchTo(Format('{ld}'), 'users_ld', state=ReleasePage2.ld),
-        Button(Const('Отправить на проверку'), id='on_process_signed', on_click=...,
-               when='signed_when'),
+        Button(Const('Отправить на проверку'), id='on_process_signed', on_click=on_approvement_lvl2,
+               when='all_done'),
         delete,
         BTN_CANCEL_BACK,
-        state=ReleasePage2.main
+        state=ReleasePage2.main,
+        getter=lvl2_getter
     ),
     Window(
         Const("Прикрепите лицензионное соглашение в виде документа"),
-        # MessageInput(set_release_ld, content_types=[ContentType.DOCUMENT]),
-        # MessageInput(other_type_handler_ld),
+        MessageInput(set_release_ld, content_types=[ContentType.DOCUMENT]),
+        MessageInput(release_ld_oth),
         SwitchTo(TXT_BACK, 'from_ld', ReleasePage2.main),
         state=ReleasePage2.ld
     )
@@ -139,17 +142,18 @@ lvl2_page = Dialog(
 lvl3_page = Dialog(
     Window(
         release_info,
-        DynamicMedia('doc'),
-        SwitchTo(Format('{mail_track}'), 'users_mail', state=ReleasePage3.mail),
-        Button(Const('Отправить на проверку'), id='on_process_mail', on_click=..., when='mail_when'),
+        DynamicMedia('mail_photo'),
+        SwitchTo(Format('{mail}'), 'users_mail', state=ReleasePage3.mail),
+        Button(Const('Отправить на проверку'), id='on_process_mail', on_click=on_approvement_lvl3, when='all_done'),
         delete,
         BTN_CANCEL_BACK,
-        state=ReleasePage3.main
+        state=ReleasePage3.main,
+        getter=lvl3_getter
     ),
     Window(
         Const("Прикрепите трек номер в виде фото с сжатием"),
-        # MessageInput(set_release_mail, content_types=[ContentType.PHOTO]),
-        # MessageInput(other_type_handler_mail),
+        MessageInput(set_release_mail, content_types=[ContentType.PHOTO]),
+        MessageInput(release_mail_oth),
         SwitchTo(TXT_BACK, 'from_mail', ReleasePage3.main),
         state=ReleasePage3.mail
     )
