@@ -25,10 +25,9 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при выполнении запроса get_tracks_by_status: {e}")
                 return False
 
-    async def get_tracks_and_info_by_status(self, user_id: int, status):
+    async def get_tracks_and_info_by_status(self, user_id: int, status: Status):
         async with self.session_maker() as session:
             try:
-                print(status)
                 query = select(Track, TrackInfo).join(TrackInfo, Track.id == TrackInfo.track_id).where(
                     (Track.user_id == user_id) &
                     (or_(Track.status == status, TrackInfo.status == status))
@@ -226,7 +225,7 @@ class TrackHandler:
                 result = await session.execute(
                     select(Track.track_title, Track.id).join(TrackInfo)
                     .where(and_(Track.user_id == tg_id, Track.release_id == None,
-                                TrackInfo.track_info_status == Status.APPROVE)))
+                                TrackInfo.status == Status.APPROVE)))
                 tracks = result.all()
                 return tracks
             except SQLAlchemyError as e:

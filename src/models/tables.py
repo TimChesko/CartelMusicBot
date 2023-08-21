@@ -187,7 +187,7 @@ class TrackInfo(Base):
     explicit_lyrics = Column(Boolean)
 
     feat_status = Column(Enum(FeatStatus, name="track_info_feat_status"))
-    status = Column(Enum(Status, name='track_info_status'), default=Status.PROCESS)
+    status = Column(Enum(Status, name='status'))
 
     date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
     checker_id = Column(BigInteger)

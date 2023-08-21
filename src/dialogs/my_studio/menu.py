@@ -8,7 +8,7 @@ from src.utils.fsm import ViewStatus, MyStudio
 
 
 async def view_status(callback: CallbackQuery, button: Button, manager: DialogManager):
-    data = {"status": callback.data.split("_")[-1], "status_text": button.text.text.lower()}
+    data = {"status": callback.data.split("_")[-1].upper(), "status_text": button.text.text.lower()}
     await manager.start(state=ViewStatus.menu, data=data)
 
 

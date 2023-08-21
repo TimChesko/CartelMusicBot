@@ -14,16 +14,13 @@ from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.tables import Track, TrackInfo
 from src.models.track_info import TrackInfoHandler
 from src.models.tracks import TrackHandler
+from src.utils.enums import Status
 from src.utils.fsm import ViewStatus, TrackApprove
 
-APPROVE = "approve"
-REJECT = "reject"
-PROCESS = "process"
-
 STATUS_TEMPLATES = {
-    APPROVE: "принят",
-    REJECT: "отклонен",
-    PROCESS: "в процессе"
+    Status.APPROVE: "принят",
+    Status.REJECT: "отклонен",
+    Status.PROCESS: "в процессе"
 }
 
 
@@ -35,19 +32,17 @@ class DialogManagerOptimized:
     async def generate_list_buttons(self, dialog_manager: DialogManager) -> dict:
         user_id = dialog_manager.event.from_user.id
         dialog_data = dialog_manager.dialog_data
-        tracks = await self.track_handler.get_tracks_and_info_by_status(user_id, dialog_data['status'].upper())
-
-        status = dialog_data['status']
+        status = Status(dialog_data['status'])
+        tracks = await self.track_handler.get_tracks_and_info_by_status(user_id, status)
         buttons = []
 
         for track, track_info in tracks:
-            if status == APPROVE and track.status == APPROVE and \
-                    (track_info.status is None or track_info.status == APPROVE):
+            if Status.APPROVE == status == track.status and \
+                    (track_info.status is None or track_info.status == Status.APPROVE):
                 buttons.append([track.id, track.track_title[:20]])
-            elif status in [REJECT, PROCESS] and \
+            elif status in [Status.REJECT, Status.PROCESS] and \
                     (track.status == status or (track_info is not None and track_info.status == status)):
                 buttons.append([track.id, track.track_title[:20]])
-
         return {
             "status": dialog_data['status_text'],
             "status_list": buttons
@@ -86,9 +81,9 @@ async def get_data_track(dialog_manager: DialogManager, **_kwargs):
         "pages": len(files.keys()) if files else 0,
         "text": text,
         "attachment": MediaAttachment(file_type, file_id=MediaId(file_id)),
-        "new_data": track.status == APPROVE and track_info.status is None,
-        "edit_data": track.status == APPROVE and track_info.status == REJECT,
-        "delete": track.status in [PROCESS, REJECT]
+        "new_data": track.status == Status.APPROVE and track_info.status is None,
+        "edit_data": track.status == Status.APPROVE and track_info.status == Status.REJECT,
+        "delete": track.status in [Status.PROCESS, Status.REJECT]
     }
 
 
@@ -98,10 +93,10 @@ async def create_text_and_files(track: Track, track_info: TrackInfo) -> tuple[st
     status_track = STATUS_TEMPLATES[track.status]
     text += f"Статус трека: <b>{status_track}</b>\n"
     if track_info.status:
-        if track_info.status != PROCESS:
+        if track_info.status != Status.PROCESS:
             status_info = STATUS_TEMPLATES[track_info.status]
             text += f"Статус информации по треку: <b>{status_info}</b>\n"
-        if track_info.status == APPROVE:
+        if track_info.status == Status.APPROVE:
             files, track_info_text = await get_struct_data(track_info)
             text += await get_struct_text(track_info_text)
     return text, files
@@ -116,7 +111,7 @@ async def delete_track(_, __, dialog_manager: DialogManager):
 
 
 async def start_form(_, __, manager: DialogManager):
-    data = {'track_id': manager.dialog_data['track_id'], }
+    data = {'track_id': manager.dialog_data['track_id']}
     await manager.start(state=TrackApprove.title, data=data)
 
 
@@ -133,7 +128,6 @@ async def on_process(_, result: Any, manager: DialogManager):
         await track_handler.delete_track_by_id(track_id)
     elif not await track_handler.get_tracks_by_status(user_id, status):
         return await manager.done()
-
     return await manager.switch_to(ViewStatus.menu)
 
 

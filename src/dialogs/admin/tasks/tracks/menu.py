@@ -6,6 +6,7 @@ from aiogram_dialog.widgets.text import Const, Format
 
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK
 from src.models.track_info import TrackInfoHandler
+from src.utils.enums import Status
 from src.utils.fsm import AdminCheckTrack, AdminListTracks
 
 
@@ -18,9 +19,9 @@ async def formatting_docs(docs: list) -> list:
 
 async def get_data(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    docs = await TrackInfoHandler(data['session_maker'], data['database_logger']).get_docs_by_status("PROCESS")
+    docs = await TrackInfoHandler(data['session_maker'], data['database_logger']).get_docs_by_status(Status.PROCESS)
     return {
-        "tasks": await formatting_docs(docs) if docs else None
+        "tasks": await formatting_docs(docs)
     }
 
 

@@ -11,7 +11,7 @@ class TrackInfoHandler:
         self.session_maker = session_maker
         self.logger = logger
 
-    async def set_status_reject(self, track_id: int, edit_list: list, comment: str | None):
+    async def set_status_reject(self, track_id: int, edit_list: list, comment: str = None):
         async with self.session_maker() as session:
             try:
                 result = dict.fromkeys(edit_list, None)
@@ -30,7 +30,7 @@ class TrackInfoHandler:
     async def set_status_approve(self, track_id: int):
         async with self.session_maker() as session:
             try:
-                query = update(TrackInfo).where(TrackInfo.track_id == track_id).values(track_info_status=Status.APPROVE)
+                query = update(TrackInfo).where(TrackInfo.track_id == track_id).values(status=Status.APPROVE)
                 await session.execute(query)
                 await session.commit()
                 return True
@@ -65,14 +65,12 @@ class TrackInfoHandler:
                 await session.rollback()
                 return False
 
-    async def get_docs_by_status(self, status: str) -> list | None:
+    async def get_docs_by_status(self, status: Status) -> list | None:
         async with self.session_maker() as session:
             try:
-                # TODO тут сто проц не то передается, нужно через условие, прокидывать не варик
-                query = select(TrackInfo).where(TrackInfo.track_info_status == status)
+                query = select(TrackInfo).where(TrackInfo.status == status)
                 result = await session.execute(query)
-                docs = result.scalars().all()
-                return docs
+                return result.scalars().all()
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return None
