@@ -14,6 +14,7 @@ from src.dialogs.utils.buttons import BTN_BACK, BTN_CANCEL_BACK, TXT_CONFIRM, TX
 from src.dialogs.utils.common import on_start_copy_start_data
 from src.models.track_info import TrackInfoHandler
 from src.models.tracks import TrackHandler
+from src.utils.enums import FeatStatus, Status
 from src.utils.fsm import TrackApprove, StudioEdit
 
 
@@ -49,6 +50,7 @@ async def on_process(_, result: Any, manager: DialogManager):
 
 async def save_document(msg: Message, _, manager: DialogManager):
     await msg.delete()
+    manager.show_mode = ShowMode.EDIT
     manager.dialog_data['track'].update({"text_file_id": msg.document.file_id})
     await manager.next()
 
@@ -63,6 +65,7 @@ async def is_time_format(input_string):
 
 async def save_time_track(msg: Message, _, manager: DialogManager, __):
     await msg.delete()
+    manager.show_mode = ShowMode.EDIT
     if await is_time_format(msg.text):
         manager.dialog_data['track'].update({"tiktok_time": msg.text})
         await manager.next()
@@ -77,7 +80,7 @@ async def save_data_callback(callback: CallbackQuery, _, manager: DialogManager)
 
 
 async def save_data_feat(_, __, manager: DialogManager):
-    manager.dialog_data['track'].update({'feat_status': False})
+    manager.dialog_data['track'].update({'is_feat': False})
     await manager.next()
 
 
@@ -85,14 +88,13 @@ async def finish(callback: CallbackQuery, __, manager: DialogManager):
     data = manager.dialog_data.get('track')
     middleware_data = manager.middleware_data
     support = middleware_data['config'].constant.support
-    if data['feat_status']:
-        data.update({"status": "wait_feat"})
-    else:
-        data.update({"status": "process"})
+    if data['is_feat']:
+        data.update({"feat_status": FeatStatus.WAIT_FEAT})
+    data.update({"status": Status.PROCESS})
     answer = await TrackInfoHandler(middleware_data['session_maker'], middleware_data['database_logger']). \
         add_track_info(int(manager.dialog_data['track_id']), data)
     if answer:
-        if data['feat_status']:
+        if data['is_feat']:
             bot: Bot = manager.middleware_data['bot']
             bot_info = await bot.me()
             link = create_deep_link(bot_info.username,
