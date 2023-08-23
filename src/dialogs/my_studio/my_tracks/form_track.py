@@ -156,7 +156,7 @@ dialog = Dialog(
         state=TrackApprove.title
     ),
     Window(
-        Const("Пришлите файл с текстом трека в формате txt или docs"),
+        Const("Пришлите файл с текстом трека в формате txt, docs или пришлите одним сообщением текст трека"),
         MessageInput(
             func=save_document,
             content_types=[ContentType.DOCUMENT, ContentType.TEXT]
