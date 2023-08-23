@@ -1,9 +1,10 @@
+import os
 from datetime import datetime
 from typing import Any
 
 from aiogram import Bot
 from aiogram.enums import ContentType
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, FSInputFile
 from aiogram.utils.deep_linking import create_deep_link
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import MessageInput, TextInput
@@ -49,9 +50,30 @@ async def on_process(_, result: Any, manager: DialogManager):
 
 
 async def save_document(msg: Message, _, manager: DialogManager):
+    if msg.content_type == ContentType.TEXT:
+        file_name = manager.dialog_data['track'].get("title", "Текст трека")
+        file_path = f'dialogs/my_studio/my_tracks/files/text_track_{file_name}.txt'
+
+        with open(file_path, 'w+') as file:
+            file.write(msg.text)
+
+        new_msg = await msg.answer_document(
+            document=FSInputFile(
+                path=file_path,
+                filename="text_track_"+file_name
+            ),
+            caption="Сгенерированный файл..."
+        )
+        message_id = new_msg.document.file_id
+        await new_msg.delete()
+        os.remove(file_path)
+
+    else:
+        message_id = msg.document.file_id
+
     await msg.delete()
     manager.show_mode = ShowMode.EDIT
-    manager.dialog_data['track'].update({"text_file_id": msg.document.file_id})
+    manager.dialog_data['track'].update({"text_file_id": message_id})
     await manager.next()
 
 
@@ -137,7 +159,7 @@ dialog = Dialog(
         Const("Пришлите файл с текстом трека в формате txt или docs"),
         MessageInput(
             func=save_document,
-            content_types=ContentType.DOCUMENT
+            content_types=[ContentType.DOCUMENT, ContentType.TEXT]
         ),
         BTN_BACK,
         state=TrackApprove.text
