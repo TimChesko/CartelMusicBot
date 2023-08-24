@@ -7,7 +7,16 @@ from environs import Env
 @dataclass
 class TgBot:
     token: str
-    webhook_url: str
+
+
+@dataclass
+class Webhook:
+    use_webhook: bool
+    address: str
+    token: str
+    max_updates_in_queue: int
+    host: str
+    port: int
 
 
 @dataclass
@@ -37,6 +46,7 @@ class Constant:
 @dataclass
 class Config:
     tg: TgBot
+    webhook: Webhook
     postgres: Postgres
     redis: RedisServer
     constant: Constant
@@ -49,7 +59,14 @@ def load_config(path: str = None) -> Config:
     return Config(
         tg=TgBot(
             token=env.str("BOT_TOKEN"),
-            webhook_url=env.str("WEBHOOK_URL")
+        ),
+        webhook=Webhook(
+            use_webhook=env.bool("USE_WEBHOOK"),
+            token=env.str("WEBHOOK_SECRET_TOKEN"),
+            address=env.str("WEBHOOK_ADDRESS"),
+            max_updates_in_queue=env.int("MAX_UPDATES_IN_QUEUE"),
+            host=env.str("WEBHOOK_LISTENING_HOST"),
+            port=env.int("WEBHOOK_LISTENING_PORT")
         ),
         postgres=Postgres(
             host=env.str("PG_HOST"),

@@ -1,10 +1,12 @@
 import asyncio
 
+import aiojobs
 from aiogram import Dispatcher, Bot
 from aiogram.filters import ExceptionTypeFilter
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
 from aiogram_dialog import setup_dialogs
 from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
+from aiohttp import web
 from redis.asyncio.client import Redis
 from sulguk import AiogramSulgukMiddleware
 
@@ -15,9 +17,12 @@ from src.database.process import DatabaseManager
 from src.dialogs.utils.common import on_unknown_intent, on_unknown_state
 from src.middlewares.ban import CheckBan
 from src.middlewares.config_middleware import ConfigMiddleware
+from src.middlewares.logging import StructLoggingMiddleware
 from src.middlewares.throttling import ThrottlingMiddleware
 from src.utils.commands import set_start_commands
 from src.utils.notify import notify_admins
+
+config: Config = load_config()
 
 
 async def set_dialogs(dp: Dispatcher) -> None:
@@ -29,10 +34,15 @@ async def set_handlers(dp: Dispatcher) -> None:
     dp.include_router(handlers.router)
 
 
-async def set_middlewares(dp: Dispatcher, config: Config) -> None:
+async def set_middlewares(dp: Dispatcher) -> None:
     dp.message.middleware(CheckBan())
     dp.message.middleware(ThrottlingMiddleware(storage=dp.storage))
     dp.update.outer_middleware(ConfigMiddleware(config))
+    dp.update.outer_middleware(
+        StructLoggingMiddleware(
+            logger=dp["aiogram_logger"], logger_init_values=dp["aiogram_logger_init"]
+        )
+    )
 
 
 async def set_logging(dp: Dispatcher) -> None:
@@ -44,10 +54,10 @@ async def set_logging(dp: Dispatcher) -> None:
     dp["database_logger"] = utils.logging.setup_logger().bind(**dp["database_logger_init"])
 
 
-async def setup_aiogram(dp: Dispatcher, bot: Bot, config_bot: Config) -> None:
+async def setup_aiogram(dp: Dispatcher, bot: Bot) -> None:
     await set_logging(dp)
     dp["aiogram_logger"].info("Configuring aiogram")
-    await set_middlewares(dp, config_bot)
+    await set_middlewares(dp)
     await set_handlers(dp)
     await set_dialogs(dp)
     await set_start_commands(bot)
@@ -60,30 +70,76 @@ async def set_database(dp: Dispatcher, config_bot: Config) -> None:
 
 
 async def on_startup_polling(dispatcher: Dispatcher, bot: Bot) -> None:
-    config_bot = load_config()
     await bot.delete_webhook(drop_pending_updates=True)
-    await setup_aiogram(dispatcher, bot, config_bot)
-    await set_database(dispatcher, config_bot)
-    await notify_admins(dispatcher, config_bot, "Бот запущен")
+    await notify_admins(dispatcher, config, "Бот запущен")
     dispatcher["aiogram_logger"].info("Started polling")
 
 
 async def on_shutdown_polling(dispatcher: Dispatcher, bot: Bot) -> None:
-    config_bot = load_config()
-    await notify_admins(dispatcher, config_bot, "Бот выключен")
+    await notify_admins(dispatcher, config, "Бот выключен")
     await bot.session.close()
     dispatcher["aiogram_logger"].info("Stopping polling")
 
 
+async def on_startup_webhook(app: web.Application):
+    dp: Dispatcher = app["dp"]
+    bot: Bot = app["bot"]
+
+    webhook_logger = dp["aiogram_logger"].bind(webhook_url=config.webhook.address)
+    webhook_logger.info("Configured webhook")
+    await bot.set_webhook(
+        url=config.webhook.address.format(token=config.tg.token),
+        allowed_updates=dp.resolve_used_update_types(),
+        secret_token=config.webhook.token,
+    )
+
+
+async def on_shutdown_webhook(app: web.Application):
+    dp: Dispatcher = app["dp"]
+    # noinspection PyProtectedMember
+    for i in [app, *app._subapps]:  # dirty
+        if "scheduler" in i:
+            scheduler: aiojobs.Scheduler = i["scheduler"]
+            scheduler._closed = True
+            while scheduler.pending_count != 0:
+                dp["aiogram_logger"].info(
+                    f"Waiting for {scheduler.pending_count} tasks to complete"
+                )
+                await asyncio.sleep(1)
+    bot: Bot = app["bot"]
+    await bot.session.close()
+    dp["aiogram_logger"].info("Stopped webhook")
+
+
+def setup_aiohttp_app(bot: Bot, dp: Dispatcher) -> web.Application:
+    import web_handlers
+
+    scheduler = aiojobs.Scheduler()
+    app = web.Application()
+    sub_apps: list[tuple[str, web.Application]] = [
+        ("/tg/webhooks/", web_handlers.tg_updates_app),
+    ]
+    for prefix, sub_app in sub_apps:
+        sub_app["bot"] = bot
+        sub_app["dp"] = dp
+        sub_app["scheduler"] = scheduler
+        app.add_subapp(prefix, sub_app)
+    app["bot"] = bot
+    app["dp"] = dp
+    app["scheduler"] = scheduler
+    app.on_startup.append(on_startup_webhook)
+    app.on_shutdown.append(on_shutdown_webhook)
+    return app
+
+
 async def main() -> None:
-    config_bot = load_config()
-    bot = Bot(config_bot.tg.token, parse_mode="HTML")
+    bot = Bot(config.tg.token, parse_mode="HTML")
     bot.session.middleware(AiogramSulgukMiddleware())
     storage = RedisStorage(
         redis=Redis(
-            host=config_bot.redis.host,
-            password=config_bot.redis.password,
-            port=config_bot.redis.port,
+            host=config.redis.host,
+            password=config.redis.password,
+            port=config.redis.port,
             db=0,
         ),
         key_builder=DefaultKeyBuilder(with_destiny=True)
@@ -100,9 +156,24 @@ async def main() -> None:
         on_unknown_state,
         ExceptionTypeFilter(UnknownState),
     )
-    dp.startup.register(on_startup_polling)
-    dp.shutdown.register(on_shutdown_polling)
-    await dp.start_polling(bot)
+
+    await setup_aiogram(dp, bot)
+    await set_database(dp, config)
+
+    if config.webhook.use_webhook:
+        runner = web.AppRunner(setup_aiohttp_app(bot, dp))
+        await runner.setup()
+        site = web.TCPSite(
+            runner,
+            host=config.webhook.host,
+            port=config.webhook.port,
+        )
+        await site.start()
+        await asyncio.Event().wait()
+    else:
+        dp.startup.register(on_startup_polling)
+        dp.shutdown.register(on_shutdown_polling)
+        await dp.start_polling(bot)
 
 
 def run():
