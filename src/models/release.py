@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy import select, update, delete, asc
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.tables import Release, Track, User
+from src.models.tables import Release, Track, User, TrackInfo
 from src.utils.enums import Status
 
 
@@ -88,12 +88,20 @@ class ReleaseHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def get_track_with_release(self, release_id) -> Release:
+    async def get_track_with_release(self, release_id) -> list[TrackInfo]:
         async with self.session_maker() as session:
             try:
-                tracks = await session.execute(select(Track).where(Track.release_id == release_id))
+                release_info = await session.execute(
+                    select(Release).where(Release.id == release_id)
+                )
+                release = release_info.scalar_one_or_none()
+                tracks = await session.execute(
+                    select(TrackInfo)
+                    .join(Track)
+                    .where(Track.release_id == release_id)
+                )
                 tracks_info = tracks.scalars().all()
-                return tracks_info
+                return tracks_info, release
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False

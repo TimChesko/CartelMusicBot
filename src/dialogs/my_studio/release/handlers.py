@@ -1,4 +1,5 @@
 import datetime
+import logging
 import os
 
 from aiogram import Bot
@@ -13,7 +14,7 @@ from aiogram_dialog.widgets.text import Const, Format, List, Multi
 from docxtpl import DocxTemplate
 
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, TXT_BACK
-from src.dialogs.utils.common import format_date
+from src.dialogs.utils.common import format_date, context_maker
 from src.models.release import ReleaseHandler
 from src.models.personal_data import PersonalDataHandler
 from src.models.tables import PersonalData
@@ -67,9 +68,6 @@ async def release_title_oth(msg: Message, _, __):
 
 async def set_release_cover(msg: Message, _, manager: DialogManager):
     data = manager.middleware_data
-    current_directory = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(current_directory, 'files')
-    await msg.bot.download(msg.document.file_id, file_path)
     await ReleaseHandler(data['session_maker'], data['database_logger']).set_cover(manager.start_data['release_id'],
                                                                                    msg.document.file_id)
     await msg.delete()
@@ -88,7 +86,8 @@ async def all_tracks_selected(__, _, manager: DialogManager):
     widget = manager.find('release_tracklist')
     tracklist = widget.get_checked()
     await TrackHandler(data['session_maker'], data['database_logger']).update_release_id(list(map(int, tracklist)),
-                                                                                         manager.start_data['release_id'])
+                                                                                         manager.start_data[
+                                                                                             'release_id'])
     await manager.done()
 
 
@@ -103,41 +102,24 @@ async def on_approvement_lvl1(callback: CallbackQuery, _, manager: DialogManager
     personal: PersonalData = await PersonalDataHandler(data['session_maker'],
                                                        data['database_logger']).get_all_personal_data(
         callback.from_user.id)
-    track_list = await ReleaseHandler(data['session_maker'], data['database_logger']).get_track_with_release(
-        manager.dialog_data['release_id'])
+    track_list, release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_track_with_release(
+        manager.start_data['release_id'])
     current_directory = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(current_directory, 'files', 'template.docx')
+    cover_path = os.path.join(current_directory, 'files', f'{release.release_cover}.jpg')
     doc = DocxTemplate(file_path)
-    context = {
-        'licensor_name': f'{personal.surname} {personal.first_name[0]}.{personal.middle_name[0]}.',
-        'name': f'{personal.surname} {personal.first_name} {personal.middle_name}',
-        'inn_code': f'{personal.tin_self}',
-        'passport': f'{personal.passport_series} {personal.passport_number}',
-        'who_issued_it': f'{personal.who_issued_it}',
-        'unit_code': f'{personal.unit_code}',
-        'registration_address': f'{personal.registration_address}',
-        'date_of_issue': f'{personal.date_of_issue}',
-        'recipient': f'{personal.recipient}',
-        'account_code': f'{personal.account_code}',
-        'bank_recipient': f'{personal.bank_recipient}',
-        'bik_code': f'{personal.bik_code}',
-        'correct_code': f'{personal.correct_code}',
-        'bank_inn_code': f'{personal.tin_bank}',
-        'kpp_code': f'{personal.kpp_code}',
-        'email': f'{personal.email}',
-        'release_title': f'{personal}',
-        'ld_number': f'{datetime.datetime.now().strftime("%d%m%Y%h%M%s")}',
-        'date': f'{format_date()}',
-    }
+    await bot.download(release.release_cover, cover_path)
+    context = context_maker(personal, track_list, release, cover_path)
     temp_file = os.path.join(current_directory, 'files', f"{callback.from_user.id}.docx")
     doc.render(context)
     doc.save(temp_file)
     image_from_pc = FSInputFile(temp_file)
     msg = await callback.message.answer_document(image_from_pc)
-    await bot.delete_message(callback.from_user.id, msg.message_id)
-    await ReleaseHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
-        manager.start_data['release_id'], msg.document.file_id)
+    # await bot.delete_message(callback.from_user.id, msg.message_id)
+    # await ReleaseHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
+    #     manager.start_data['release_id'], msg.document.file_id)
     os.remove(temp_file)
+    os.remove(cover_path)
 
 
 async def delete_release(__, _, manager: DialogManager):
