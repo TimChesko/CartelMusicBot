@@ -21,7 +21,7 @@ class AiogramDialogLogging(logging.Handler):
         msg = ""
         match list_name:
             case _, "window":
-
+                pass
             case _, "dialog":
                 result = re.findall(pattern, self.log_message)
                 msg = result[0]

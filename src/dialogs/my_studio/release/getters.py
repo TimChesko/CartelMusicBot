@@ -1,4 +1,5 @@
 import datetime
+import logging
 import os
 
 from aiogram import Bot
@@ -74,6 +75,7 @@ async def lvl1_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     release, tracks = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release_scalar(
         dialog_manager.start_data['release_id'])
+    logging.info(False if release.unsigned_status == Status.PROCESS else True)
     return {
         'text_title': '✓ Название' if release.release_title else 'Дать название',
         'text_cover': '✓ Обложка' if release.release_cover else 'Прикрепить обложку',
@@ -81,6 +83,7 @@ async def lvl1_getter(dialog_manager: DialogManager, **_kwargs):
         'cover': MediaAttachment(ContentType.DOCUMENT,
                                  file_id=MediaId(release.release_cover)) if release.release_cover else None,
         'all_done': all((release.release_title, release.release_cover, tracks)),
+        'is_process': False if release.unsigned_status == Status.PROCESS else True,
         **release_info(tracks, release)
     }
 
@@ -93,6 +96,7 @@ async def lvl2_getter(dialog_manager: DialogManager, **_kwargs):
         'ld': '✓ Лиц. Договор' if release.signed_license else 'Лиц. Договор',
         'all_done': release.signed_license is not None,
         'ld_file': release.unsigned_license,
+        'is_process': False if release.signed_status == Status.PROCESS else True,
         **release_info(tracks, release)
     }
 
@@ -115,5 +119,6 @@ async def lvl3_getter(dialog_manager: DialogManager, **_kwargs):
         'all_done': release.mail_track_photo is not None,
         'mail_photo': MediaAttachment(ContentType.PHOTO,
                                       file_id=MediaId(release.mail_track_photo)) if release.mail_track_photo else None,
+        'is_process': False if release.mail_track_status == Status.PROCESS else True,
         **release_info(tracks, release)
     }

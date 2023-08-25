@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import select, update, delete, asc
+from sqlalchemy import select, update, delete, asc, and_
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.models.tables import Release, Track, User, TrackInfo
@@ -30,7 +30,8 @@ class ReleaseHandler:
         async with self.session_maker() as session:
             try:
                 result = await session.execute(
-                    select(Release.id, Release.release_title).where(Release.user_id == user_id))
+                    select(Release.id, Release.release_title).where(and_(Release.user_id == user_id,
+                                                                         Release.mail_track_status != Status.APPROVE)))
                 track_info = result.all()
                 return track_info
             except SQLAlchemyError as e:
@@ -296,8 +297,8 @@ class ReleaseHandler:
             try:
                 await session.execute(
                     update(Release).where(Release.id == release_id).values(unsigned_license=file_id,
-                                                                           ununsigned_status=Status.PROCESS,
-                                                                           sort_datetime=datetime.datetime.utcnow())
+                                                                           unsigned_status=Status.PROCESS,
+                                                                           date_last_edit=datetime.datetime.utcnow())
                 )
                 await session.commit()
                 return True
