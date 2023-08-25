@@ -7,12 +7,13 @@ from src.dialogs.admin.tasks.release.windows import create_task_info_window, cre
     create_reason_confirm_window
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK
 from src.models.release import ReleaseHandler
+from src.utils.enums import Status
 from src.utils.fsm import AdminReleaseLvl1, AdminReleaseLvl3, AdminReleaseLvl2
 
 
 async def lvl1_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_unsigned_state('process')
+    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_unsigned_state(Status.PROCESS)
     return {
         'release': release
     }
@@ -47,7 +48,7 @@ lvl1 = Dialog(
 
 async def lvl2_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_signed_state('process')
+    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_signed_state(Status.PROCESS)
     return {
         'release': release
     }
@@ -82,7 +83,7 @@ lvl2 = Dialog(
 
 async def lvl3_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
-    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_mail_state('process')
+    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_mail_state(Status.PROCESS)
     return {
         'release': release
     }
