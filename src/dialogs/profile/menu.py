@@ -8,6 +8,7 @@ from src.dialogs.profile.personal_data.view.nickname import start_edit_nickname
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK
 from src.models.personal_data import PersonalDataHandler
 from src.models.user import UserHandler
+from src.utils.enums import Status
 from src.utils.fsm import Profile, Passport, Bank, ProfileEdit, Social
 
 
@@ -18,9 +19,9 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
         get_all_by_tg(user_id)
     user = await UserHandler(data['session_maker'], data['database_logger']).get_user_by_tg_id(user_id)
     status_dict = {
-        "process": "🟡 на проверке",
-        "reject": "⛔️ отклонены",
-        "approve": "✅ проверены",
+        Status.PROCESS: "🟡 на проверке",
+        Status.REJECT: "⛔️ отклонены",
+        Status.APPROVE: "✅ проверены",
     }
     passport = status_dict.get(personal_data.all_passport_data, "не имеются")
     bank = status_dict.get(personal_data.all_bank_data, "не имеются")

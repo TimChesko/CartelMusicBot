@@ -11,6 +11,7 @@ async def check_user(user: User, user_handler, dialog_manager, msg) -> bool:
     await msg.delete()
     if user.nickname is None:
         await dialog_manager.start(RegNickname.nickname, mode=StartMode.RESET_STACK)
+        return False
     elif user and user.nickname is not None:
         return True
     else:

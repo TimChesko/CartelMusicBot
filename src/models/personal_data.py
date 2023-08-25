@@ -13,7 +13,7 @@ class PersonalDataHandler:
         self.session_maker = session_maker
         self.logger = logger
 
-    async def get_all_personal_data(self, tg_id: int):
+    async def get_all_personal_data_and_nickname(self, tg_id: int):
         async with self.session_maker() as session:
             try:
                 # noinspection PyTypeChecker
@@ -22,6 +22,17 @@ class PersonalDataHandler:
                 user = select(User.nickname).where(User.tg_id == tg_id)
                 usr = await session.execute(user)
                 return personal.scalar(), usr.scalar()
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при получении данных из таблицы PersonalData: %s", e)
+                return None
+
+    async def get_all_personal_data(self, tg_id: int):
+        async with self.session_maker() as session:
+            try:
+                # noinspection PyTypeChecker
+                pers_data = select(PersonalData).where(PersonalData.tg_id == tg_id)
+                personal = await session.execute(pers_data)
+                return personal.scalar()
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при получении данных из таблицы PersonalData: %s", e)
                 return None

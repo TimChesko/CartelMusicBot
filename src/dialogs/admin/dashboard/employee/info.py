@@ -7,6 +7,7 @@ from aiogram_dialog.widgets.text import Const, Format
 from src.dialogs.admin.common import translate_privilege
 from src.dialogs.utils.buttons import BTN_BACK
 from src.models.employee import EmployeeHandler
+from src.utils.enums import EmployeeStatus
 from src.utils.fsm import AdminEmployee
 
 
@@ -15,9 +16,9 @@ async def employee_getter(dialog_manager: DialogManager, **_kwargs):
     tg_id = dialog_manager.dialog_data['employee_id']
     employee = await EmployeeHandler(data['session_maker'], data['database_logger']).get_dialog_info_by_tg_id(tg_id)
     status = {
-        'regs': "Регистрация",
-        'works': "Действующий работник",
-        'fired': "Уволен!"
+        EmployeeStatus.REGISTRATION: "Регистрация",
+        EmployeeStatus.WORKS: "Действующий работник",
+        EmployeeStatus.FIRED: "Уволен!"
     }
     return {
         'name': employee.fullname if employee.fullname is not None else employee.tg_username,

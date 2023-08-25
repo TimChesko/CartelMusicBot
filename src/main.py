@@ -52,6 +52,9 @@ async def set_logging(dp: Dispatcher) -> None:
     dp["business_logger"] = utils.logging.setup_logger().bind(**dp["business_logger_init"])
     dp["database_logger_init"] = {"type": "database"}
     dp["database_logger"] = utils.logging.setup_logger().bind(**dp["database_logger_init"])
+    dp["dialog_logger_init"] = {"type": "dialog"}
+    dp["dialog_logger"] = utils.logging.setup_logger().bind(**dp["dialog_logger_init"])
+    # utils.dialogs.setup_dialog_logging(dp["dialog_logger"])
 
 
 async def setup_aiogram(dp: Dispatcher, bot: Bot) -> None:

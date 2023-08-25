@@ -1,14 +1,13 @@
 from src.data.config import Config
+from src.utils.enums import Privileges
 
 
-def translate_privilege(privilege: str) -> str:
+def translate_privilege(privilege: Privileges) -> str:
     translations = {
-        "user": "Юзер",
-        "tester": "Тестер",
-        "MANAGER": "Менеджер",
-        "MODERATOR": "Модератор",
-        "CURATOR": "Куратор",
-        "ADMIN": "Админ",
+        Privileges.MANAGER: "Менеджер",
+        Privileges.MODERATOR: "Модератор",
+        Privileges.CURATOR: "Куратор",
+        Privileges.ADMIN: "Админ",
     }
     return translations[privilege]
 

@@ -101,7 +101,7 @@ async def on_approvement_lvl1(callback: CallbackQuery, _, manager: DialogManager
     current_directory = os.path.dirname(os.path.abspath(__file__))
     bot: Bot = data['bot']
     personal, nickname = await PersonalDataHandler(data['session_maker'],
-                                                       data['database_logger']).get_all_personal_data(
+                                                       data['database_logger']).get_all_personal_data_and_nickname(
         callback.from_user.id)
     track_list, release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_track_with_release(
         manager.start_data['release_id'])
