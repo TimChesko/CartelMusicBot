@@ -95,7 +95,8 @@ async def lvl2_getter(dialog_manager: DialogManager, **_kwargs):
     return {
         'ld': '✓ Лиц. Договор' if release.signed_license else 'Лиц. Договор',
         'all_done': release.signed_license is not None,
-        'ld_file': release.unsigned_license,
+        'ld_file': MediaAttachment(ContentType.DOCUMENT,
+                                   file_id=MediaId(release.unsigned_license)) if release.unsigned_status else None,
         'is_process': False if release.signed_status == Status.PROCESS else True,
         **release_info(tracks, release)
     }

@@ -29,7 +29,7 @@ async def task_page_getter(dialog_manager: DialogManager, **_kwargs):
     content_type = ContentType.DOCUMENT
     doc_id = release.release_cover if dialog_manager.dialog_data.get('doc_state',
                                                                      None) is True else release.unsigned_license
-    if release.unsigned_status == Status.PROCESS:
+    if release.signed_status == Status.PROCESS:
         doc_id = release.signed_license
     elif release.mail_track_status == Status.PROCESS:
         doc_id = release.mail_track_photo
