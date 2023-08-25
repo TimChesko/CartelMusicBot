@@ -297,7 +297,7 @@ class ReleaseHandler:
                 await session.execute(
                     update(Release).where(Release.id == release_id).values(unsigned_license=file_id,
                                                                            ununsigned_status=Status.PROCESS,
-                                                                           sort_datetime=datetime.datetime.now())
+                                                                           sort_datetime=datetime.datetime.utcnow())
                 )
                 await session.commit()
                 return True

@@ -10,7 +10,7 @@ from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format, List, Multi
 
 from src.dialogs.my_studio.release.getters import create_new_release_getter, lvl1_getter, choose_tracks_getter, \
-    lvl2_getter, lvl3_getter
+    lvl2_getter, lvl3_getter, cover_getter
 from src.dialogs.my_studio.release.handlers import create_release, on_release, clear_release_tracks, set_release_title, \
     release_title_oth, set_release_cover, release_cover_oth, all_tracks_selected, to_choose_tracks, on_approvement_lvl1, \
     delete_release, release_ld_oth, set_release_ld, on_approvement_lvl2, release_mail_oth, set_release_mail, \
@@ -82,11 +82,12 @@ lvl1_page = Dialog(
         state=ReleasePage1.title
     ),
     Window(
-        Const("Прикрепите новую обложку в виде фото без сжатия"),
+        Format('{title}'),
         MessageInput(set_release_cover, content_types=[ContentType.DOCUMENT]),
         MessageInput(release_cover_oth),
         SwitchTo(TXT_BACK, 'from_cover', ReleasePage1.main),
-        state=ReleasePage1.cover
+        state=ReleasePage1.cover,
+        getter=cover_getter
     )
 
 )

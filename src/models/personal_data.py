@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy import select, delete, or_, func, and_, update
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.tables import PersonalData, Social, PersonalDataTemplate, TrackInfo
+from src.models.tables import PersonalData, Social, PersonalDataTemplate, TrackInfo, User
 from src.utils.enums import FeatStatus, Status
 
 
@@ -17,9 +17,11 @@ class PersonalDataHandler:
         async with self.session_maker() as session:
             try:
                 # noinspection PyTypeChecker
-                query = select(PersonalData).where(PersonalData.tg_id == tg_id)
-                result = await session.execute(query)
-                return result.scalar()
+                pers_data = select(PersonalData).where(PersonalData.tg_id == tg_id)
+                personal = await session.execute(pers_data)
+                user = select(User.nickname).where(User.tg_id == tg_id)
+                usr = await session.execute(user)
+                return personal.scalar(), usr.scalar()
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при получении данных из таблицы PersonalData: %s", e)
                 return None

@@ -40,6 +40,17 @@ async def getter(dialog_manager: DialogManager, **_kwargs):
     }
 
 
+async def cover_getter(dialog_manager: DialogManager, **_kwargs):
+    text = ''
+    if 'error_cover' in dialog_manager.dialog_data:
+        text += dialog_manager.dialog_data['error_cover']
+    text += "\nПрикрепите новую обложку в виде фото без сжатия\n" \
+            "Обратите внимание, обложка должна быть в соотношении 1:1"
+    return {
+        'title': text
+    }
+
+
 async def create_new_release_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release_by_user_id(

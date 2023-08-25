@@ -1,22 +1,14 @@
-import datetime
 import logging
 import os
 
 from aiogram import Bot
-from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery, FSInputFile
-from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
-from aiogram_dialog.api.entities import MediaAttachment, MediaId
-from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Button, SwitchTo, Group, Checkbox
-from aiogram_dialog.widgets.media import DynamicMedia
-from aiogram_dialog.widgets.text import Const, Format, List, Multi
+from aiogram_dialog import DialogManager, ShowMode
 from docxtpl import DocxTemplate
 
-from src.dialogs.utils.buttons import BTN_CANCEL_BACK, TXT_BACK
-from src.dialogs.utils.common import format_date, context_maker
-from src.models.release import ReleaseHandler
+from src.dialogs.utils.common import context_maker
 from src.models.personal_data import PersonalDataHandler
+from src.models.release import ReleaseHandler
 from src.models.tables import PersonalData
 from src.models.tracks import TrackHandler
 from src.utils.enums import Status
@@ -61,24 +53,32 @@ async def set_release_title(msg: Message, _, manager: DialogManager):
     await manager.back()
 
 
-async def release_title_oth(msg: Message, _, __):
+async def release_title_oth(msg: Message, _, manager: DialogManager):
     await msg.delete()
     await msg.answer("Пришлите название альбома в виде сообщения")
 
 
 async def set_release_cover(msg: Message, _, manager: DialogManager):
-    data = manager.middleware_data
-    await ReleaseHandler(data['session_maker'], data['database_logger']).set_cover(manager.start_data['release_id'],
-                                                                                   msg.document.file_id)
-    await msg.delete()
     manager.show_mode = ShowMode.EDIT
-    await manager.switch_to(ReleasePage1.main)
+    if msg.document.thumbnail.width != msg.document.thumbnail.height:
+        await msg.delete()
+        manager.dialog_data[
+            'error_cover'] = "❗️<b>Пришлите обложку альбома в виде файла и в соотношении сторон 1:1 (Высота=Ширина)</b>❗️"
+        await manager.switch_to(ReleasePage1.cover)
+    else:
+        data = manager.middleware_data
+        await ReleaseHandler(data['session_maker'], data['database_logger']).set_cover(manager.start_data['release_id'],
+                                                                                       msg.document.file_id)
+        await msg.delete()
+        await manager.switch_to(ReleasePage1.main)
 
 
 # TODO переделать other type в одну функцию для всего блока
-async def release_cover_oth(msg: Message, _, __):
+async def release_cover_oth(msg: Message, _, manager: DialogManager):
     await msg.delete()
-    await msg.answer("Пришлите обложку альбома в виде файла")
+    manager.dialog_data[
+        'error_cover'] = "❗️<b>Пришлите обложку альбома в виде файла и в соотношении сторон 1:1 (Высота=Ширина)</b>❗️"
+    manager.show_mode = ShowMode.EDIT
 
 
 async def all_tracks_selected(__, _, manager: DialogManager):
@@ -98,26 +98,26 @@ async def to_choose_tracks(__, _, manager: DialogManager):
 
 async def on_approvement_lvl1(callback: CallbackQuery, _, manager: DialogManager):
     data = manager.middleware_data
+    current_directory = os.path.dirname(os.path.abspath(__file__))
     bot: Bot = data['bot']
-    personal: PersonalData = await PersonalDataHandler(data['session_maker'],
+    personal, nickname = await PersonalDataHandler(data['session_maker'],
                                                        data['database_logger']).get_all_personal_data(
         callback.from_user.id)
     track_list, release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_track_with_release(
         manager.start_data['release_id'])
-    current_directory = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(current_directory, 'files', 'template.docx')
+    file_path = os.path.join(current_directory, 'files', f'{len(track_list)}.docx')
     cover_path = os.path.join(current_directory, 'files', f'{release.release_cover}.jpg')
+    temp_file = os.path.join(current_directory, 'files', f"{callback.from_user.id}.docx")
     doc = DocxTemplate(file_path)
     await bot.download(release.release_cover, cover_path)
-    context = context_maker(personal, track_list, release, cover_path)
-    temp_file = os.path.join(current_directory, 'files', f"{callback.from_user.id}.docx")
+    context = context_maker(personal, track_list, release, cover_path, doc, nickname)
     doc.render(context)
     doc.save(temp_file)
     image_from_pc = FSInputFile(temp_file)
     msg = await callback.message.answer_document(image_from_pc)
-    # await bot.delete_message(callback.from_user.id, msg.message_id)
-    # await ReleaseHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
-    #     manager.start_data['release_id'], msg.document.file_id)
+    await bot.delete_message(callback.from_user.id, msg.message_id)
+    await ReleaseHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
+        manager.start_data['release_id'], msg.document.file_id)
     os.remove(temp_file)
     os.remove(cover_path)
 

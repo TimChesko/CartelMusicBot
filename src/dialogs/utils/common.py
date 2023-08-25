@@ -2,8 +2,10 @@ import logging
 from datetime import datetime
 
 from aiogram_dialog import DialogManager, StartMode, ShowMode
+from docx.shared import Mm
+from docxtpl import InlineImage
 
-from src.models.tables import PersonalData, Track, TrackInfo, Release
+from src.models.tables import PersonalData, Track, TrackInfo, Release, User
 from src.utils.fsm import StartMenu
 
 
@@ -56,12 +58,14 @@ def format_date(dt: datetime = None) -> str:
     return f'«{day}» {month} {year} г.'
 
 
-def context_maker(personal: PersonalData, track_info: list[TrackInfo], release: Release, path):
+def context_maker(personal: PersonalData, track_info: list[TrackInfo], release: Release, path, doc,
+                  nickname: User.nickname):
     fullname = f'{personal.surname} {personal.first_name} {personal.middle_name}'
 
     context = {
         'licensor_name': f'{personal.surname} {personal.first_name[0]}.{personal.middle_name[0]}.',
         'name': fullname,
+        'nickname': nickname,
         'inn_code': f'{personal.tin_self}',
         'passport': f'{personal.passport_series} {personal.passport_number}',
         'who_issued_it': f'{personal.who_issued_it}',
@@ -77,10 +81,10 @@ def context_maker(personal: PersonalData, track_info: list[TrackInfo], release: 
         'kpp_code': f'{personal.kpp_code}',
         'email': f'{personal.email}',
         'release_title': f'{release.release_title}',
-        'ld_number': f'{datetime.now().strftime("%d%m%Y%h%M%s")}',
+        'ld_number': f'{datetime.now().strftime("%d%m%Y%")}-{release.id}',
         'date': f'{format_date()}',
         'year': datetime.now().strftime('%Y'),
-        'cover': path
+        'cover': InlineImage(doc, path, width=Mm(100), height=Mm(100))
     }
     for number, track in enumerate(track_info):
         context[f'track_title{number}'] = track.title
