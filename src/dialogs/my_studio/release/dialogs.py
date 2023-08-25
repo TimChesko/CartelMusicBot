@@ -60,15 +60,18 @@ lvl1_page = Dialog(
         release_info,
         DynamicMedia('cover'),
         Group(
-            SwitchTo(Format('{text_title}'), id='create_release_title', state=ReleasePage1.title),
-            SwitchTo(Format('{text_cover}'), id='create_release_cover', state=ReleasePage1.cover),
-            Button(Format('{text_tracks}'), id='add_tracks_to_release', on_click=to_choose_tracks),
-            width=2
+            Group(
+                SwitchTo(Format('{text_title}'), id='create_release_title', state=ReleasePage1.title),
+                SwitchTo(Format('{text_cover}'), id='create_release_cover', state=ReleasePage1.cover),
+                Button(Format('{text_tracks}'), id='add_tracks_to_release', on_click=to_choose_tracks)
+            ),
+            Button(Const('Очистить треки'), on_click=clear_release_tracks, id='clear_tracks',
+                   when=F['tracks'].len().is_not(0)),
+            Button(Const('Отправить на проверку'), id='on_process_unsigned', on_click=on_approvement_lvl1,
+                   when='all_done'),
+            width=2,
+            when='is_process'
         ),
-        Button(Const('Очистить треки'), on_click=clear_release_tracks, id='clear_tracks',
-               when=F['tracks'].len().is_not(0)),
-        Button(Const('Отправить на проверку'), id='on_process_unsigned', on_click=on_approvement_lvl1,
-               when='all_done'),
         delete,
         BTN_CANCEL_BACK,
         state=ReleasePage1.main,
@@ -105,7 +108,6 @@ choose_tracks = Dialog(
             ),
             id='scroll_release',
             hide_on_single_page=True,
-            # hide_pager=True,
             width=1,
             height=4
         ),
@@ -120,9 +122,12 @@ lvl2_page = Dialog(
     Window(
         release_info,
         DynamicMedia('ld_file'),
-        SwitchTo(Format('{ld}'), 'users_ld', state=ReleasePage2.ld),
-        Button(Const('Отправить на проверку'), id='on_process_signed', on_click=on_approvement_lvl2,
-               when='all_done'),
+        Group(
+            SwitchTo(Format('{ld}'), 'users_ld', state=ReleasePage2.ld),
+            Button(Const('Отправить на проверку'), id='on_process_signed', on_click=on_approvement_lvl2,
+                   when='all_done'),
+            when='is_process'
+        ),
         delete,
         BTN_CANCEL_BACK,
         state=ReleasePage2.main,
@@ -141,8 +146,11 @@ lvl3_page = Dialog(
     Window(
         release_info,
         DynamicMedia('mail_photo'),
-        SwitchTo(Format('{mail}'), 'users_mail', state=ReleasePage3.mail),
-        Button(Const('Отправить на проверку'), id='on_process_mail', on_click=on_approvement_lvl3, when='all_done'),
+        Group(
+            SwitchTo(Format('{mail}'), 'users_mail', state=ReleasePage3.mail),
+            Button(Const('Отправить на проверку'), id='on_process_mail', on_click=on_approvement_lvl3, when='all_done'),
+            when='is_process'
+        ),
         delete,
         BTN_CANCEL_BACK,
         state=ReleasePage3.main,
