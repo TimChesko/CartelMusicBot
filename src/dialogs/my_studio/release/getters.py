@@ -81,7 +81,7 @@ async def lvl2_getter(dialog_manager: DialogManager, **_kwargs):
     return {
         'ld': '✓ Лиц. Договор' if release.signed_license else 'Лиц. Договор',
         'all_done': release.signed_license is not None,
-        'ld_file': 1,  # TODO сделать миграцию из дока в пдф и прикрепить'
+        'ld_file': release.unsigned_license,
         **release_info(tracks, release)
     }
 

@@ -88,6 +88,16 @@ class ReleaseHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
+    async def get_track_with_release(self, release_id) -> Release:
+        async with self.session_maker() as session:
+            try:
+                tracks = await session.execute(select(Track).where(Track.release_id == release_id))
+                tracks_info = tracks.scalars().all()
+                return tracks_info
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
     async def delete_release_id_from_tracks(self, release_id) -> Release:
         async with self.session_maker() as session:
             try:

@@ -24,6 +24,7 @@ from src.utils.fsm import ReleaseTracks, ReleasePage1, ReleasePage2, ReleasePage
 
 async def on_release(_, __, manager: DialogManager, release_id):
     data = manager.middleware_data
+    manager.dialog_data['release_id'] = release_id
     release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release(release_id)
     if all([release.signed_status is None, release.unsigned_status != Status.APPROVE]):
         await manager.start(ReleasePage1.main, data={'release_id': release_id}, show_mode=ShowMode.EDIT)
@@ -66,6 +67,9 @@ async def release_title_oth(msg: Message, _, __):
 
 async def set_release_cover(msg: Message, _, manager: DialogManager):
     data = manager.middleware_data
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(current_directory, 'files')
+    await msg.bot.download(msg.document.file_id, file_path)
     await ReleaseHandler(data['session_maker'], data['database_logger']).set_cover(manager.start_data['release_id'],
                                                                                    msg.document.file_id)
     await msg.delete()
@@ -84,8 +88,7 @@ async def all_tracks_selected(__, _, manager: DialogManager):
     widget = manager.find('release_tracklist')
     tracklist = widget.get_checked()
     await TrackHandler(data['session_maker'], data['database_logger']).update_release_id(list(map(int, tracklist)),
-                                                                                         manager.start_data[
-                                                                                             'release_id'])
+                                                                                         manager.start_data['release_id'])
     await manager.done()
 
 
@@ -96,10 +99,12 @@ async def to_choose_tracks(__, _, manager: DialogManager):
 
 async def on_approvement_lvl1(callback: CallbackQuery, _, manager: DialogManager):
     data = manager.middleware_data
+    bot: Bot = data['bot']
     personal: PersonalData = await PersonalDataHandler(data['session_maker'],
                                                        data['database_logger']).get_all_personal_data(
         callback.from_user.id)
-    bot: Bot = data['bot']
+    track_list = await ReleaseHandler(data['session_maker'], data['database_logger']).get_track_with_release(
+        manager.dialog_data['release_id'])
     current_directory = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(current_directory, 'files', 'template.docx')
     doc = DocxTemplate(file_path)
@@ -131,8 +136,7 @@ async def on_approvement_lvl1(callback: CallbackQuery, _, manager: DialogManager
     msg = await callback.message.answer_document(image_from_pc)
     await bot.delete_message(callback.from_user.id, msg.message_id)
     await ReleaseHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
-        manager.start_data['release_id'],
-        msg.document.file_id)
+        manager.start_data['release_id'], msg.document.file_id)
     os.remove(temp_file)
 
 
