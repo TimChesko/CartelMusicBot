@@ -42,8 +42,8 @@ class ReleaseHandler:
         async with self.session_maker() as session:
             try:
                 result = await session.execute(
-                    select(Release).where(Release.ununsigned_status == state).order_by(
-                        asc(Release.sort_datetime))
+                    select(Release).where(Release.unsigned_status == state).order_by(
+                        asc(Release.date_last_edit))
                 )
                 track_info = result.scalars().all()
                 return track_info
@@ -56,7 +56,7 @@ class ReleaseHandler:
             try:
                 result = await session.execute(
                     select(Release).where(Release.unsigned_status == state).order_by(
-                        asc(Release.sort_datetime))
+                        asc(Release.date_last_edit))
                 )
                 track_info = result.scalars().all()
                 return track_info
@@ -68,8 +68,8 @@ class ReleaseHandler:
         async with self.session_maker() as session:
             try:
                 result = await session.execute(
-                    select(Release).where(Release.mail_track_state == state).order_by(
-                        asc(Release.sort_datetime))
+                    select(Release).where(Release.mail_track_status == state).order_by(
+                        asc(Release.date_last_edit))
                 )
                 track_info = result.scalars().all()
                 return track_info
@@ -188,24 +188,21 @@ class ReleaseHandler:
                 if state == 'unsigned':
                     await session.execute(
                         update(Release).where(Release.id == release_id).values(checker=None,
-                                                                               ununsigned_status=Status.APPROVE,
-                                                                               approver_unsigned=employee_id)
+                                                                               ununsigned_status=Status.APPROVE)
                     )
                     await session.commit()
                     return True
                 if state == 'signed':
                     await session.execute(
                         update(Release).where(Release.id == release_id).values(checker=None,
-                                                                               signed_state='approve',
-                                                                               approver_signed=employee_id)
+                                                                               signed_status=Status.APPROVE)
                     )
                     await session.commit()
                     return True
                 if state == 'mail':
                     await session.execute(
                         update(Release).where(Release.id == release_id).values(checker=None,
-                                                                               mail_track_state='approve',
-                                                                               approver_mail=employee_id)
+                                                                               mail_track_status=Status.APPROVE)
                     )
                     await session.commit()
                     return True
@@ -219,24 +216,21 @@ class ReleaseHandler:
                 if state == 'unsigned':
                     await session.execute(
                         update(Release).where(Release.id == release_id).values(checker=None,
-                                                                               ununsigned_status=Status.REJECT,
-                                                                               approver_unsigned=employee_id)
+                                                                               ununsigned_status=Status.REJECT)
                     )
                     await session.commit()
                     return True
                 if state == 'signed':
                     await session.execute(
                         update(Release).where(Release.id == release_id).values(checker=None,
-                                                                               unsigned_status=Status.REJECT,
-                                                                               approver_signed=employee_id)
+                                                                               unsigned_status=Status.REJECT)
                     )
                     await session.commit()
                     return True
                 if state == 'mail':
                     await session.execute(
                         update(Release).where(Release.id == release_id).values(checker=None,
-                                                                               mail_track_state='reject',
-                                                                               approver_mail=employee_id)
+                                                                               mail_track_status=Status.REJECT)
                     )
                     await session.commit()
                     return True
@@ -311,7 +305,7 @@ class ReleaseHandler:
             try:
                 await session.execute(
                     update(Release).where(Release.id == release_id).values(unsigned_status=Status.PROCESS,
-                                                                           sort_datetime=datetime.datetime.now())
+                                                                           date_last_edit=datetime.datetime.utcnow())
                 )
                 await session.commit()
                 return True
@@ -324,7 +318,7 @@ class ReleaseHandler:
             try:
                 await session.execute(
                     update(Release).where(Release.id == release_id).values(mail_track_state='process',
-                                                                           sort_datetime=datetime.datetime.now())
+                                                                           date_last_edit=datetime.datetime.utcnow())
                 )
                 await session.commit()
                 return True
