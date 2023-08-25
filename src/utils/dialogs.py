@@ -11,27 +11,36 @@ class AiogramDialogLogging(logging.Handler):
 
     def emit(self, record):
         self.log_message = self.format(record)
-        self.logger.debug(self.log_message)
-        self.set_logger_bind()
+        msg = self.set_logger_bind_and_msg()
+        self.logger.debug(msg)
 
-    def set_logger_bind(self):
+    def set_logger_bind_and_msg(self):
         list_name = self.log_name.split(".")
         pattern = r"(\w+\s\w+|<\w+\s['\w:]+'>|\(\w+\s['\w:]+\))"
         bind_dict = {"type": "dialog"}
-        msg = ""
         match list_name:
             case _, "window":
-                pass
+                result = re.findall(pattern, self.log_message)
+                msg = result[0]
+                bind_dict.update({"window": result[1]})
             case _, "dialog":
                 result = re.findall(pattern, self.log_message)
                 msg = result[0]
-                bind_dict.update({"state": result[1], "dialog_id": result[2]})
+                if len(result) == 3:
+                    bind_dict.update({"state": result[1], "dialog_id": result[2]})
+                elif len(result) == 2:
+                    bind_dict.update({"dialog_id": result[1]})
             case _, "manager":
-                pass
+                pattern = r"(\w+)\s+to\s+id=(\d+)"
+                matches = re.findall(pattern, self.log_message)
+                results = [[action, id] for action, id in matches]
+                msg = results[0][0]
+                bind_dict.update({"user_id": results[0][1]})
             case _:
-                pass
-
+                msg = self.log_message
         self.logger.bind(**bind_dict)
+        return msg
+
 
 def setup_dialog_logging(dialog_logger):
     list_dialog_logs = [
