@@ -11,44 +11,30 @@ class AiogramDialogLogging(logging.Handler):
 
     def emit(self, record):
         self.log_message = self.format(record)
-        msg = self.set_logger_bind_and_msg()
-        self.logger.debug(msg)
+        self.set_logger_bind_and_msg()
 
     def set_logger_bind_and_msg(self):
-        list_name = self.log_name.split(".")
-        pattern = r"(\w+\s\w+|<\w+\s['\w:]+'>|\(\w+\s['\w:]+\))"
-        bind_dict = {"type": "dialog"}
-        match list_name:
-            case _, "window":
-                result = re.findall(pattern, self.log_message)
-                msg = result[0]
-                bind_dict.update({"window": result[1]})
-            case _, "dialog":
-                result = re.findall(pattern, self.log_message)
-                msg = result[0]
-                if len(result) == 3:
-                    bind_dict.update({"state": result[1], "dialog_id": result[2]})
-                elif len(result) == 2:
-                    bind_dict.update({"dialog_id": result[1]})
-            case _, "manager":
-                pattern = r"(\w+)\s+to\s+id=(\d+)"
-                matches = re.findall(pattern, self.log_message)
-                results = [[action, id] for action, id in matches]
-                msg = results[0][0]
-                bind_dict.update({"user_id": results[0][1]})
-            case _:
-                msg = self.log_message
-        self.logger.bind(**bind_dict)
-        return msg
+        new_logger = self.logger
+        patterns = [
+            (r"^(.*?):\s*(.*)$", ["action", "details"]),
+            (r"(.*)\((.*)\)", ["action", "details"]),
+            (r"^(.*?) to id=(\d+) type='(.*?)' title=(.*?) username='(.*?)' first_name='(.*?)' last_name='(.*?)'",
+             ["action", "user_id", "message_type", "title", "username", "first_name", "last_name"])
+        ]
+        for pattern, group_names in patterns:
+            match = re.match(pattern, self.log_message)
+            if match:
+                groups = match.groups()
+                data = {group_name: group for group_name, group in zip(group_names, groups)}
+                action_message = data.pop('action', 'No action found')
+                new_logger = new_logger.bind(_type="dialog", **data)
+                new_logger.debug(action_message)
+                break
+        else:
+            new_logger.error("Pattern not found for message:", self.log_message)
 
 
 def setup_dialog_logging(dialog_logger):
-    list_dialog_logs = [
-        "aiogram_dialog.window",
-        "aiogram_dialog.dialog",
-        "aiogram_dialog.manager.message_manager"
-    ]
-    for log_name in list_dialog_logs:
-        logger = logging.getLogger(log_name)
-        custom_handler = AiogramDialogLogging(dialog_logger, log_name)
-        logger.addHandler(custom_handler)
+    logging.root.handlers.clear()
+    custom_handler = AiogramDialogLogging(dialog_logger, "aiogram_dialog")
+    logging.root.addHandler(custom_handler)

@@ -46,13 +46,13 @@ async def set_middlewares(dp: Dispatcher) -> None:
 
 
 async def set_logging(dp: Dispatcher) -> None:
-    dp["aiogram_logger_init"] = {"type": "aiogram"}
+    dp["aiogram_logger_init"] = {"_type": "aiogram"}
     dp["aiogram_logger"] = utils.logging.setup_logger().bind(**dp["aiogram_logger_init"])
-    dp["business_logger_init"] = {"type": "business"}
+    dp["business_logger_init"] = {"_type": "business"}
     dp["business_logger"] = utils.logging.setup_logger().bind(**dp["business_logger_init"])
-    dp["database_logger_init"] = {"type": "database"}
+    dp["database_logger_init"] = {"_type": "database"}
     dp["database_logger"] = utils.logging.setup_logger().bind(**dp["database_logger_init"])
-    dp["dialog_logger_init"] = {"type": "dialog"}
+    dp["dialog_logger_init"] = {"_type": "dialog"}
     dp["dialog_logger"] = utils.logging.setup_logger().bind(**dp["dialog_logger_init"])
     utils.dialogs.setup_dialog_logging(dp["dialog_logger"])
 
