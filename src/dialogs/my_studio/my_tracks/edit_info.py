@@ -53,7 +53,7 @@ async def save_document_author_beat(msg: Message, _, manager: DialogManager):
 async def save_fullname_beat(msg: Message, _, manager: DialogManager, __):
     await msg.delete()
     manager.show_mode = ShowMode.EDIT
-    manager.dialog_data['result'].update({"beatmaker_fullname": int(msg.text)})
+    manager.dialog_data['result'].update({"beatmaker_fullname": msg.text})
     await manager.done(manager.dialog_data['result'])
 
 
@@ -86,7 +86,7 @@ dialog = Dialog(
         Const("Полное ФИО автора текста ?"),
         TextInput(
             id="input_edit_percentage",
-            type_factory=int,
+            type_factory=str,
             on_success=save_fullname_text
         ),
         BTN_BACK,
@@ -105,7 +105,7 @@ dialog = Dialog(
         Const("Полное ФИО автора бита ?"),
         TextInput(
             id="input_edit_beatmaker_percent",
-            type_factory=int,
+            type_factory=str,
             on_success=save_fullname_beat
         ),
         BTN_BACK,

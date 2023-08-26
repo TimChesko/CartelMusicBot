@@ -191,7 +191,7 @@ class TrackInfo(Base):
 
     date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
     checker_id = Column(BigInteger)
-    # Определение связи с Track
+
     track = relationship('Track', back_populates='track_info', uselist=False)
 
 

@@ -26,7 +26,8 @@ async def on_finish_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     file_id = dialog_manager.dialog_data['track'] if 'track' in dialog_manager.dialog_data else None
     track = await TrackHandler(data['session_maker'], data['database_logger']).get_track_by_id(
-        data['event_from_user'].id)
+        dialog_manager.dialog_data["track_id"]
+    )
     audio = MediaAttachment(ContentType.AUDIO, file_id=MediaId(file_id))
     dialog_manager.dialog_data['title'] = track.track_title if track else None
     return {
@@ -60,7 +61,7 @@ edit_track = Dialog(
         Const("Выберите трек"),
         ScrollingGroup(
             Select(
-                Format("🔴 {item.title}"),
+                Format("🔴 {item.track_title}"),
                 id="ms",
                 items="reject_check",
                 item_id_getter=lambda track: track.id,

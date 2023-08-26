@@ -30,9 +30,9 @@ async def get_data(dialog_manager: DialogManager, **_kwargs):
         "nickname": user.nickname,
         "status_passport": passport,
         "status_bank": bank,
-        "edit_passport": personal_data.all_passport_data == "reject",
+        "edit_passport": personal_data.all_passport_data == Status.REJECT,
         "add_passport": personal_data.all_passport_data is None,
-        "edit_bank": personal_data.all_bank_data == "reject",
+        "edit_bank": personal_data.all_bank_data == Status.REJECT,
         "add_bank": personal_data.all_bank_data is None
     }
 

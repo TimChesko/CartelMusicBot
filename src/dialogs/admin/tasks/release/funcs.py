@@ -59,8 +59,9 @@ async def confirm_release(callback: CallbackQuery, widget: Button, manager: Dial
     if state == 'mail':
         await bot.send_message(manager.dialog_data['user_id'],
                                TxtApprovement(release.release_title).release_finish())
-    await bot.send_message(manager.dialog_data['user_id'],
-                           TxtApprovement(release.release_title).release_approve())
+    else:
+        await bot.send_message(manager.dialog_data['user_id'],
+                               TxtApprovement(release.release_title).release_approve())
 
 
 async def reject_release(callback: CallbackQuery, widget: Button, manager: DialogManager):

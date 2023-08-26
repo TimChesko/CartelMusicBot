@@ -11,14 +11,11 @@ class TrackInfoHandler:
         self.session_maker = session_maker
         self.logger = logger
 
-    async def set_status_reject(self, track_id: int, edit_list: list, comment: str = None):
+    async def set_status_reject(self, track_id: int, edit_list: list):
         async with self.session_maker() as session:
             try:
                 result = dict.fromkeys(edit_list, None)
                 result["status"] = Status.REJECT
-                if comment:
-                    result['comment'] = comment
-                # TODO однозначно тут параша какая то
                 query = update(TrackInfo).where(TrackInfo.track_id == track_id).values(**result)
                 await session.execute(query)
                 await session.commit()
@@ -78,12 +75,11 @@ class TrackInfoHandler:
     async def update_track_info_feat(self, track_id: int, user_id: int) -> str:
         async with self.session_maker() as session:
             try:
-                # Заблокировать строку и получить данные
+                personal_data = await session.get(PersonalData, user_id)
+
                 result = await session.execute(
-                    select(TrackInfo, Track, PersonalData).join_from(
+                    select(TrackInfo, Track).join_from(
                         TrackInfo, Track, TrackInfo.track_id == Track.id
-                    ).join(
-                        PersonalData, Track.user_id == PersonalData.tg_id
                     ).where(
                         Track.id == track_id,
                         TrackInfo.feat_tg_id.is_(None),
@@ -91,27 +87,23 @@ class TrackInfoHandler:
                     ).with_for_update()
                 )
 
-                # Проверка результата перед распаковкой
                 data = result.one_or_none()
                 if not data:
                     return "Ошибка, нет возможности прикрепить данного пользователя."
-                track_info, track, personal_data = data
+                track_info, track = data
 
-                # Указываем что feat_tg_id=str(user_id)
-                track_info.feat_tg_id = str(user_id)
+                track_info.feat_tg_id = user_id
 
-                # Если оба значения равны 3, то записать в TrackInfo.status="process"
                 if personal_data.all_passport_data == Status.APPROVE and personal_data.all_bank_data == Status.APPROVE:
                     track_info.status = Status.PROCESS
                     text_status = "трек отправлен на модерацию!"
                 else:
-                    # В другом случае TrackInfo.status="wait_docs_feat"
-                    track_info.status = FeatStatus.WAIT_FEAT
+                    track_info.feat_status = FeatStatus.WAIT_FEAT
                     text_status = "пройдите верификацию, чтобы отправить трек на модерацию."
                 await session.commit()
 
                 return f"Данные обновлены, {text_status}"
             except SQLAlchemyError as e:
-                self.logger.error(f"Ошибка при обновлении информации о треке: {e}")
+                self.logger.error(f"Ошибка в TrackInfo.update_track_info_feat: {e}")
                 await session.rollback()
                 return "Ошибка на стороне сервера, обратитесь в службу поддержки.\n/support"

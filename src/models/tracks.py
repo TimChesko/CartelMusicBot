@@ -45,7 +45,7 @@ class TrackHandler:
                 result = await session.execute(query)
                 return result.scalar()
             except SQLAlchemyError as e:
-                self.logger.error(f"Ошибка при выполнении запроса get_tracks_by_status: {e}")
+                self.logger.error(f"Ошибка при выполнении запроса get_track_by_id: {e}")
                 return False
 
     async def delete_track_by_id(self, track_id: int):
@@ -145,6 +145,7 @@ class TrackHandler:
                 await session.execute(
                     update(Track).where(Track.id == track_id).values(file_id_audio=file_id_audio,
                                                                      date_last_edit=datetime.utcnow(),
+                                                                     checker_id=None,
                                                                      status=Status.PROCESS)
                 )
                 await session.commit()

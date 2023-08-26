@@ -225,7 +225,7 @@ class ReleaseHandler:
                 if state == 'signed':
                     await session.execute(
                         update(Release).where(Release.id == release_id).values(checker_id=None,
-                                                                               unsigned_status=Status.REJECT)
+                                                                               signed_status=Status.REJECT)
                     )
                     await session.commit()
                     return True
