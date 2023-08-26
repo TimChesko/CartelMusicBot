@@ -31,10 +31,10 @@ def setup_logger() -> structlog.typing.FilteringBoundLogger:
         wrapper_class=structlog.make_filtering_bound_logger(config.constant.logging_level)
     )
 
-    logging.getLogger("aiogram.dispatcher").setLevel(logging.WARN)
-    logging.getLogger("aiogram.event").setLevel(logging.WARN)
-    logging.getLogger("apscheduler.executors.default").setLevel(logging.WARN)
-    logging.getLogger("apscheduler.scheduler").setLevel(logging.WARN)
-    logging.getLogger("aiogram.utils.chat_action").setLevel(logging.WARN)
+    # logging.getLogger("aiogram.dispatcher").setLevel(logging.WARN)
+    # logging.getLogger("aiogram.event").setLevel(logging.WARN)
+    # logging.getLogger("apscheduler.executors.default").setLevel(logging.WARN)
+    # logging.getLogger("apscheduler.scheduler").setLevel(logging.WARN)
+    # logging.getLogger("aiogram.utils.chat_action").setLevel(logging.WARN)
 
     return log

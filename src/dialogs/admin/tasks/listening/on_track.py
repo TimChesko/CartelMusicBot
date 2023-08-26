@@ -82,7 +82,7 @@ async def approve(callback: CallbackQuery, _, manager: DialogManager):
     track_id = manager.dialog_data['getter_info']['track_id']
     user_id = await (TrackHandler(data['session_maker'], data['database_logger']).
                      update_approve(track_id, callback.from_user.id))
-    await bot.send_message(chat_id=user_id, text='ИДЕТ РАЗРАБОТКА')
+    await bot.send_message(chat_id=user_id, text='Ваш трек принят !')
 
 
 info_window = Window(
