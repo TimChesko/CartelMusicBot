@@ -107,18 +107,18 @@ async def on_approvement_lvl1(callback: CallbackQuery, _, manager: DialogManager
         manager.start_data['release_id'])
     file_path = os.path.join(current_directory, 'files', f'{len(track_list)}.docx')
     cover_path = os.path.join(current_directory, 'files', f'{release.release_cover}.jpg')
-    temp_file = os.path.join(current_directory, 'files', f"{callback.from_user.id}.docx")
+    ld_file = os.path.join(current_directory, 'files', f"{callback.from_user.id}.docx")
     doc = DocxTemplate(file_path)
     await bot.download(release.release_cover, cover_path)
     context = context_maker(personal, track_list, release, cover_path, doc, nickname)
     doc.render(context)
-    doc.save(temp_file)
-    image_from_pc = FSInputFile(temp_file)
+    doc.save(ld_file)
+    image_from_pc = FSInputFile(ld_file)
     msg = await callback.message.answer_document(image_from_pc)
     await bot.delete_message(callback.from_user.id, msg.message_id)
     await ReleaseHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
         manager.start_data['release_id'], msg.document.file_id)
-    os.remove(temp_file)
+    os.remove(ld_file)
     os.remove(cover_path)
 
 

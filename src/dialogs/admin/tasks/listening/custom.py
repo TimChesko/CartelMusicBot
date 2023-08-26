@@ -42,8 +42,10 @@ async def on_finish_custom_reason(callback: CallbackQuery, _, manager: DialogMan
     reason = manager.dialog_data['reason']
     await TrackHandler(data['session_maker'], data['database_logger']).update_checker(track_id, callback.from_user.id,
                                                                                       reason)
-    await data['bot'].send_message(info['user_id'], f'Ваш трек "{info["title"]}" отклонен с комментарием:\n'
-                                                    f'{reason}')
+    await data['bot'].send_message(info['user_id'], f'Ваш трек <b>"{info["title"]}"</b>'
+                                                    f' был отклонен с комментарием:\n {reason}.\n'
+                                                    f'Не переживайте, вы можете внести изменения и'
+                                                    f' отправить его на повторное прослушивание! 🎵🔧')
     await manager.done()
 
 

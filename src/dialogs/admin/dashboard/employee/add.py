@@ -42,7 +42,7 @@ async def incorrect_type(message: Message, _, __, ___):
 
 async def set_privilege(_, button: Button, manager: DialogManager):
     manager.dialog_data['privilege'] = button.widget_id
-    manager.dialog_data['status'] = button.text["text"].upper()
+    manager.dialog_data['status'] = button.text.text.upper()
     await manager.next()
 
 

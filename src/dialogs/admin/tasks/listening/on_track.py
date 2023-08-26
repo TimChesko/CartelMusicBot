@@ -1,3 +1,4 @@
+import logging
 from _operator import itemgetter
 
 from aiogram import Bot
@@ -80,9 +81,15 @@ async def approve(callback: CallbackQuery, _, manager: DialogManager):
     data = manager.middleware_data
     bot: Bot = data.get("bot", None)
     track_id = manager.dialog_data['getter_info']['track_id']
-    user_id = await (TrackHandler(data['session_maker'], data['database_logger']).
-                     update_approve(track_id, callback.from_user.id))
-    await bot.send_message(chat_id=user_id, text='Ваш трек принят !')
+    user_id, title = await (TrackHandler(data['session_maker'], data['database_logger']).
+                            update_approve(track_id, callback.from_user.id))
+    await bot.send_message(chat_id=user_id,
+                           text=f'Отличные новости! Ваш трек <b>"{title}"</b> '
+                                f'успешно прошёл этап прослушивания. 🎧🎶\n'
+                                f'Теперь пришло время поделиться вашим творчеством с аудиторией.\n'
+                                f'Просто перейдите в раздел\n <b>"Моя студия"</b> ➡️ <b>"Мои треки"</b>'
+                                f'и дополните информацию о треке в разделе <b>"Принятые"</b>.\n'
+                                f' Этот важный шаг поможет выгрузить ваш трек на площадку и открыть его для мира! 🚀')
 
 
 info_window = Window(
@@ -93,8 +100,8 @@ info_window = Window(
     Back(Const('✓ Одобрить'),
          on_click=approve,
          id='approve'),
-    Next(Const('✓ Отклонить шаблоны'),
-         id='reject'),
+    # Next(Const('✓ Отклонить шаблоны'),
+    #      id='reject'),
     SwitchTo(Const('✍ Свой ответ'),
              id='custom_reject',
              state=AdminListening.custom),
