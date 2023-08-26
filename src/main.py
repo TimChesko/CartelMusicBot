@@ -17,7 +17,7 @@ from src.database.process import DatabaseManager
 from src.dialogs.utils.common import on_unknown_intent, on_unknown_state
 from src.middlewares.ban import CheckBan
 from src.middlewares.config_middleware import ConfigMiddleware
-from src.middlewares.logging import StructLoggingMiddleware
+from src.middlewares.aiogram_logging import StructLoggingMiddleware
 from src.middlewares.throttling import ThrottlingMiddleware
 from src.utils.commands import set_start_commands
 from src.utils.notify import notify_admins
@@ -47,13 +47,13 @@ async def set_middlewares(dp: Dispatcher) -> None:
 
 async def set_logging(dp: Dispatcher) -> None:
     dp["aiogram_logger_init"] = {"_type": "aiogram"}
-    dp["aiogram_logger"] = utils.logging.setup_logger().bind(**dp["aiogram_logger_init"])
+    dp["aiogram_logger"] = utils.logger.setup_logger().bind(**dp["aiogram_logger_init"])
     dp["business_logger_init"] = {"_type": "business"}
-    dp["business_logger"] = utils.logging.setup_logger().bind(**dp["business_logger_init"])
+    dp["business_logger"] = utils.logger.setup_logger().bind(**dp["business_logger_init"])
     dp["database_logger_init"] = {"_type": "database"}
-    dp["database_logger"] = utils.logging.setup_logger().bind(**dp["database_logger_init"])
+    dp["database_logger"] = utils.logger.setup_logger().bind(**dp["database_logger_init"])
     dp["dialog_logger_init"] = {"_type": "dialog"}
-    dp["dialog_logger"] = utils.logging.setup_logger().bind(**dp["dialog_logger_init"])
+    dp["dialog_logger"] = utils.logger.setup_logger().bind(**dp["dialog_logger_init"])
     utils.dialogs.setup_dialog_logging(dp["dialog_logger"])
 
 

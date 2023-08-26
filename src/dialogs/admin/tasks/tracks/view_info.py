@@ -96,9 +96,12 @@ async def on_reject(_, __, manager: DialogManager):
     await (TrackInfoHandler(middleware['session_maker'], middleware['database_logger']).
            set_status_reject(dialog_data['track_id'], dialog_data['result'], comment))
     bot: Bot = middleware.get("bot", None)
-    await bot.send_message(chat_id=user_id, text=f"Документы к треку {dialog_data['text']['title']} отклонены !")
+    await bot.send_message(chat_id=user_id, text=f"❌ Документы к треку {dialog_data['text']['title']} отклонены !\n"
+                                                 "Чтобы изменить данные к треку, перейдите в категорию \n"
+                                                 f'"Моя студия" -> "Треки" -> "{dialog_data["text"]["title"]}" \n'
+                                                 '-> "📝 Изменить данные"')
     if comment:
-        await bot.send_message(chat_id=user_id, text=f"Комментарий от модератора: \n{comment}")
+        await bot.send_message(chat_id=user_id, text=f"📝 Комментарий от модератора: \n{comment}")
     await manager.done()
 
 
@@ -109,7 +112,9 @@ async def on_approve(_, __, manager: DialogManager):
     await (TrackInfoHandler(middleware['session_maker'], middleware['database_logger']).
            set_status_approve(dialog_data['track_id']))
     bot: Bot = middleware.get("bot", None)
-    await bot.send_message(chat_id=user_id, text=f"Документы к треку {dialog_data['text']['title']} приняты !")
+    await bot.send_message(chat_id=user_id, text=f"✅ Документы к треку {dialog_data['text']['title']} приняты !\n"
+                                                 f'"Главное меню" -> "Трек в продакшн"\n'
+                                                 '🎵 Ваши творческие возможности ждут!')
     await manager.done()
 
 

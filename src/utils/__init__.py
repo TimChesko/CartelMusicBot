@@ -1,2 +1,1 @@
-from . import logging as logging
-from . import dialogs as dialogs
+from .logging import my_logger as logger, aiogram_dialogs as dialogs
