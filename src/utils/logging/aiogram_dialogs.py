@@ -42,6 +42,12 @@ class AiogramDialogFilter(logging.Filter):
         return path[0] == "aiogram_dialog"
 
 
+class AiogramFilter(logging.Filter):
+    def filter(self, record):
+        path = record.name.split(".")
+        return path[0] == "aiogram"
+
+
 def setup_dialog_logging(dialog_logger):
     logging.root.handlers.clear()
 
