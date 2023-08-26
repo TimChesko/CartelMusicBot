@@ -36,7 +36,5 @@ def setup_logger() -> structlog.typing.FilteringBoundLogger:
     logging.getLogger("apscheduler.executors.default").setLevel(logging.WARN)
     logging.getLogger("apscheduler.scheduler").setLevel(logging.WARN)
     logging.getLogger("aiogram.utils.chat_action").setLevel(logging.WARN)
-    logging.getLogger("aiogram_dialog.context.intent_middleware").setLevel(logging.WARN)
-    # logging.getLogger("aiogram_dialog.manager.message_manager").setLevel(logging.WARN)
 
     return log
