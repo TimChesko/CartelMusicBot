@@ -5,6 +5,7 @@ from aiogram_dialog import DialogManager, ShowMode
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.kbd import Button
 
+from src.dialogs.utils.buttons import TxtApprovement
 from src.models.release import ReleaseHandler
 from src.utils.enums import Status
 
@@ -47,21 +48,23 @@ async def task_page_getter(dialog_manager: DialogManager, **_kwargs):
 
 # ON_CLICK
 async def confirm_release(callback: CallbackQuery, widget: Button, manager: DialogManager):
-    confirm = widget.widget_id.split('_')
+    state = widget.widget_id.split('_')[1]
     data = manager.middleware_data
     bot: Bot = manager.middleware_data['bot']
     release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release(
         manager.dialog_data['release_id'])
     await ReleaseHandler(data['session_maker'], data['database_logger']).approve(manager.dialog_data['release_id'],
                                                                                  callback.from_user.id,
-                                                                                 state=confirm[1])
+                                                                                 state=state)
+    if state == 'mail':
+        await bot.send_message(manager.dialog_data['user_id'],
+                               TxtApprovement(release.release_title).release_finish())
     await bot.send_message(manager.dialog_data['user_id'],
-                           f'Ваш релиз <b>"{release.release_title}"</b> успешно прошёл нашу проверку! 🎉🎵\n'
-                           f'Данные в полном порядке👍.')
+                           TxtApprovement(release.release_title).release_approve())
 
 
 async def reject_release(callback: CallbackQuery, widget: Button, manager: DialogManager):
-    reject = widget.widget_id.split('_')
+    state = widget.widget_id.split('_')[1]
     data = manager.middleware_data
     bot: Bot = manager.middleware_data['bot']
     text = 'Причина:\n' + manager.dialog_data.get(
@@ -70,14 +73,9 @@ async def reject_release(callback: CallbackQuery, widget: Button, manager: Dialo
         manager.dialog_data['release_id'])
     await ReleaseHandler(data['session_maker'], data['database_logger']).reject(manager.dialog_data['release_id'],
                                                                                 callback.from_user.id,
-                                                                                state=reject[1])
+                                                                                state=state)
     await bot.send_message(manager.dialog_data['user_id'],
-                           f'К сожалению, мы обнаружили некоторые недоработки в вашем релизе'
-                           f' <b>"{release.release_title}"</b>.🛑🎶\n'
-                           f'Причина: {text}\n'
-                           f'Не беспокойтесь, это всего лишь этап.'
-                           f' После внесения изменений, вы сможете отправить релиз на повторное рассмотрение.'
-                           f'Не сдавайтесь - ваше творчество стоит того, чтобы продолжать работу над ним. Удачи! 🎵🔧')
+                           TxtApprovement(release.release_title, text).release_reject())
 
 
 async def on_task_selected(callback: CallbackQuery, __, manager: DialogManager, selected_item):

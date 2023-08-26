@@ -7,7 +7,7 @@ from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format
 
 from src.dialogs.admin.tasks.listening.on_track import info_getter
-from src.dialogs.utils.buttons import TXT_BACK, TXT_CONFIRM, TXT_EDIT
+from src.dialogs.utils.buttons import TXT_BACK, TXT_CONFIRM, TXT_EDIT, TxtApprovement
 from src.models.tracks import TrackHandler
 from src.utils.fsm import AdminListening
 
@@ -42,10 +42,7 @@ async def on_finish_custom_reason(callback: CallbackQuery, _, manager: DialogMan
     reason = manager.dialog_data['reason']
     await TrackHandler(data['session_maker'], data['database_logger']).update_checker(track_id, callback.from_user.id,
                                                                                       reason)
-    await data['bot'].send_message(info['user_id'], f'Ваш трек <b>"{info["title"]}"</b>'
-                                                    f' был отклонен с комментарием:\n {reason}.\n'
-                                                    f'Не переживайте, вы можете внести изменения и'
-                                                    f' отправить его на повторное прослушивание! 🎵🔧')
+    await data['bot'].send_message(info['user_id'], TxtApprovement(info["title"], reason).listening_reject())
     await manager.done()
 
 

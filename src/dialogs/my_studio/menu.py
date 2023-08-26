@@ -22,7 +22,7 @@ dialog = Dialog(
     ),
     Window(
         Const("❇️ Статус треков"),
-        Button(Const("✅ Приняты"), id="studio_status_approve", on_click=view_status),
+        Button(Const("✅ Принятые"), id="studio_status_approve", on_click=view_status),
         Button(Const("🕑 На проверке"), id="studio_status_process", on_click=view_status),
         Button(Const("⛔️ Отклонены"), id="studio_status_reject", on_click=view_status),
         BTN_BACK,

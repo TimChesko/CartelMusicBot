@@ -10,7 +10,7 @@ from aiogram_dialog.widgets.kbd import SwitchTo, Back, Next, ScrollingGroup, Sel
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format
 
-from src.dialogs.utils.buttons import TXT_BACK, BTN_BACK
+from src.dialogs.utils.buttons import TXT_BACK, BTN_BACK, TxtApprovement
 from src.models.listening_templates import ListeningTemplatesHandler
 from src.models.tracks import TrackHandler
 from src.utils.fsm import AdminListening
@@ -84,12 +84,7 @@ async def approve(callback: CallbackQuery, _, manager: DialogManager):
     user_id, title = await (TrackHandler(data['session_maker'], data['database_logger']).
                             update_approve(track_id, callback.from_user.id))
     await bot.send_message(chat_id=user_id,
-                           text=f'Отличные новости! Ваш трек <b>"{title}"</b> '
-                                f'успешно прошёл этап прослушивания. 🎧🎶\n'
-                                f'Теперь пришло время поделиться вашим творчеством с аудиторией.\n'
-                                f'Просто перейдите в раздел\n <b>"Моя студия"</b> ➡️ <b>"Мои треки"</b>'
-                                f'и дополните информацию о треке в разделе <b>"Принятые"</b>.\n'
-                                f' Этот важный шаг поможет выгрузить ваш трек на площадку и открыть его для мира! 🚀')
+                           text=TxtApprovement(title).listening_approve())
 
 
 info_window = Window(
