@@ -56,14 +56,15 @@ async def confirm_release(callback: CallbackQuery, widget: Button, manager: Dial
                                                                                  callback.from_user.id,
                                                                                  state=confirm[1])
     await bot.send_message(manager.dialog_data['user_id'],
-                           f'Ваш релиз "{release.release_title}" прошел проверку, перейдите в меню для подробностей!')
+                           f'Ваш релиз <b>"{release.release_title}"</b> успешно прошёл нашу проверку! 🎉🎵\n'
+                           f'Данные в полном порядке👍.')
 
 
 async def reject_release(callback: CallbackQuery, widget: Button, manager: DialogManager):
     reject = widget.widget_id.split('_')
     data = manager.middleware_data
     bot: Bot = manager.middleware_data['bot']
-    text = 'Комментарий администратора:\n' + manager.dialog_data.get(
+    text = 'Причина:\n' + manager.dialog_data.get(
         "reason") if 'reason' in manager.dialog_data else ""
     release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release(
         manager.dialog_data['release_id'])
@@ -71,9 +72,12 @@ async def reject_release(callback: CallbackQuery, widget: Button, manager: Dialo
                                                                                 callback.from_user.id,
                                                                                 state=reject[1])
     await bot.send_message(manager.dialog_data['user_id'],
-                           f'Ваш релиз "{release.release_title}" не прошел проверку!\n'
-                           f'{text}'
-                           f'Перейдите в меню для подробностей')
+                           f'К сожалению, мы обнаружили некоторые недоработки в вашем релизе'
+                           f' <b>"{release.release_title}"</b>.🛑🎶\n'
+                           f'Причина: {text}\n'
+                           f'Не беспокойтесь, это всего лишь этап.'
+                           f' После внесения изменений, вы сможете отправить релиз на повторное рассмотрение.'
+                           f'Не сдавайтесь - ваше творчество стоит того, чтобы продолжать работу над ним. Удачи! 🎵🔧')
 
 
 async def on_task_selected(callback: CallbackQuery, __, manager: DialogManager, selected_item):

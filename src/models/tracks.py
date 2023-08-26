@@ -204,7 +204,7 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def update_approve(self, track_id: int, employee_id: int) -> bool:
+    async def update_approve(self, track_id: int, employee_id: int):
         async with self.session_maker() as session:
             try:
                 track = await session.get(Track, track_id)
@@ -212,9 +212,9 @@ class TrackHandler:
                     self.logger.error(f"Трек с ID {track_id} не найден")
                     return False
                 track.status = Status.APPROVE
+                session.add(LogEmp(employee_id, track.id).track_approve())
                 await session.commit()
-                LogEmp(employee_id, track.id).track_approve()
-                return track.user_id
+                return track.user_id, track.track_title
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
