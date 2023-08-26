@@ -70,7 +70,8 @@ async def on_finish_privilege(callback: CallbackQuery, _, manager: DialogManager
                               'На данный момент пользователь не найден!')
     else:
         privilege = manager.dialog_data['privilege']
-        await EmployeeHandler(data['session_maker'], data['database_logger']).add_new_employee(callback, privilege)
+        await EmployeeHandler(data['session_maker'], data['database_logger']).add_new_employee(privilege,
+                                                                                               user_id)
         await manager.done()
 
 

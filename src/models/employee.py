@@ -14,7 +14,7 @@ class EmployeeHandler:
         self.session_maker = session_maker
         self.logger = logger
 
-    async def add_new_employee(self, event, privilege) -> bool:
+    async def add_new_employee(self, privilege, user_id) -> bool:
         async with self.session_maker() as session:
             try:
                 if privilege == Privileges.ADMIN:
@@ -25,11 +25,12 @@ class EmployeeHandler:
                     privilege = Privileges.MODERATOR
                 else:
                     privilege = Privileges.MANAGER
+                user = await session.get(User, user_id)
                 new_user = Employee(add_date=datetime.utcnow(),
-                                    tg_id=event.from_user.id,
-                                    tg_username=event.from_user.username,
-                                    tg_first_name=event.from_user.first_name,
-                                    tg_last_name=event.from_user.last_name,
+                                    tg_id=user_id,
+                                    tg_username=user.tg_username,
+                                    tg_first_name=user.tg_first_name,
+                                    tg_last_name=user.tg_last_name,
                                     privilege=privilege)
                 session.add(new_user)
                 await session.commit()
