@@ -6,7 +6,8 @@ from aiogram_dialog.widgets.text import Format, Const, List
 
 from src.dialogs.admin.tasks.release.funcs import change_state, set_reject_reason, reason_title_getter, \
     task_page_getter, reject_release, clear_reason, reason_getter, confirm_release, cancel_task
-from src.dialogs.utils.buttons import TXT_BACK, TXT_CONFIRM, coming_soon, TXT_REJECT
+from src.dialogs.utils import buttons
+from src.dialogs.utils.buttons import TXT_BACK, TXT_CONFIRM, coming_soon
 from src.utils.fsm import AdminReleaseLvl3, AdminReleaseLvl1, AdminReleaseLvl2
 
 cover_or_ld = Checkbox(Const("🔘Обложка ⚪️Договор"),
@@ -36,8 +37,8 @@ def create_reason_confirm_window(state: [AdminReleaseLvl3 | AdminReleaseLvl2 | A
         DynamicMedia('doc'),
         cover_or_ld,
         Row(
-            Cancel(Const("Подтверждаю"), on_click=reject_release, id=f"reason_{id}"),
-            Back(Const("Изменить"), id="bck_reason", on_click=clear_reason),
+            Cancel(buttons.TXT_APPROVE, on_click=reject_release, id=f"reason_{id}"),
+            Back(buttons.TXT_EDIT, id="bck_reason", on_click=clear_reason),
         ),
         SwitchTo(TXT_BACK, state=state.info, id='bck_to_info', on_click=clear_reason),
         state=state.confirm,
@@ -48,7 +49,7 @@ def create_reason_confirm_window(state: [AdminReleaseLvl3 | AdminReleaseLvl2 | A
 def create_task_info_window(state: [AdminReleaseLvl3 | AdminReleaseLvl2 | AdminReleaseLvl1], id) -> Window:
     return Window(
         DynamicMedia('doc'),
-        Format('Название релиза:{title}'),
+        Format('Название релиза: <b>{title}</b>'),
         Format('Артист: {username} / {nickname}'),
         List(Format('{item.id})  "{item.track_title}"'), items='tracks'),
         cover_or_ld,
