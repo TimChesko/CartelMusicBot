@@ -1,4 +1,3 @@
-import logging
 from operator import itemgetter
 
 from aiogram.types import CallbackQuery
@@ -59,7 +58,6 @@ async def on_finally(callback: CallbackQuery, _, manager: DialogManager):
     support = data['config'].constant.support
     user_id = data['event_from_user'].id
     input_data = manager.dialog_data['save_input']
-    logging.debug(input_data)
     answer = await PersonalDataHandler(data['session_maker'], data['database_logger']).add_social_data(
         user_id, input_data['title']['value'], input_data['link']['value']
     )

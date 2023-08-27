@@ -55,7 +55,7 @@ class InputForm:
     async def validate_input(input_type: list[str], input_result: str) -> dict[Any, bool]:
         template_input = {
             "int": [r"\d{1,12}", "число до 12 цифр"],
-            "big_int": [r"\d{1,24}", "число до 24 цифр"],
+            "big_int": [r"^\d{20,22}$", "число от 20 до 22 цифр"],
             "text": [r"a-zA-Zа-яА-Я", "буквы"],
             "punctuation": [r",.", "точки, запятые"],
             "minus": [r"-", "тире"],

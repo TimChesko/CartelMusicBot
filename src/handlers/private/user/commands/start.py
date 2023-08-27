@@ -26,7 +26,6 @@ async def cmd_start(msg: Message,
     user = await user_handler.get_user_by_tg_id(msg.from_user.id)
     args = msg.text.split(" ")
     track = await ReleaseHandler(session_maker, database_logger).get_track_with_release(1)
-    logging.info(track[0])
     if len(args) > 1:
         arg = decode_payload(args[1]).split("_")
         match arg:
