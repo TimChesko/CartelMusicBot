@@ -1,5 +1,6 @@
 from typing import Any
 
+from aiogram import Bot
 from aiogram_dialog import DialogManager
 
 from src.dialogs.admin.tasks.personal_data.factory.model import Task
@@ -64,12 +65,17 @@ async def calc_exit(manager: DialogManager):
 
 async def on_process(_, result: Any, manager: DialogManager):
     middleware = manager.middleware_data
+    bot: Bot = middleware.get("bot", None)
     user_id = manager.dialog_data['user_id']
     header_name = manager.dialog_data['header_name']
+    header_name_str = "паспортные данные" if header_name == "passport" else "банковсие данные"
     if result.get("confirm"):
         await PersonalDataHandler(middleware['session_maker'], middleware['database_logger']). \
             set_confirm_personal_data(user_id, header_name)
+        await bot.send_message(chat_id=user_id, text=f"✅ Ваши {header_name_str} успешно приняты !")
     elif result.get("edit"):
         await PersonalDataHandler(middleware['session_maker'], middleware['database_logger']). \
             set_reject_dict(user_id, header_name, result['edit'])
+        await bot.send_message(chat_id=user_id, text=f'✅ Ваши {header_name_str} отклонены !\n'
+                                                     f'❓ Перейдите в "Профиль" -> "Изменить {header_name_str}"')
     await calc_exit(manager)
