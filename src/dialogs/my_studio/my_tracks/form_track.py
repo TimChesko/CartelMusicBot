@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import datetime
 from typing import Any
@@ -52,7 +53,9 @@ async def on_process(_, result: Any, manager: DialogManager):
 async def save_document(msg: Message, _, manager: DialogManager):
     if msg.content_type == ContentType.TEXT:
         file_name = manager.dialog_data['track'].get("title", "Текст трека")
-        file_path = f'dialogs/my_studio/my_tracks/files/text_track_{file_name}.txt'
+
+        project_root = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(project_root, 'files', f'text_track_{file_name}.txt')
 
         with open(file_path, 'w+') as file:
             file.write(msg.text)
