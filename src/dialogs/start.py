@@ -13,14 +13,16 @@ from src.utils.fsm import StartMenu, Listening, Profile, \
 async def get_data(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     user_id = data['event_from_user'].id
-    library = await TrackHandler(data['session_maker'], data['database_logger']).has_tracks_by_tg_id(user_id)
-    tracks = await TrackHandler(data['session_maker'], data['database_logger']).check_chat_exists(user_id)
+    track_handler = TrackHandler(data['session_maker'], data['database_logger'])
+    library = await track_handler.has_tracks_by_tg_id(user_id)
+    tracks = await track_handler.check_tracks_exists(user_id)
+    tracks_feat = await track_handler.check_feat_exists(user_id)
     personal_data = await PersonalDataHandler(data['session_maker'], data['database_logger']). \
         get_all_by_tg(user_id)
     return {
         "library_check": library,
         'verif_check': personal_data.all_passport_data == Status.APPROVE and personal_data.all_bank_data == Status.APPROVE,
-        'track_check': tracks,
+        'track_check': tracks or tracks_feat,
         "has_btn": "\nВыберете категорию:" if tracks else "",
         'data': data,
         "text": "🙎‍♂️ Профиль" if personal_data.all_passport_data and personal_data.all_bank_data

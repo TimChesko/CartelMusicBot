@@ -3,7 +3,6 @@ from datetime import datetime
 from sqlalchemy import select, update, or_, asc, and_, delete
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.data.config import Config
 from src.models.logs.emp import LogEmp
 from src.models.tables import Track, User, TrackInfo
 from src.utils.enums import Status
@@ -88,13 +87,24 @@ class TrackHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
-    async def check_chat_exists(self, tg_id: int) -> bool:
+    async def check_tracks_exists(self, tg_id: int) -> bool:
         async with self.session_maker() as session:
             try:
-                result = await session.execute(
-                    select(Track).where(Track.user_id == tg_id).limit(1))
+                query = select(Track).where(Track.user_id == tg_id).limit(1)
+                result = await session.execute(query)
                 track = result.scalar_one_or_none()
                 return track is not None
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса check_chat_exists: {e}")
+                return False
+
+    async def check_feat_exists(self, tg_id: int) -> bool:
+        async with self.session_maker() as session:
+            try:
+                query = select(TrackInfo).where(TrackInfo.feat_tg_id == tg_id).limit(1)
+                result = await session.execute(query)
+                track_feat = result.scalar_one_or_none()
+                return track_feat is not None
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса check_chat_exists: {e}")
                 return False
