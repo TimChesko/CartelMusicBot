@@ -1,5 +1,6 @@
 import logging
 import os
+from io import BytesIO
 
 from aiogram import Bot
 from aiogram.types import Message, CallbackQuery, FSInputFile
@@ -9,10 +10,11 @@ from docxtpl import DocxTemplate
 from src.dialogs.utils.common import context_maker
 from src.models.personal_data import PersonalDataHandler
 from src.models.release import ReleaseHandler
-from src.models.tables import PersonalData
+from src.models.tables import PersonalData, TrackInfo
 from src.models.tracks import TrackHandler
 from src.utils.enums import Status
 from src.utils.fsm import ReleaseTracks, ReleasePage1, ReleasePage2, ReleasePage3
+from PIL import Image
 
 
 async def on_release(_, __, manager: DialogManager, release_id):
@@ -60,24 +62,33 @@ async def release_title_oth(msg: Message, _, manager: DialogManager):
 
 async def set_release_cover(msg: Message, _, manager: DialogManager):
     manager.show_mode = ShowMode.EDIT
-    if msg.document.thumbnail.width != msg.document.thumbnail.height:
+    logging.info(msg.document.thumbnail.file_size)
+    logging.info(msg.document.thumbnail.width)
+    if msg.document.thumbnail.width == msg.document.thumbnail.height:
+        image = await msg.bot.download(msg.document.file_id, BytesIO())
+        with Image.open(image) as img:
+            width, height = img.size
+        if width == 3000 and height == 3000:
+            data = manager.middleware_data
+            await ReleaseHandler(data['session_maker'], data['database_logger']).set_cover(
+                manager.start_data['release_id'],
+                msg.document.file_id)
+            await msg.delete()
+            await manager.switch_to(ReleasePage1.main)
+    else:
         await msg.delete()
         manager.dialog_data[
-            'error_cover'] = "❗️<b>Пришлите обложку альбома в виде файла и в соотношении сторон 1:1 (Высота=Ширина)</b>❗️"
+            'error_cover'] = ("❗️<b>Пришлите обложку альбома в виде файла и"
+                              " в соотношении сторон 1:1 расширением 3000х3000 пикселей(Высота=Ширина)</b>❗️")
         await manager.switch_to(ReleasePage1.cover)
-    else:
-        data = manager.middleware_data
-        await ReleaseHandler(data['session_maker'], data['database_logger']).set_cover(manager.start_data['release_id'],
-                                                                                       msg.document.file_id)
-        await msg.delete()
-        await manager.switch_to(ReleasePage1.main)
 
 
 # TODO переделать other type в одну функцию для всего блока
 async def release_cover_oth(msg: Message, _, manager: DialogManager):
     await msg.delete()
     manager.dialog_data[
-        'error_cover'] = "❗️<b>Пришлите обложку альбома в виде файла и в соотношении сторон 1:1 (Высота=Ширина)</b>❗️"
+        'error_cover'] = ("❗️<b>Пришлите обложку альбома в виде файла и"
+                          " в соотношении сторон 1:1 расширением 3000х3000 пикселей(Высота=Ширина)</b>❗️")
     manager.show_mode = ShowMode.EDIT
 
 
@@ -98,28 +109,36 @@ async def to_choose_tracks(__, _, manager: DialogManager):
 
 async def on_approvement_lvl1(callback: CallbackQuery, _, manager: DialogManager):
     data = manager.middleware_data
-    current_directory = os.path.dirname(os.path.abspath(__file__))
     bot: Bot = data['bot']
-    personal, nickname = await PersonalDataHandler(data['session_maker'],
-                                                       data['database_logger']).get_all_personal_data_and_nickname(
-        callback.from_user.id)
-    track_list, release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_track_with_release(
+    track_info, release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_track_with_release(
         manager.start_data['release_id'])
-    file_path = os.path.join(current_directory, 'files', f'{len(track_list)}.docx')
+    current_directory = os.path.dirname(os.path.abspath(__file__))
     cover_path = os.path.join(current_directory, 'files', f'{release.release_cover}.jpg')
-    ld_file = os.path.join(current_directory, 'files', f"{callback.from_user.id}.docx")
+    file_path = os.path.join(current_directory, 'files', f'{len(track_info)}.docx')
     doc = DocxTemplate(file_path)
-    await bot.download(release.release_cover, cover_path)
-    context = context_maker(personal, track_list, release, cover_path, doc, nickname)
-    doc.render(context)
-    doc.save(ld_file)
-    image_from_pc = FSInputFile(ld_file)
-    msg = await callback.message.answer_document(image_from_pc)
-    await bot.delete_message(callback.from_user.id, msg.message_id)
-    await ReleaseHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
-        manager.start_data['release_id'], msg.document.file_id)
-    os.remove(ld_file)
-    os.remove(cover_path)
+    featers = []
+    for tracks in track_info:
+        if tracks.is_feat is True:
+            featers.append(tracks.feat_tg_id)
+    if len(featers) > 0:
+        user_info = await PersonalDataHandler(data['session_maker'], data['database_logger']).get_personal_join_user(featers)
+        for personal_data, user in user_info:
+
+    else:
+        personal, nickname = await PersonalDataHandler(data['session_maker'],
+                                                       data['database_logger']).get_all_personal_data_and_nickname(
+            callback.from_user.id)
+        ld_file = os.path.join(current_directory, 'files', f"{callback.from_user.id}{release.id}.docx")
+        await bot.download(release.release_cover, cover_path)
+        doc.render(context_maker(personal, track_info, release, cover_path, doc, nickname))
+        doc.save(ld_file)
+        image_from_pc = FSInputFile(ld_file)
+        msg = await callback.message.answer_document(image_from_pc)
+        await bot.delete_message(callback.from_user.id, msg.message_id)
+        await ReleaseHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
+            manager.start_data['release_id'], msg.document.file_id)
+        os.remove(ld_file)
+        os.remove(cover_path)
 
 
 async def delete_release(__, _, manager: DialogManager):

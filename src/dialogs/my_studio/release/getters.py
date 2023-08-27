@@ -48,7 +48,7 @@ async def cover_getter(dialog_manager: DialogManager, **_kwargs):
     text += "\nПрикрепите новую обложку в виде фото без сжатия\n" \
             "Обратите внимание, обложка должна быть в соотношении 1:1"
     return {
-        'title': text
+        'window_text': text
     }
 
 
@@ -75,7 +75,6 @@ async def lvl1_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     release, tracks = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release_scalar(
         dialog_manager.start_data['release_id'])
-    logging.info(False if release.unsigned_status == Status.PROCESS else True)
     return {
         'text_title': '✓ Название' if release.release_title else 'Дать название',
         'text_cover': '✓ Обложка' if release.release_cover else 'Прикрепить обложку',

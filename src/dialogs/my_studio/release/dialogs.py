@@ -79,18 +79,21 @@ lvl1_page = Dialog(
     ),
     Window(
         Const("Дайте название альбому"),
+        DynamicMedia('cover'),
         MessageInput(set_release_title, content_types=[ContentType.TEXT]),
         MessageInput(release_title_oth),
         SwitchTo(TXT_BACK, 'from_title', ReleasePage1.main),
-        state=ReleasePage1.title
+        state=ReleasePage1.title,
+        getter=lvl1_getter
     ),
     Window(
-        Format('{title}'),
+        Format('{window_text}'),
+        DynamicMedia('cover'),
         MessageInput(set_release_cover, content_types=[ContentType.DOCUMENT]),
         MessageInput(release_cover_oth),
         SwitchTo(TXT_BACK, 'from_cover', ReleasePage1.main),
         state=ReleasePage1.cover,
-        getter=cover_getter
+        getter=(cover_getter, lvl1_getter)
     )
 
 )
@@ -98,6 +101,7 @@ lvl1_page = Dialog(
 choose_tracks = Dialog(
     Window(
         Const('Выберите треки, которые нужно добавить в альбом'),
+        DynamicMedia('cover'),
         ScrollingGroup(
             Multiselect(
                 Format('✓ {item[0]}'),
@@ -114,7 +118,7 @@ choose_tracks = Dialog(
         Button(Const('Готово'), on_click=all_tracks_selected, id='finish_select'),
         BTN_CANCEL_BACK,
         state=ReleaseTracks.start,
-        getter=choose_tracks_getter
+        getter=(choose_tracks_getter, lvl1_getter)
     )
 )
 
@@ -135,10 +139,12 @@ lvl2_page = Dialog(
     ),
     Window(
         Const("Прикрепите лицензионное соглашение в виде документа"),
+        DynamicMedia('ld_file'),
         MessageInput(set_release_ld, content_types=[ContentType.DOCUMENT]),
         MessageInput(release_ld_oth),
         SwitchTo(TXT_BACK, 'from_ld', ReleasePage2.main),
-        state=ReleasePage2.ld
+        state=ReleasePage2.ld,
+        getter=lvl2_getter
     )
 )
 
@@ -157,10 +163,12 @@ lvl3_page = Dialog(
         getter=lvl3_getter
     ),
     Window(
-        Const("Прикрепите трек номер в виде фото с сжатием"),
+        Const("Прикрепите трек номер в виде фото (сжать изображение!)"),
+        DynamicMedia('mail_photo'),
         MessageInput(set_release_mail, content_types=[ContentType.PHOTO]),
         MessageInput(release_mail_oth),
         SwitchTo(TXT_BACK, 'from_mail', ReleasePage3.main),
-        state=ReleasePage3.mail
+        state=ReleasePage3.mail,
+        getter=lvl3_getter
     )
 )

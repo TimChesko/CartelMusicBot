@@ -26,6 +26,17 @@ class PersonalDataHandler:
                 self.logger.error("Ошибка при получении данных из таблицы PersonalData: %s", e)
                 return None
 
+    async def get_personal_join_user(self, id_list: list):
+        async with self.session_maker() as session:
+            try:
+                # noinspection PyTypeChecker
+                pers_data = select(PersonalData, User.nickname).join(User).where(PersonalData.tg_id.in_(id_list))
+                personal = await session.execute(pers_data)
+                return personal.all()
+            except SQLAlchemyError as e:
+                self.logger.error("Ошибка при получении данных из таблицы PersonalData: %s", e)
+                return None
+
     async def get_all_personal_data(self, tg_id: int):
         async with self.session_maker() as session:
             try:

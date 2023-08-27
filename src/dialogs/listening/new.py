@@ -59,6 +59,7 @@ async def on_finish_new_track(callback: CallbackQuery, _, manager: DialogManager
         text = f'❌ Произошел сбой на стороне сервера. Обратитесь в поддержку {support}'
     await callback.message.edit_caption(caption=text)
     manager.show_mode = ShowMode.SEND
+    await callback.answer(text=text, show_alert=True)
     await manager.done()
 
 
