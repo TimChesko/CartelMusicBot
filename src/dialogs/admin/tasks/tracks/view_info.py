@@ -62,8 +62,15 @@ async def on_start(_, dialog_manager: DialogManager):
     middleware = dialog_manager.middleware_data
     docs = await (TrackInfoHandler(middleware['session_maker'], middleware['database_logger']).
                   get_docs_by_id(dialog_manager.dialog_data['track_id']))
+    track = await (TrackHandler(middleware['session_maker'], middleware['database_logger']).
+                   get_track_by_id(docs.track_id))
     files, text = await get_struct_data(docs)
-    dialog_manager.dialog_data.update({'files': files, 'text': text, 'converted_text': await get_struct_text(text)})
+    dialog_manager.dialog_data.update({
+        'files': files,
+        'text': text,
+        'converted_text': await get_struct_text(text),
+        'user_id': track.user_id
+    })
 
 
 async def get_buttons(dialog_manager: DialogManager, **_kwargs):
@@ -91,10 +98,10 @@ async def get_finish_text(dialog_manager: DialogManager, **_kwargs):
 async def on_reject(_, __, manager: DialogManager):
     middleware = manager.middleware_data
     dialog_data = manager.dialog_data
-    user_id = manager.event.from_user.id
+    user_id = manager.dialog_data['user_id']
     comment = dialog_data.get("comment", None)
     await (TrackInfoHandler(middleware['session_maker'], middleware['database_logger']).
-           set_status_reject(dialog_data['track_id'], dialog_data['result'], comment))
+           set_status_reject(dialog_data['track_id'], dialog_data['result']))
     bot: Bot = middleware.get("bot", None)
     await bot.send_message(chat_id=user_id, text=f"❌ Документы к треку {dialog_data['text']['title']} отклонены !\n"
                                                  "Чтобы изменить данные к треку, перейдите в категорию \n"
@@ -108,7 +115,7 @@ async def on_reject(_, __, manager: DialogManager):
 async def on_approve(_, __, manager: DialogManager):
     middleware = manager.middleware_data
     dialog_data = manager.dialog_data
-    user_id = manager.event.from_user.id
+    user_id = manager.dialog_data['user_id']
     await (TrackInfoHandler(middleware['session_maker'], middleware['database_logger']).
            set_status_approve(dialog_data['track_id']))
     bot: Bot = middleware.get("bot", None)
