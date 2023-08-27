@@ -130,7 +130,7 @@ async def finish(callback: CallbackQuery, __, manager: DialogManager):
             text = "✅ Данные отправлены на модерацию"
     else:
         text = f'❌ Произошел сбой на стороне сервера. Обратитесь в поддержку {support}'
-    await callback.message.answer(text, disable_web_page_preview=True)
+    await callback.message.edit_text(text, disable_web_page_preview=True)
     manager.show_mode = ShowMode.SEND
     await manager.done()
 
