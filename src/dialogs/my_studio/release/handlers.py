@@ -1,5 +1,6 @@
 import logging
 import os
+from io import BytesIO
 
 from aiogram import Bot
 from aiogram.types import Message, CallbackQuery, FSInputFile
@@ -13,6 +14,7 @@ from src.models.tables import PersonalData
 from src.models.tracks import TrackHandler
 from src.utils.enums import Status
 from src.utils.fsm import ReleaseTracks, ReleasePage1, ReleasePage2, ReleasePage3
+from PIL import Image
 
 
 async def on_release(_, __, manager: DialogManager, release_id):
@@ -60,17 +62,21 @@ async def release_title_oth(msg: Message, _, manager: DialogManager):
 
 async def set_release_cover(msg: Message, _, manager: DialogManager):
     manager.show_mode = ShowMode.EDIT
-    if msg.document.thumbnail.width != msg.document.thumbnail.height:
-        await msg.delete()
-        manager.dialog_data[
-            'error_cover'] = "❗️<b>Пришлите обложку альбома в виде файла и в соотношении сторон 1:1 (Высота=Ширина)</b>❗️"
-        await manager.switch_to(ReleasePage1.cover)
-    else:
+    image = await msg.bot.download(msg.document.file_id, BytesIO())
+    with Image.open(image) as img:
+        width, height = img.size
+    if width == 3000 and height == 3000:
         data = manager.middleware_data
         await ReleaseHandler(data['session_maker'], data['database_logger']).set_cover(manager.start_data['release_id'],
                                                                                        msg.document.file_id)
         await msg.delete()
         await manager.switch_to(ReleasePage1.main)
+    else:
+        await msg.delete()
+        manager.dialog_data['error_cover'] = ("❗️<b>Пришлите обложку альбома в виде файла и"
+                                              " в соотношении сторон 1:1 расширением 3000х3000"
+                                              " пикселей(Высота=Ширина)</b>❗️")
+        await manager.switch_to(ReleasePage1.cover)
 
 
 # TODO переделать other type в одну функцию для всего блока
@@ -101,7 +107,7 @@ async def on_approvement_lvl1(callback: CallbackQuery, _, manager: DialogManager
     current_directory = os.path.dirname(os.path.abspath(__file__))
     bot: Bot = data['bot']
     personal, nickname = await PersonalDataHandler(data['session_maker'],
-                                                       data['database_logger']).get_all_personal_data_and_nickname(
+                                                   data['database_logger']).get_all_personal_data_and_nickname(
         callback.from_user.id)
     track_list, release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_track_with_release(
         manager.start_data['release_id'])
