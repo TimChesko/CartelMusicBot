@@ -1,3 +1,5 @@
+import logging
+
 from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Window, Dialog, DialogManager, ShowMode
@@ -41,6 +43,7 @@ async def incorrect_type(message: Message, _, __, ___):
 
 
 async def set_privilege(_, button: Button, manager: DialogManager):
+    logging.info(button.widget_id)
     manager.dialog_data['privilege'] = button.widget_id
     manager.dialog_data['status'] = button.text.text.upper()
     await manager.next()
@@ -70,6 +73,7 @@ async def on_finish_privilege(callback: CallbackQuery, _, manager: DialogManager
                               'На данный момент пользователь не найден!')
     else:
         privilege = manager.dialog_data['privilege']
+        logging.info(privilege)
         await EmployeeHandler(data['session_maker'], data['database_logger']).add_new_employee(privilege,
                                                                                                user_id)
         await manager.done()
