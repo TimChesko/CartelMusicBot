@@ -123,7 +123,16 @@ async def on_approvement_lvl1(callback: CallbackQuery, _, manager: DialogManager
     if len(featers) > 0:
         user_info = await PersonalDataHandler(data['session_maker'], data['database_logger']).get_personal_join_user(featers)
         for personal_data, user in user_info:
-
+            ld_file = os.path.join(current_directory, 'files', f"{user.tg_id}{release.id}.docx")
+            doc.render(context_maker(personal_data, track_info, release, cover_path, doc, user.nickname))
+            doc.save(ld_file)
+            image_from_pc = FSInputFile(ld_file)
+            msg = await callback.message.answer_document(image_from_pc)
+            await bot.delete_message(callback.from_user.id, msg.message_id)
+            await ReleaseHandler(data['session_maker'], data['database_logger']).add_unsigned_feat(release.id,
+                                                                                                   msg.document.file_id)
+            os.remove(ld_file)
+            os.remove(cover_path)
     else:
         personal, nickname = await PersonalDataHandler(data['session_maker'],
                                                        data['database_logger']).get_all_personal_data_and_nickname(

@@ -30,7 +30,7 @@ class PersonalDataHandler:
         async with self.session_maker() as session:
             try:
                 # noinspection PyTypeChecker
-                pers_data = select(PersonalData, User.nickname).join(User).where(PersonalData.tg_id.in_(id_list))
+                pers_data = select(PersonalData, User).join(User).where(PersonalData.tg_id.in_(id_list))
                 personal = await session.execute(pers_data)
                 return personal.all()
             except SQLAlchemyError as e:

@@ -121,6 +121,9 @@ class Release(Base):
     date_last_edit = Column(DateTime, default=datetime.utcnow, nullable=False)
     checker_id = Column(BigInteger)
 
+    parent_release = Column(Integer)
+    # Если фит, добавляем сюда головной релиз, т.е. релиз человека который заполняет все доки
+
     tracks = relationship('Track', back_populates='release')  # новое отношение с треками
     user = relationship("User", back_populates="release")
 
