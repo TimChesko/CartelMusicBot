@@ -45,13 +45,17 @@ async def set_music_file_for_edit(msg: Message, _, manager: DialogManager):
 
 async def on_finish_old_track(callback: CallbackQuery, _, manager: DialogManager):
     data = manager.middleware_data
+    support = data['config'].constant.support
     track_id = manager.dialog_data['track_id']
-    await TrackHandler(data['session_maker'], data['database_logger']).update_edited_track(
+    answer = await TrackHandler(data['session_maker'], data['database_logger']).update_edited_track(
         track_id=track_id,
-        file_id_audio=manager.dialog_data["track"]
-    )
-    await callback.message.edit_caption(
-        caption=f'Трек "{manager.dialog_data["title"]}" повторно отправлен на модерацию')
+        file_id_audio=manager.dialog_data["track"])
+    if answer:
+        text = f'✅ Трек <b>{manager.dialog_data["title"]}</b> отправлен на модерацию'
+    else:
+        text = f'❌ Произошел сбой на стороне сервера. Обратитесь в поддержку {support}'
+    await callback.message.edit_caption(caption=text)
+    await callback.answer(text, show_alert=True)
     manager.show_mode = ShowMode.SEND
     await manager.done()
 
