@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy import select, update, delete, asc, and_, or_
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.tables import Release, Track, User, TrackInfo, ReleaseFeat
+from src.models.tables import Release, Track, User, TrackInfo
 from src.utils.enums import Status
 
 
@@ -302,16 +302,15 @@ class ReleaseHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def add_unsigned_feat(self, release_id: int, file_id) -> bool:
+    async def add_unsigned_feat(self, release: Release, file_id) -> bool:
         async with self.session_maker() as session:
             try:
-                release = session.get(Release, release_id)
-                new_feat = Release(parent_release=release_id,
+                new_feat = Release(parent_release=release.id,
                                    release_cover=release.release_cover,
                                    release_title=release.release_title,
                                    unsigned_license=file_id,
                                    date_last_edit=datetime.datetime.utcnow())
-                await session.add(new_feat)
+                session.add(new_feat)
                 await session.commit()
                 return True
             except SQLAlchemyError as e:
