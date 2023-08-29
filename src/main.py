@@ -74,12 +74,12 @@ async def set_database(dp: Dispatcher, config_bot: Config) -> None:
 
 async def on_startup_polling(dispatcher: Dispatcher, bot: Bot) -> None:
     await bot.delete_webhook(drop_pending_updates=True)
-    await notify_admins(dispatcher, config, "Бот запущен")
+    await notify_admins(dispatcher, bot, config, "Бот запущен")
     dispatcher["aiogram_logger"].info("Started polling")
 
 
 async def on_shutdown_polling(dispatcher: Dispatcher, bot: Bot) -> None:
-    await notify_admins(dispatcher, config, "Бот выключен")
+    await notify_admins(dispatcher, bot, config, "Бот выключен")
     await bot.session.close()
     dispatcher["aiogram_logger"].info("Stopping polling")
 

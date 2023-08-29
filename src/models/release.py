@@ -288,6 +288,32 @@ class ReleaseHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
+    async def add_or_update_unsigned_feat(self, data: list) -> bool:
+        async with self.session_maker() as session:
+            try:
+                for person in data:
+                    if person[0]:
+                        await session.execute(
+                            update(Release).where(Release.id == person[1]).values(
+                                unsigned_license=person[2],
+                                unsigned_status=Status.PROCESS,
+                                date_last_edit=datetime.datetime.utcnow()
+                            )
+                        )
+                    else:
+                        release = release[1]
+                        new_feat = Release(parent_release=release.id,
+                                           release_cover=release.release_cover,
+                                           release_title=release.release_title,
+                                           unsigned_license=release[2],
+                                           date_last_edit=datetime.datetime.utcnow())
+                        session.add(new_feat)
+                await session.commit()
+                return True
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
+                return False
+
     async def update_unsigned_state(self, release_id: int, file_id) -> bool:
         async with self.session_maker() as session:
             try:

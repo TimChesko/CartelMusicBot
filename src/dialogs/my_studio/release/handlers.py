@@ -1,20 +1,14 @@
 import logging
-import os
 from io import BytesIO
 
-from aiogram import Bot
-from aiogram.types import Message, CallbackQuery, FSInputFile
+from PIL import Image
+from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import DialogManager, ShowMode
-from docxtpl import DocxTemplate
 
-from src.dialogs.utils.common import context_maker
-from src.models.personal_data import PersonalDataHandler
 from src.models.release import ReleaseHandler
-from src.models.tables import PersonalData, TrackInfo
 from src.models.tracks import TrackHandler
 from src.utils.enums import Status
 from src.utils.fsm import ReleaseTracks, ReleasePage1, ReleasePage2, ReleasePage3
-from PIL import Image
 
 
 async def on_release(_, __, manager: DialogManager, release_id):
@@ -105,41 +99,6 @@ async def all_tracks_selected(__, _, manager: DialogManager):
 async def to_choose_tracks(__, _, manager: DialogManager):
     await manager.start(state=ReleaseTracks.start, data={'release_id': manager.start_data['release_id']},
                         show_mode=ShowMode.EDIT)
-
-
-async def on_approvement_lvl1(callback: CallbackQuery, _, manager: DialogManager):
-    data = manager.middleware_data
-    bot: Bot = data['bot']
-    track_info, release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_track_with_release(
-        manager.start_data['release_id'])
-    current_directory = os.path.dirname(os.path.abspath(__file__))
-    cover_path = os.path.join(current_directory, 'files', f'{release.release_cover}.png')
-    file_path = os.path.join(current_directory, 'files', f'{len(track_info)}.docx')
-    doc = DocxTemplate(file_path)
-    featers = [callback.from_user.id]
-    await bot.download(release.release_cover, cover_path)
-    for tracks in track_info:
-        if tracks.is_feat is True:
-            featers.append(tracks.feat_tg_id)
-    featers = list(set(featers))
-    logging.info(featers)
-    user_info = await PersonalDataHandler(data['session_maker'], data['database_logger']).get_personal_join_user(
-        featers)
-    for personal_data, user in user_info:
-        ld_file = os.path.join(current_directory, 'files', f"{user.nickname}{release.id}.docx")
-        doc.render(context_maker(personal_data, track_info, release, cover_path, doc, user.nickname))
-        doc.save(ld_file)
-        image_from_pc = FSInputFile(ld_file)
-        msg = await callback.message.answer_document(image_from_pc)
-        await bot.delete_message(callback.from_user.id, msg.message_id)
-        if user.tg_id == callback.from_user.id:
-            await ReleaseHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
-                manager.start_data['release_id'], msg.document.file_id)
-        else:
-            await ReleaseHandler(data['session_maker'], data['database_logger']).add_unsigned_feat(release,
-                                                                                                   msg.document.file_id)
-        os.remove(ld_file)
-    os.remove(cover_path)
 
 
 async def delete_release(__, _, manager: DialogManager):
