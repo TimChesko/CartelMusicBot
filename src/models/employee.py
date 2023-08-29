@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from sqlalchemy import select, and_, update
@@ -17,11 +18,13 @@ class EmployeeHandler:
     async def add_new_employee(self, privilege, user_id) -> bool:
         async with self.session_maker() as session:
             try:
-                if privilege == Privileges.ADMIN:
+                logging.info(privilege)
+                logging.info(Privileges.ADMIN)
+                if privilege == f'{Privileges.ADMIN}':
                     privilege = Privileges.ADMIN
-                elif privilege == Privileges.CURATOR:
+                elif privilege == f'{Privileges.CURATOR}':
                     privilege = Privileges.CURATOR
-                elif privilege == Privileges.MODERATOR:
+                elif privilege == f'{Privileges.MODERATOR}':
                     privilege = Privileges.MODERATOR
                 else:
                     privilege = Privileges.MANAGER
