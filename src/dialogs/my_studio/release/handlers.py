@@ -116,37 +116,29 @@ async def on_approvement_lvl1(callback: CallbackQuery, _, manager: DialogManager
     cover_path = os.path.join(current_directory, 'files', f'{release.release_cover}.png')
     file_path = os.path.join(current_directory, 'files', f'{len(track_info)}.docx')
     doc = DocxTemplate(file_path)
-    featers = []
+    featers = [callback.from_user.id]
     await bot.download(release.release_cover, cover_path)
     for tracks in track_info:
         if tracks.is_feat is True:
             featers.append(tracks.feat_tg_id)
-    if len(featers) > 0:
-        user_info = await PersonalDataHandler(data['session_maker'], data['database_logger']).get_personal_join_user(
-            featers)
-        for personal_data, user in user_info:
-            ld_file = os.path.join(current_directory, 'files', f"{user.tg_id}{release.id}.docx")
-            doc.render(context_maker(personal_data, track_info, release, cover_path, doc, user.nickname))
-            doc.save(ld_file)
-            image_from_pc = FSInputFile(ld_file)
-            msg = await callback.message.answer_document(image_from_pc)
-            await bot.delete_message(callback.from_user.id, msg.message_id)
+    featers = list(set(featers))
+    logging.info(featers)
+    user_info = await PersonalDataHandler(data['session_maker'], data['database_logger']).get_personal_join_user(
+        featers)
+    for personal_data, user in user_info:
+        ld_file = os.path.join(current_directory, 'files', f"{user.nickname}{release.id}.docx")
+        doc.render(context_maker(personal_data, track_info, release, cover_path, doc, user.nickname))
+        doc.save(ld_file)
+        image_from_pc = FSInputFile(ld_file)
+        msg = await callback.message.answer_document(image_from_pc)
+        await bot.delete_message(callback.from_user.id, msg.message_id)
+        if user.tg_id == callback.from_user.id:
+            await ReleaseHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
+                manager.start_data['release_id'], msg.document.file_id)
+        else:
             await ReleaseHandler(data['session_maker'], data['database_logger']).add_unsigned_feat(release,
                                                                                                    msg.document.file_id)
-            os.remove(ld_file)
-
-    personal, nickname = await PersonalDataHandler(data['session_maker'],
-                                                   data['database_logger']).get_all_personal_data_and_nickname(
-        callback.from_user.id)
-    ld_file = os.path.join(current_directory, 'files', f"{callback.from_user.id}{release.id}.docx")
-    doc.render(context_maker(personal, track_info, release, cover_path, doc, nickname))
-    doc.save(ld_file)
-    image_from_pc = FSInputFile(ld_file)
-    msg = await callback.message.answer_document(image_from_pc)
-    await bot.delete_message(callback.from_user.id, msg.message_id)
-    await ReleaseHandler(data['session_maker'], data['database_logger']).update_unsigned_state(
-        manager.start_data['release_id'], msg.document.file_id)
-    os.remove(ld_file)
+        os.remove(ld_file)
     os.remove(cover_path)
 
 

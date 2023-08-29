@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cartelmusicbot"
-version = "1.0.0b1"
+version = "1.0.0b2"
 description = ""
 authors = ["Timofey <https://t.me/getxp>", "Kolya <https://t.me/nownuserr>"]
 packages = [
