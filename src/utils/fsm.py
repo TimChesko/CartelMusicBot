@@ -50,6 +50,10 @@ class AdminListening(StatesGroup):
     confirm = State()
 
 
+class AdminExportRelease(StatesGroup):
+    start = State()
+
+
 class AdminRelease(StatesGroup):
     menu = State()
 

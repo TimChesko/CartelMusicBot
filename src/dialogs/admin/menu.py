@@ -2,9 +2,8 @@ from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.kbd import Start
 from aiogram_dialog.widgets.text import Const
 
-from src.dialogs.admin.common import privilege_level
 from src.models.employee import EmployeeHandler
-from src.utils.fsm import AdminMenu, AdminListening, AdminDashboard, AdminViewTypeDocs
+from src.utils.fsm import AdminMenu, AdminListening, AdminDashboard, AdminViewTypeDocs, AdminExportRelease
 
 
 async def privilege_getter(dialog_manager: DialogManager, **_kwargs):
@@ -25,6 +24,11 @@ menu = Dialog(
         Start(Const('📨 Проверка документов'),
               id='admin_documents',
               state=AdminViewTypeDocs.menu),
+        Start(
+            Const("Выгрузить релизы"),
+            id="admin_export_release",
+            state=AdminExportRelease.start
+        ),
         Start(Const('🔑 Админ панель'),
               id='admin_panel',
               state=AdminDashboard.start),

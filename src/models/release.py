@@ -14,6 +14,16 @@ class ReleaseHandler:
         self.session_maker = session_maker
         self.logger = logger
 
+    async def get_list_export_release(self) -> list[dict]:
+        async with self.session_maker() as session:
+            try:
+                query = select(Release).where(Release.mail_track_status == Status.APPROVE)
+                result = await session.execute(query)
+                return result.fetchall()
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при добавлении нового трека: {e}")
+                return False
+
     async def add_new_release(self, user_id: int) -> bool:
         async with self.session_maker() as session:
             try:
