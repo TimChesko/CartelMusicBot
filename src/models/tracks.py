@@ -242,3 +242,14 @@ class TrackHandler:
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
+
+    async def get_tracks_by_release(self, release_id: int):
+        async with self.session_maker() as session:
+            try:
+                query = select(Track.id, Track.track_title).where(Track.release_id == release_id)
+                result = await session.execute(query)
+                tracks = result.all()
+                return tracks
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False

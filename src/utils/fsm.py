@@ -52,6 +52,8 @@ class AdminListening(StatesGroup):
 
 class AdminExportRelease(StatesGroup):
     start = State()
+    view_release = State()
+    view_track = State()
 
 
 class AdminRelease(StatesGroup):
