@@ -1,4 +1,4 @@
-from sqlalchemy import select, update
+from sqlalchemy import select, update, and_
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.models.tables import TrackInfo, Track, PersonalData
@@ -46,6 +46,17 @@ class TrackInfoHandler:
                     session.add(result)
                     await session.commit()
                 return result
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return None
+
+    async def get_docs_and_track(self, track_id: int):
+        async with self.session_maker() as session:
+            try:
+                query = select(Track.file_id_audio, TrackInfo).join(TrackInfo).where(
+                    and_(TrackInfo.track_id == track_id, Track.id == TrackInfo.track_id))
+                result = await session.execute(query)
+                return result.fetchone()
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return None

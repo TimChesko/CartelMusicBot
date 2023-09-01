@@ -1,7 +1,7 @@
 from _operator import itemgetter
 
 from aiogram_dialog import Window, Dialog
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Row, Button, StubScroll, NumberedPager
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, StubScroll, NumberedPager
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format
 
@@ -36,7 +36,7 @@ export_release = Dialog(
     Window(
         Format("Выбранный файл: {pick_file}"),
         Format("Название релиза: {release_title}"),
-        DynamicMedia("attachment"),
+        DynamicMedia("release_attachment"),
         StubScroll(id="release_stub_scroll", pages="release_pages"),
         NumberedPager(
             scroll="release_stub_scroll",
@@ -54,6 +54,7 @@ export_release = Dialog(
             id='scroll_release_tracks_with_pager',
             hide_on_single_page=True
         ),
+        # TODO Сделать выход из задачи с подтверждением
         BTN_BACK,
         state=AdminExportRelease.view_release,
         getter=getters.tracks_list_getter
@@ -61,8 +62,13 @@ export_release = Dialog(
 
     #  Информация по треку (текст)
     Window(
+        StubScroll(id="track_stub_scroll", pages="track_pages"),
+        NumberedPager(
+            scroll="track_stub_scroll",
+        ),
+        DynamicMedia("track_attachment"),
         Format("{text}"),
-
+        BTN_BACK,
         state=AdminExportRelease.view_track,
         getter=getters.track_getter
     )
