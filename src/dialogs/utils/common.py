@@ -90,8 +90,8 @@ def context_maker(personal: PersonalData, track_info: list[TrackInfo], release: 
     logging.info(track_info)
     for number, track in enumerate(track_info):
         context[f'track_title{number}'] = track.title
-        context[f'beat_author{number}'] = track.beatmaker_fullname if track.beatmaker_fullname else fullname
-        context[f'words_author{number}'] = track.words_author_fullname if track.words_author_fullname else fullname
+        context[f'beat_author{number}'] = track.beatmaker_fullname if track.beatmaker_fullname else main_fullname
+        context[f'words_author{number}'] = track.words_author_fullname if track.words_author_fullname else main_fullname
         context[f'min{number}'] = track.tiktok_time.split(':')[0]
         context[f'sec{number}'] = track.tiktok_time.split(':')[1]
         context[f'feat_percent{number}'] = track.feat_percent if track.feat_percent else '100'
@@ -99,8 +99,8 @@ def context_maker(personal: PersonalData, track_info: list[TrackInfo], release: 
             for personal_data, user in featers_info:
                 fullname = f'{personal_data.surname} {personal_data.first_name} {personal_data.middle_name}'
                 if personal_data.tg_id == track.feat_tg_id:
-                    context[f'nickname{number}'] = main_user.nickname + user.nickname
-                    context[f'name{number}'] = main_fullname + fullname
+                    context[f'nickname{number}'] = f'{main_user.nickname}, {user.nickname}'
+                    context[f'name{number}'] = f"{main_fullname}, {fullname}"
         if personal != main_personal:
             context[f'feat_percent{number}'] = 100 - track.feat_percent
     return context
