@@ -32,7 +32,9 @@ class PersonalDataHandler:
                 # noinspection PyTypeChecker
                 pers_data = select(PersonalData, User).join(User).where(PersonalData.tg_id.in_(id_list))
                 personal = await session.execute(pers_data)
-                return personal.all()
+                main_data = select(PersonalData, User).join(User).where(PersonalData.tg_id == id_list[0])
+                main_info = await session.execute(main_data)
+                return personal.all(), main_info.all()[0]
             except SQLAlchemyError as e:
                 self.logger.error("Ошибка при получении данных из таблицы PersonalData: %s", e)
                 return None

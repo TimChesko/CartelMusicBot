@@ -59,8 +59,9 @@ def format_date(dt: datetime = None) -> str:
 
 
 def context_maker(personal: PersonalData, track_info: list[TrackInfo], release: Release, path, doc,
-                  nickname: User.nickname):
+                  nickname: User.nickname, featers_info, main_personal: PersonalData, main_user: User):
     fullname = f'{personal.surname} {personal.first_name} {personal.middle_name}'
+    main_fullname = f'{main_personal.surname} {main_personal.first_name} {main_personal.middle_name}'
 
     context = {
         'licensor_name': f'{personal.surname} {personal.first_name[0]}.{personal.middle_name[0]}.',
@@ -86,6 +87,7 @@ def context_maker(personal: PersonalData, track_info: list[TrackInfo], release: 
         'year': datetime.now().strftime('%Y'),
         'cover': InlineImage(doc, path, width=Mm(100), height=Mm(100))
     }
+    logging.info(track_info)
     for number, track in enumerate(track_info):
         context[f'track_title{number}'] = track.title
         context[f'beat_author{number}'] = track.beatmaker_fullname if track.beatmaker_fullname else fullname
@@ -93,4 +95,12 @@ def context_maker(personal: PersonalData, track_info: list[TrackInfo], release: 
         context[f'min{number}'] = track.tiktok_time.split(':')[0]
         context[f'sec{number}'] = track.tiktok_time.split(':')[1]
         context[f'feat_percent{number}'] = track.feat_percent if track.feat_percent else '100'
+        if track.is_feat:
+            for personal_data, user in featers_info:
+                fullname = f'{personal_data.surname} {personal_data.first_name} {personal_data.middle_name}'
+                if personal_data.tg_id == track.feat_tg_id:
+                    context[f'nickname{number}'] = main_user.nickname + user.nickname
+                    context[f'name{number}'] = main_fullname + fullname
+        if personal != main_personal:
+            context[f'feat_percent{number}'] = 100 - track.feat_percent
     return context
