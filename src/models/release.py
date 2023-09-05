@@ -141,8 +141,23 @@ class ReleaseHandler:
             try:
                 user = await session.execute(select(User).where(User.tg_id == tg_id))
                 user = user.scalar_one()
-                release = await session.execute(select(Release).where(Release.id == release_id))
+                release = await session.execute(select(Release).where((Release.id == release_id)))
                 release = release.scalar_one()
+                tracks = await session.execute(select(Track).where(Track.release_id == release_id))
+                tracks = tracks.scalars().all()
+                return user, tracks, release
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
+    async def get_tracks_and_personal_data_unsigned(self, tg_id: int, release_id: int):
+        async with self.session_maker() as session:
+            try:
+                user = await session.execute(select(User).where(User.tg_id == tg_id))
+                user = user.scalar_one()
+                release = await session.execute(select(Release).where((or_(Release.id == release_id,
+                                                                           Release.parent_release == release_id))))
+                release = release.scalars().all()
                 tracks = await session.execute(select(Track).where(Track.release_id == release_id))
                 tracks = tracks.scalars().all()
                 return user, tracks, release

@@ -1,6 +1,6 @@
 from aiogram_dialog import Window
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Button, SwitchTo, Row, Cancel, Back, Checkbox
+from aiogram_dialog.widgets.kbd import Button, SwitchTo, Row, Cancel, Back, Checkbox, Radio, NumberedPager, StubScroll
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Format, Const, List
 
@@ -52,7 +52,10 @@ def create_task_info_window(state: [AdminReleaseLvl3 | AdminReleaseLvl2 | AdminR
         Format('Название релиза: <b>{title}</b>'),
         Format('Артист: {username} / {nickname}'),
         List(Format('{item.id})  "{item.track_title}"'), items='tracks'),
-        cover_or_ld,
+        StubScroll(id="stub_scroll", pages="pages"),
+        NumberedPager(
+            scroll="stub_scroll"
+        ),
         Back(TXT_CONFIRM, id=f'confirm_{id}', on_click=confirm_release),
         # Back(TXT_REJECT, id=f'reject_{id}', on_click=reject_release),
         Button(Const('✘ Шаблон'), id=f'reject_release_template', on_click=coming_soon),
