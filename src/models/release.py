@@ -170,6 +170,21 @@ class ReleaseHandler:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
+    async def get_tracks_and_personal_data_unsigned(self, tg_id: int, release_id: int):
+        async with self.session_maker() as session:
+            try:
+                user = await session.execute(select(User).where(User.tg_id == tg_id))
+                user = user.scalar_one()
+                release = await session.execute(select(Release).where((or_(Release.id == release_id,
+                                                                           Release.parent_release == release_id))))
+                release = release.scalars().all()
+                tracks = await session.execute(select(Track).where(Track.release_id == release_id))
+                tracks = tracks.scalars().all()
+                return user, tracks, release
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
     async def get_release_lvl1_info(self, release_id: int):
         async with self.session_maker() as session:
             try:
@@ -334,14 +349,21 @@ class ReleaseHandler:
                 self.logger.error(f"Ошибка при установке трека в состояние 'в процессе': {e}")
                 return False
 
-    async def update_unsigned_state(self, release_id: int, file_id) -> bool:
+    async def update_unsigned_state(self, main_release: Release, original_file_id: str, file_id_list: list) -> bool:
         async with self.session_maker() as session:
             try:
                 await session.execute(
-                    update(Release).where(Release.id == release_id).values(unsigned_license=file_id,
-                                                                           unsigned_status=Status.PROCESS,
-                                                                           date_last_edit=datetime.datetime.utcnow())
-                )
+                    update(Release).where(Release.id == main_release.id).values(unsigned_license=original_file_id,
+                                                                                unsigned_status=Status.PROCESS,
+                                                                                date_last_edit=datetime.datetime.utcnow()))
+                for file_id, tg_id in file_id_list:
+                    new_feat = Release(parent_release=main_release.id,
+                                       release_cover=main_release.release_cover,
+                                       release_title=main_release.release_title,
+                                       unsigned_license=file_id,
+                                       user_id=tg_id,
+                                       date_last_edit=datetime.datetime.utcnow())
+                    session.add(new_feat)
                 await session.commit()
                 return True
             except SQLAlchemyError as e:

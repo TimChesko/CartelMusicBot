@@ -26,7 +26,7 @@ lvl1 = Dialog(
         ScrollingGroup(
             Select(
                 Format("Релиз №{item.id}"),
-                id="alb_adm_track_list",
+                id='unsigned',
                 items="release",
                 item_id_getter=lambda release: release.id,
                 on_click=on_task_selected
@@ -61,7 +61,7 @@ lvl2 = Dialog(
         ScrollingGroup(
             Select(
                 Format("Релиз №{item.id}"),
-                id="alb_adm_track_list",
+                id="signed",
                 items="release",
                 item_id_getter=lambda release: release.id,
                 on_click=on_task_selected
@@ -96,7 +96,7 @@ lvl3 = Dialog(
         ScrollingGroup(
             Select(
                 Format("Релиз №{item.id}"),
-                id="alb_adm_track_list",
+                id="mail",
                 items="release",
                 item_id_getter=lambda release: release.id,
                 on_click=on_task_selected

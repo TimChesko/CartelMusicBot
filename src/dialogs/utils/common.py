@@ -56,3 +56,51 @@ def format_date(dt: datetime = None) -> str:
     year = dt.year
 
     return f'«{day}» {month} {year} г.'
+
+
+def context_maker(personal: PersonalData, track_info: list[TrackInfo], release: Release, path, doc,
+                  nickname: User.nickname, featers_info, main_personal: PersonalData, main_user: User):
+    fullname = f'{personal.surname} {personal.first_name} {personal.middle_name}'
+    main_fullname = f'{main_personal.surname} {main_personal.first_name} {main_personal.middle_name}'
+
+    context = {
+        'licensor_name': f'{personal.surname} {personal.first_name[0]}.{personal.middle_name[0]}.',
+        'name': fullname,
+        'nickname': nickname,
+        'inn_code': f'{personal.tin_self}',
+        'passport': f'{personal.passport_series} {personal.passport_number}',
+        'who_issued_it': f'{personal.who_issued_it}',
+        'unit_code': f'{personal.unit_code}',
+        'registration_address': f'{personal.registration_address}',
+        'date_of_issue': f'{personal.date_of_issue}',
+        'recipient': f'{personal.recipient}',
+        'account_code': f'{personal.account_code}',
+        'bank_recipient': f'{personal.bank_recipient}',
+        'bik_code': f'{personal.bik_code}',
+        'correct_code': f'{personal.correct_code}',
+        'bank_inn_code': f'{personal.tin_bank}',
+        'kpp_code': f'{personal.kpp_code}',
+        'email': f'{personal.email}',
+        'release_title': f'{release.release_title}',
+        'ld_number': f'{datetime.now().strftime("%d%m%Y%")}-{release.id}',
+        'date': f'{format_date()}',
+        'year': datetime.now().strftime('%Y'),
+        'cover': InlineImage(doc, path, width=Mm(100), height=Mm(100))
+    }
+    logging.info(track_info)
+    for number, track in enumerate(track_info):
+        context[f'track_title{number}'] = track.title
+        context[f'beat_author{number}'] = track.beatmaker_fullname if track.beatmaker_fullname else main_fullname
+        context[f'words_author{number}'] = track.words_author_fullname if track.words_author_fullname else main_fullname
+        context[f'min{number}'] = track.tiktok_time.split(':')[0]
+        context[f'sec{number}'] = track.tiktok_time.split(':')[1]
+        context[f'feat_percent{number}'] = track.feat_percent if track.feat_percent else '100'
+        if track.is_feat:
+            for personal_data, user in featers_info:
+                fullname = f'{personal_data.surname} {personal_data.first_name} {personal_data.middle_name}'
+                if personal_data.tg_id == track.feat_tg_id:
+                    context[f'nickname{number}'] = f'{main_user.nickname}, {user.nickname}'
+                    context[f'name{number}'] = f"{main_fullname}, {fullname}"
+        if personal != main_personal:
+            context[f'feat_percent{number}'] = 100 - track.feat_percent
+    return context

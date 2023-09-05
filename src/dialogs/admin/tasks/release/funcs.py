@@ -46,6 +46,26 @@ async def task_page_getter(dialog_manager: DialogManager, **_kwargs):
     }
 
 
+async def unsigned_task_getter(dialog_manager: DialogManager, **_kwargs):
+    data = dialog_manager.middleware_data
+    user, track, release = await ReleaseHandler(data['session_maker'],
+                                                data['database_logger']).get_tracks_and_personal_data(
+        dialog_manager.dialog_data['user_id'],
+        dialog_manager.dialog_data['release_id'])
+    content_type = ContentType.DOCUMENT
+    doc_id = release.release_cover if dialog_manager.dialog_data.get('doc_state',
+                                                                     None) is True else release[0].unsigned_license
+    doc = MediaAttachment(content_type, file_id=MediaId(doc_id))
+    return {
+        'username': user.tg_username if user.tg_username else user.tg_id,
+        'nickname': user.nickname,
+        'title': release.release_title,
+        'tracks': track,
+        'doc': doc,
+        'checkbox': release.unsigned_status == Status.PROCESS,
+        'releases': release
+    }
+
 # ON_CLICK
 async def confirm_release(callback: CallbackQuery, widget: Button, manager: DialogManager):
     state = widget.widget_id.split('_')[1]
