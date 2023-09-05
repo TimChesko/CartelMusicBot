@@ -4,10 +4,9 @@ from aiogram_dialog.api.entities import MediaAttachment, MediaId
 
 from src.models.personal_data import PersonalDataHandler
 from src.models.release import ReleaseHandler
-from src.models.tables import Release, TrackInfo, User, PersonalData
+from src.models.tables import Release, TrackInfo, PersonalData
 from src.models.track_info import TrackInfoHandler
 from src.models.tracks import TrackHandler
-from src.models.user import UserHandler
 
 
 async def release_list_getter(dialog_manager: DialogManager, **_kwargs):
@@ -74,12 +73,12 @@ async def create_text(track_info: TrackInfo, feat_user: PersonalData) -> tuple[i
     return pages, text
 
 
-async def get_attachment_track(manager, track_file_id, track_info: TrackInfo, feat_docs: int = None):
+async def get_attachment_track(manager, track_file_id, track_info: TrackInfo, feat_docs: Release = None):
     current_page = int(await manager.find("track_stub_scroll").get_page())
     files = [track_file_id, track_info.text_file_id]
     if feat_docs:
-        files.append(feat_docs)
-
+        files.append(feat_docs.signed_license)
+        files.append(feat_docs.mail_track_photo)
     if track_info.words_alienation:
         files.append(track_info.words_alienation)
     if track_info.beat_alienation:
@@ -87,8 +86,11 @@ async def get_attachment_track(manager, track_file_id, track_info: TrackInfo, fe
     file_id = files[current_page]
     if file_id == track_file_id:
         content_type = ContentType.AUDIO
+    elif file_id == feat_docs.mail_track_photo:
+        content_type = ContentType.PHOTO
     else:
         content_type = ContentType.DOCUMENT
+
     return content_type, file_id
 
 
@@ -102,8 +104,10 @@ async def track_getter(dialog_manager: DialogManager, **_kwargs):
     pages, text = await create_text(track_info, feat_user)
     attachment_feat_docs = await ReleaseHandler(*database_args).get_docs_one(release_id, track_info.feat_tg_id)
     if attachment_feat_docs:
-        pages += 1
-    content_type, file_id = await get_attachment_track(dialog_manager, file_id, track_info, attachment_feat_docs)
+        pages += 2
+    content_type, file_id = await get_attachment_track(
+        dialog_manager, file_id, track_info, attachment_feat_docs
+    )
 
     return {
         "track_pages": pages,
