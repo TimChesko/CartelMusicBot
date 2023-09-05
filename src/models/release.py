@@ -165,7 +165,12 @@ class ReleaseHandler:
                 release = release.scalar_one()
                 tracks = await session.execute(select(Track).where(Track.release_id == release_id))
                 tracks = tracks.scalars().all()
-                return user, tracks, release
+                release_docs = await session.execute(
+                    select(Release.unsigned_license).where(or_(Release.id == release_id,
+                                                               Release.parent_release == release_id)))
+
+                docs = release_docs.scalars().all()
+                return user, tracks, release, docs
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
