@@ -14,6 +14,16 @@ class ReleaseHandler:
         self.session_maker = session_maker
         self.logger = logger
 
+    async def get_docs_one(self, release_id: int, user_id: int):
+        async with self.session_maker() as session:
+            try:
+                query = select(Release).where(Release.parent_release == release_id, Release.user_id == user_id)
+                result = await session.execute(query)
+                return result.scalar_one_or_none()
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при добавлении нового трека: {e}")
+                return False
+
     async def get_list_export_release(self) -> list[dict]:
         async with self.session_maker() as session:
             try:
