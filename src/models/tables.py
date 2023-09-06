@@ -79,7 +79,7 @@ class PersonalData(Base):
 
 class Social(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
-    personal_data_tg_id = Column(Integer, ForeignKey(PersonalData.tg_id), nullable=False)
+    personal_data_tg_id = Column(BigInteger, ForeignKey(PersonalData.tg_id), nullable=False)
     title = Column(String)
     link = Column(String)
 

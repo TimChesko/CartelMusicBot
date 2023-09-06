@@ -9,13 +9,12 @@ from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Multiselect
 from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format, List, Multi
 
-from src.dialogs.my_studio.release.generate_approvement import on_approvement_lvl1
 from src.dialogs.my_studio.release.getters import create_new_release_getter, lvl1_getter, choose_tracks_getter, \
     lvl2_getter, lvl3_getter, cover_getter
 from src.dialogs.my_studio.release.handlers import create_release, on_release, clear_release_tracks, set_release_title, \
     release_title_oth, set_release_cover, release_cover_oth, all_tracks_selected, to_choose_tracks, \
     delete_release, release_ld_oth, set_release_ld, on_approvement_lvl2, release_mail_oth, set_release_mail, \
-    on_approvement_lvl3
+    on_approvement_lvl3, on_approvement_lvl1
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, TXT_BACK
 from src.utils.fsm import ReleaseTrack, ReleasePage1, ReleasePage2, ReleasePage3
 from src.utils.fsm import ReleaseTracks

@@ -13,7 +13,7 @@ from src.utils.fsm import AdminCheckTrack, AdminListTracks
 async def formatting_docs(docs: list) -> list:
     new_docs = []
     for item in docs:
-        new_docs.append([item.track_id, item.title])
+        new_docs.append([item.track_id, item.title[:20]])
     return new_docs
 
 

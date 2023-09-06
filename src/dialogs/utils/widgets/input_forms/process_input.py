@@ -1,3 +1,4 @@
+import logging
 import re
 from typing import Any
 import validators
@@ -69,16 +70,27 @@ class InputForm:
         input_pattern = ''.join(template_input.get(item, [""])[0] for item in input_type)
         allowed_characters = ", ".join(template_input.get(item, ["", ""])[1] for item in input_type)
 
+        logging.debug(input_type)
+
         if "any" in input_type:
             regex_pattern = rf'{input_pattern}$'
         elif ("big_int" in input_type or "int" in input_type) and "minus" in input_type:
-            regex_pattern = rf'[{template_input["big_int"][0]}{template_input["minus"][0]}]+$'
+            if "int" in input_type:
+                regex = template_input["int"][0]
+            else:
+                regex = template_input["big_int"][0]
+            regex_pattern = rf'[{regex}{template_input["minus"][0]}]+$'
         elif "big_int" in input_type or "int" in input_type or "link" in input_type:
             regex_pattern = rf'^{input_pattern}$'
         else:
             regex_pattern = rf'^[{input_pattern}]+$'
 
-        if (("link" in input_type and validators.url(input_result)) or "img" in input_type or "date" in input_type or
+        logging.debug(regex_pattern)
+        logging.debug("Патерн: %s / Результат: %s", regex_pattern, re.match(regex_pattern, input_result))
+
+        if (("link" in input_type and validators.url(input_result)) or
+                "img" in input_type or
+                "date" in input_type or
                 re.match(regex_pattern, input_result)):
             return {"value": input_result, "check": True}
         else:

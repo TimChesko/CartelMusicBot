@@ -9,45 +9,45 @@ from src.models.personal_data import PersonalDataHandler
 from src.models.release import ReleaseHandler
 
 
-async def on_approvement_lvl1(callback, _, manager):
-    data = manager.middleware_data
-    bot = data['bot']
-    session_maker = data['session_maker']
-    db_logger = data['database_logger']
-
-    track_info, release = await ReleaseHandler(session_maker, db_logger).get_track_with_release(
-        manager.start_data['release_id'])
-    current_directory = os.path.dirname(os.path.abspath(__file__))
-    cover_path = os.path.join(current_directory, 'files', f'{release.release_cover}.png')
-    file_path = os.path.join(current_directory, 'files', f'{len(track_info)}.docx')
-    doc = DocxTemplate(file_path)
-
-    featers = [callback.from_user.id]
-    await bot.download(release.release_cover, cover_path)
-    # Улучшил как смог, не получаем все значения User
-    info_featers = await PersonalDataHandler(session_maker, db_logger).get_personal_join_user(featers)
-
-    async def get_user_info():
-        for personal_data, nickname in info_featers:
-            yield personal_data, nickname
-
-    release_data = []
-    async for personal_data, nickname in get_user_info():
-        ld_file = os.path.join(current_directory, 'files', f"{nickname}{release.id}.docx")
-        doc.render(context_maker(personal_data, track_info, release, cover_path, doc, nickname))
-        doc.save(ld_file)
-        image_from_pc = FSInputFile(ld_file)
-        msg = await callback.message.answer_document(image_from_pc)
-        await bot.delete_message(callback.from_user.id, msg.message_id)
-        if personal_data.tg_id == callback.from_user.id:
-            release_data.append([True, manager.start_data['release_id'], msg.document.file_id])
-        else:
-            release_data.append([False, release, msg.document.file_id])
-        os.remove(ld_file)
-
-    # Время выполнения занесения 1 значения = 0.05 сек
-    await ReleaseHandler(session_maker, db_logger).add_or_update_unsigned_feat(release_data)
-    os.remove(cover_path)
+# async def on_approvement_lvl1(callback, _, manager):
+#     data = manager.middleware_data
+#     bot = data['bot']
+#     session_maker = data['session_maker']
+#     db_logger = data['database_logger']
+#
+#     track_info, release = await ReleaseHandler(session_maker, db_logger).get_track_with_release(
+#         manager.start_data['release_id'])
+#     current_directory = os.path.dirname(os.path.abspath(__file__))
+#     cover_path = os.path.join(current_directory, 'files', f'{release.release_cover}.png')
+#     file_path = os.path.join(current_directory, 'files', f'{len(track_info)}.docx')
+#     doc = DocxTemplate(file_path)
+#
+#     featers = [callback.from_user.id]
+#     await bot.download(release.release_cover, cover_path)
+#     # Улучшил как смог, не получаем все значения User
+#     info_featers = await PersonalDataHandler(session_maker, db_logger).get_personal_join_user(featers)
+#
+#     async def get_user_info():
+#         for personal_data, nickname in info_featers:
+#             yield personal_data, nickname
+#
+#     release_data = []
+#     async for personal_data, nickname in get_user_info():
+#         ld_file = os.path.join(current_directory, 'files', f"{nickname}{release.id}.docx")
+#         doc.render(context_maker(personal_data, track_info, release, cover_path, doc, nickname))
+#         doc.save(ld_file)
+#         image_from_pc = FSInputFile(ld_file)
+#         msg = await callback.message.answer_document(image_from_pc)
+#         await bot.delete_message(callback.from_user.id, msg.message_id)
+#         if personal_data.tg_id == callback.from_user.id:
+#             release_data.append([True, manager.start_data['release_id'], msg.document.file_id])
+#         else:
+#             release_data.append([False, release, msg.document.file_id])
+#         os.remove(ld_file)
+#
+#     # Время выполнения занесения 1 значения = 0.05 сек
+#     await ReleaseHandler(session_maker, db_logger).add_or_update_unsigned_feat(release_data)
+#     os.remove(cover_path)
 
 
 def context_maker(personal, track_info, release, path, doc, nickname):

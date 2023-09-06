@@ -1,3 +1,4 @@
+import logging
 from operator import itemgetter
 
 from aiogram import Bot
@@ -37,6 +38,7 @@ async def on_close(_, dialog_manager: DialogManager):
 
 
 async def get_data(dialog_manager: DialogManager, **_kwargs):
+    logging.debug(dialog_manager.dialog_data.get("converted_text"))
     return {
         "text": dialog_manager.dialog_data.get("converted_text")
     }

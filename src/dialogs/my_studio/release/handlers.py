@@ -128,6 +128,7 @@ async def on_approvement_lvl1(callback: CallbackQuery, _, manager: DialogManager
     main_pers_data, main_user = main_info
     file_id_list = []
     original_file_id = ''
+    logging.debug(featers_info)
     for personal_data, user in featers_info:
         ld_file = os.path.join(current_directory, 'files', f"{user.nickname}{release.id}.docx")
         doc.render(context_maker(personal_data, track_info, release, cover_path, doc, user.nickname, featers_info,

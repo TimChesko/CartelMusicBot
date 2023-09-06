@@ -101,6 +101,6 @@ def context_maker(personal: PersonalData, track_info: list[TrackInfo], release: 
                 if personal_data.tg_id == track.feat_tg_id:
                     context[f'nickname{number}'] = f'{main_user.nickname}, {user.nickname}'
                     context[f'name{number}'] = f"{main_fullname}, {fullname}"
-        if personal != main_personal:
+        if personal != main_personal and track.feat_percent:
             context[f'feat_percent{number}'] = 100 - track.feat_percent
     return context
