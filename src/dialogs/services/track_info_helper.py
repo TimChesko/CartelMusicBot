@@ -1,5 +1,7 @@
 from aiogram.enums import ContentType
 
+from src.utils.enums import FeatStatus
+
 template_track_info = {
     "title": "Название",
     "words_status": "Автор слов",
@@ -24,7 +26,7 @@ def is_text_key(key: str):
 
 async def get_struct_data(docs):
     files = {key: value for key, value in vars(docs).items() if is_file_key(key) and value is not None}
-    text = {key: value for key, value in vars(docs).items() if is_text_key(key) and value is not None}
+    text = {key: value.value if type(value) == FeatStatus else value for key, value in vars(docs).items() if is_text_key(key) and value is not None}
     return files, text
 
 
