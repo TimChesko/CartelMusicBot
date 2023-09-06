@@ -11,19 +11,18 @@ from src.dialogs.utils import buttons
 from src.dialogs.utils.buttons import TXT_BACK, TXT_CONFIRM, coming_soon
 from src.utils.fsm import AdminReleaseLvl3, AdminReleaseLvl1, AdminReleaseLvl2
 
-cover_or_ld = Checkbox(Const("🔘Обложка ⚪️Договор"),
-                       Const("⚪️Обложка 🔘Договор"),
-                       id='swap_docs',
-                       on_click=change_state,
-                       default=True,
-                       when='checkbox')
-
 
 def create_reason_window(state: [AdminReleaseLvl3 | AdminReleaseLvl2 | AdminReleaseLvl1]) -> Window:
     return Window(
         Format('{reason_title}'),
         DynamicMedia('doc'),
-        cover_or_ld,
+        Group(
+            StubScroll(id="stub_scroll", pages="pages"),
+            NumberedPager(
+                scroll="stub_scroll"
+            ),
+            width=7
+        ),
         MessageInput(set_reject_reason),
         SwitchTo(TXT_BACK, state=state.info, id='bck_to_info'),
         state=state.custom,
@@ -36,7 +35,13 @@ def create_reason_confirm_window(state: [AdminReleaseLvl3 | AdminReleaseLvl2 | A
         Format('Подтвердите текст:\n'
                '{custom_reason}'),
         DynamicMedia('doc'),
-        cover_or_ld,
+        Group(
+            StubScroll(id="stub_scroll", pages="pages"),
+            NumberedPager(
+                scroll="stub_scroll"
+            ),
+            width=7
+        ),
         Row(
             Cancel(buttons.TXT_APPROVE, on_click=reject_release, id=f"reason_{id}"),
             Back(buttons.TXT_EDIT, id="bck_reason", on_click=clear_reason),
