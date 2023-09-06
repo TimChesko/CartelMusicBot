@@ -29,7 +29,7 @@ class PersonalDataHandler:
     async def get_personal_join_user(self, id_list: list):
         async with self.session_maker() as session:
             try:
-                pers_data = select(PersonalData, User.nickname).join(User).where(PersonalData.tg_id.in_(id_list))
+                pers_data = select(PersonalData, User).join(User).where(PersonalData.tg_id.in_(id_list))
                 personal = await session.execute(pers_data)
                 main_data = select(PersonalData, User).join(User).where(PersonalData.tg_id == id_list[0])
                 main_info = await session.execute(main_data)
