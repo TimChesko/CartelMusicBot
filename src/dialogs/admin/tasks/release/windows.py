@@ -11,18 +11,21 @@ from src.dialogs.utils import buttons
 from src.dialogs.utils.buttons import TXT_BACK, TXT_CONFIRM, coming_soon
 from src.utils.fsm import AdminReleaseLvl3, AdminReleaseLvl1, AdminReleaseLvl2
 
+pager = Group(
+    StubScroll(id="stub_scroll", pages="pages"),
+    NumberedPager(
+        scroll="stub_scroll"
+    ),
+    width=7,
+    when='pager'
+)
+
 
 def create_reason_window(state: [AdminReleaseLvl3 | AdminReleaseLvl2 | AdminReleaseLvl1]) -> Window:
     return Window(
         Format('{reason_title}'),
         DynamicMedia('doc'),
-        Group(
-            StubScroll(id="stub_scroll", pages="pages"),
-            NumberedPager(
-                scroll="stub_scroll"
-            ),
-            width=7
-        ),
+        pager,
         MessageInput(set_reject_reason),
         SwitchTo(TXT_BACK, state=state.info, id='bck_to_info'),
         state=state.custom,
@@ -35,13 +38,7 @@ def create_reason_confirm_window(state: [AdminReleaseLvl3 | AdminReleaseLvl2 | A
         Format('Подтвердите текст:\n'
                '{custom_reason}'),
         DynamicMedia('doc'),
-        Group(
-            StubScroll(id="stub_scroll", pages="pages"),
-            NumberedPager(
-                scroll="stub_scroll"
-            ),
-            width=7
-        ),
+        pager,
         Row(
             Cancel(buttons.TXT_APPROVE, on_click=reject_release, id=f"reason_{id}"),
             Back(buttons.TXT_EDIT, id="bck_reason", on_click=clear_reason),
@@ -58,13 +55,7 @@ def create_task_info_window(state: [AdminReleaseLvl3 | AdminReleaseLvl2 | AdminR
         Format('Название релиза: <b>{title}</b>'),
         Format('Артист: {username} / {nickname}'),
         List(Format('{item.id})  "{item.track_title}"'), items='tracks'),
-        Group(
-            StubScroll(id="stub_scroll", pages="pages"),
-            NumberedPager(
-                scroll="stub_scroll"
-            ),
-            width=7
-        ),
+        pager,
         Back(TXT_CONFIRM, id=f'confirm_{id}', on_click=confirm_release),
         # Back(TXT_REJECT, id=f'reject_{id}', on_click=reject_release),
         Button(Const('✘ Шаблон'), id=f'reject_release_template', on_click=coming_soon),

@@ -108,6 +108,7 @@ async def to_choose_tracks(__, _, manager: DialogManager):
 
 
 async def on_approvement_lvl1(callback: CallbackQuery, _, manager: DialogManager):
+    await callback.answer('ИДЕТ ОБРАБОТКА...')
     data = manager.middleware_data
     bot: Bot = data['bot']
     track_info, release = await ReleaseHandler(data['session_maker'],
@@ -136,7 +137,7 @@ async def on_approvement_lvl1(callback: CallbackQuery, _, manager: DialogManager
         doc.save(ld_file)
         image_from_pc = FSInputFile(ld_file)
         msg = await callback.message.answer_document(image_from_pc)
-        # await bot.delete_message(callback.from_user.id, msg.message_id)
+        await bot.delete_message(callback.from_user.id, msg.message_id)
         if user.tg_id == callback.from_user.id:
             original_file_id = msg.document.file_id
         else:

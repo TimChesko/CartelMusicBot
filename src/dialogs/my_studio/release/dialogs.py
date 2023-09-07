@@ -10,16 +10,16 @@ from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.text import Const, Format, List, Multi
 
 from src.dialogs.my_studio.release.getters import create_new_release_getter, lvl1_getter, choose_tracks_getter, \
-    lvl2_getter, lvl3_getter, cover_getter
+    lvl2_getter, lvl3_getter, cover_getter, feat_release_getter
 from src.dialogs.my_studio.release.handlers import create_release, on_release, clear_release_tracks, set_release_title, \
     release_title_oth, set_release_cover, release_cover_oth, all_tracks_selected, to_choose_tracks, \
     delete_release, release_ld_oth, set_release_ld, on_approvement_lvl2, release_mail_oth, set_release_mail, \
     on_approvement_lvl3, on_approvement_lvl1
 from src.dialogs.utils.buttons import BTN_CANCEL_BACK, TXT_BACK
-from src.utils.fsm import ReleaseTrack, ReleasePage1, ReleasePage2, ReleasePage3
+from src.utils.fsm import ReleaseTrack, ReleasePage1, ReleasePage2, ReleasePage3, ReleaseFeat
 from src.utils.fsm import ReleaseTracks
 
-delete = Button(Const('Удалить'), on_click=delete_release, id='delete_release')
+delete = Button(Const('Удалить'), on_click=delete_release, id='delete_release', when='delete_permission')
 
 release_info = Multi(
     Format('Релиз: <b>"{title}"</b>'),
@@ -28,6 +28,29 @@ release_info = Multi(
     Const("\n ОЖИДАЙТЕ ПРОВЕРКУ", when='on_process'),
     Const('Ваш трек находится на стадии отгрузки, ожидайте.', when='on_aggregate'),
     sep='\n'
+)
+
+feat_releases = Dialog(
+    Window(
+        Const("Выберите совместный релиз для прикрепления документов"),
+        ScrollingGroup(
+            Select(
+                Format("🎵 {item[1]}"),
+                type_factory=int,
+                id="feat_release",
+                items="releases",
+                item_id_getter=itemgetter(0),
+                on_click=on_release
+            ),
+            width=1,
+            height=5,
+            id='scroll_feat_releases',
+            hide_on_single_page=True
+        ),
+        BTN_CANCEL_BACK,
+        getter=feat_release_getter,
+        state=ReleaseFeat.list
+    )
 )
 
 create_new_release = Dialog(

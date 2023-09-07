@@ -166,6 +166,8 @@ class MyTracksRejected(StatesGroup):
 class ReleaseTrack(StatesGroup):
     list = State()
 
+class ReleaseFeat(StatesGroup):
+    list = State()
 
 class ReleasePage1(StatesGroup):
     main = State()

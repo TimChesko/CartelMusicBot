@@ -7,7 +7,7 @@ from src.models.personal_data import PersonalDataHandler
 from src.models.tracks import TrackHandler
 from src.utils.enums import Status
 from src.utils.fsm import StartMenu, Listening, Profile, \
-    PersonalData, MyStudio, ReleaseTrack
+    PersonalData, MyStudio, ReleaseTrack, ReleaseFeat
 
 
 async def get_data(dialog_manager: DialogManager, **_kwargs):
@@ -61,9 +61,15 @@ start_menu = Dialog(
             when='verif_check'
         ),
         Start(
-            Const("📨 Выпустить трек в продакшн"),
+            Const("📨 Личный продакшн"),
             id='public_track',
             state=ReleaseTrack.list,
+            when='verif_check'
+        ),
+        Start(
+            Const("👨‍👦‍👦Совместный продакшн"),
+            id='feats',
+            state=ReleaseFeat.list,
             when='verif_check'
         ),
         Button(

@@ -26,21 +26,16 @@ async def reason_getter(dialog_manager: DialogManager, **_kwargs):
 async def task_page_getter(dialog_manager: DialogManager, **_kwargs):
     data = dialog_manager.middleware_data
     user, track, release, docs = await ReleaseHandler(data['session_maker'],
-                                                data['database_logger']).get_tracks_and_personal_data(
+                                                      data['database_logger']).get_tracks_and_personal_data(
         dialog_manager.dialog_data['user_id'],
         dialog_manager.dialog_data['release_id'])
     content_type = ContentType.DOCUMENT
     doc_id = release.release_cover if dialog_manager.dialog_data.get('doc_state',
                                                                      None) is True else release.unsigned_license
-
     if release.unsigned_status == Status.PROCESS and len(docs) > 1:
         page_number = await dialog_manager.find("stub_scroll").get_page()
-        docs.append(release.release_cover)
-        logging.info(docs)
-        logging.info(page_number)
-        all_docs = {number+1: document for number, document in enumerate(docs)}
-        logging.info(all_docs)
-        doc_id = all_docs[page_number+1]
+        all_docs = {number + 1: document for number, document in enumerate(docs)}
+        doc_id = all_docs[page_number + 1]
     elif release.signed_status == Status.PROCESS:
         doc_id = release.signed_license
     elif release.mail_track_status == Status.PROCESS:
@@ -53,7 +48,7 @@ async def task_page_getter(dialog_manager: DialogManager, **_kwargs):
         'title': release.release_title,
         'tracks': track,
         'doc': doc,
-        'checkbox': release.unsigned_status == Status.PROCESS,
+        'pager': release.unsigned_status == Status.PROCESS,
         'pages': len(docs)
     }
 
@@ -77,16 +72,20 @@ async def unsigned_task_getter(dialog_manager: DialogManager, **_kwargs):
         'checkbox': release.unsigned_status == Status.PROCESS,
     }
 
+
 # ON_CLICK
 async def confirm_release(callback: CallbackQuery, widget: Button, manager: DialogManager):
     state = widget.widget_id.split('_')[1]
     data = manager.middleware_data
     bot: Bot = manager.middleware_data['bot']
-    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release(
-        manager.dialog_data['release_id'])
+    release, featers = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release_with_featers(
+            manager.dialog_data['release_id'])
     await ReleaseHandler(data['session_maker'], data['database_logger']).approve(manager.dialog_data['release_id'],
                                                                                  callback.from_user.id,
                                                                                  state=state)
+    if state == 'unsigned':
+        for user in featers:
+            await bot.send_message(user.user_id, TxtApprovement(release.release_title).release_to_featers())
     if state == 'mail':
         await bot.send_message(manager.dialog_data['user_id'],
                                TxtApprovement(release.release_title).release_finish())
@@ -114,6 +113,7 @@ async def on_task_selected(callback: CallbackQuery, __, manager: DialogManager, 
     item = int(selected_item)
     data = manager.middleware_data
     release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_release(item)
+    logging.debug(release)
     if release.checker_id is None or release.checker_id == callback.from_user.id:
         await ReleaseHandler(data['session_maker'], data['database_logger']).set_task_state(item,
                                                                                             callback.from_user.id)

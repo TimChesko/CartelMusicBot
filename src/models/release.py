@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from sqlalchemy import select, update, delete, asc, and_, or_
 from sqlalchemy.exc import SQLAlchemyError
@@ -51,15 +52,32 @@ class ReleaseHandler:
             try:
                 result = await session.execute(
                     select(Release.id, Release.release_title).where(and_(Release.user_id == user_id,
-                                                                         or_(Release.mail_track_status == Status.REJECT,
-                                                                             Release.mail_track_status == Status.PROCESS,
-                                                                             Release.mail_track_status == None))))
+                                                                         Release.parent_release.is_(None),
+                                                                         or_(Release.mail_track_status == Status.PROCESS,
+                                                                             Release.mail_track_status == Status.REJECT,
+                                                                             Release.mail_track_status.is_(None)))))
                 track_info = result.all()
                 return track_info
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
 
+
+    async def get_feat_release_by_user_id(self, user_id):
+        async with self.session_maker() as session:
+            try:
+                result = await session.execute(
+                    select(Release.id, Release.release_title).where(and_(Release.user_id == user_id,
+                                                                         Release.parent_release.is_not(None),
+                                                                         Release.unsigned_status == Status.APPROVE,
+                                                                         or_(Release.mail_track_status == Status.PROCESS,
+                                                                             Release.mail_track_status == Status.REJECT,
+                                                                             Release.mail_track_status.is_(None)))))
+                track_info = result.all()
+                return track_info
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
     async def get_unsigned_state(self, state):
         async with self.session_maker() as session:
             try:
@@ -168,7 +186,6 @@ class ReleaseHandler:
                 release_docs = await session.execute(
                     select(Release.unsigned_license).where(or_(Release.id == release_id,
                                                                Release.parent_release == release_id)))
-
                 docs = release_docs.scalars().all()
                 return user, tracks, release, docs
             except SQLAlchemyError as e:
@@ -206,8 +223,21 @@ class ReleaseHandler:
             try:
                 query = select(Release).where(Release.id == release_id)
                 result = await session.execute(query)
-                tracks = result.scalar()
-                return tracks
+                release = result.scalar()
+                return release
+            except SQLAlchemyError as e:
+                self.logger.error(f"Ошибка при выполнении запроса: {e}")
+                return False
+
+    async def get_release_with_featers(self, release_id: int) -> Release:
+        async with self.session_maker() as session:
+            try:
+                query = select(Release).where(Release.id == release_id)
+                result = await session.execute(query)
+                release = result.scalar()
+                feats = await session.execute(select(Release).where(Release.parent_release == release_id))
+                featers = feats.scalars().all()
+                return release, featers
             except SQLAlchemyError as e:
                 self.logger.error(f"Ошибка при выполнении запроса: {e}")
                 return False
@@ -229,8 +259,9 @@ class ReleaseHandler:
             try:
                 if state == 'unsigned':
                     await session.execute(
-                        update(Release).where(Release.id == release_id).values(checker_id=None,
-                                                                               unsigned_status=Status.APPROVE)
+                        update(Release).where(
+                            or_(Release.id == release_id, Release.parent_release == release_id)).values(checker_id=None,
+                                                                                                        unsigned_status=Status.APPROVE)
                     )
                     await session.commit()
                     return True

@@ -61,12 +61,22 @@ async def create_new_release_getter(dialog_manager: DialogManager, **_kwargs):
     }
 
 
+async def feat_release_getter(dialog_manager: DialogManager, **_kwargs):
+    data = dialog_manager.middleware_data
+    logging.debug(dialog_manager.event.from_user.id)
+    release = await ReleaseHandler(data['session_maker'], data['database_logger']).get_feat_release_by_user_id(
+        dialog_manager.event.from_user.id)
+    return {
+        'releases': release
+    }
+
 def release_info(tracks: Track, release: Release):
     return {
         'title': release.release_title if release.release_title else f'Новый альбом №{release.id}',
         'tracks': tracks,
         'on_process': release.unsigned_status == Status.PROCESS or release.signed_status == Status.PROCESS or release.mail_track_status == Status.PROCESS,
         'on_aggregate': release.mail_track_status == Status.APPROVE,
+        'delete_permission': release.parent_release is None
 
     }
 
